@@ -300,7 +300,7 @@
     document.addEventListener('click', async (e) => {
       if (e.target && e.target.matches('.submit-comment')) {
         const btn = e.target;
-        const confessionId = parseInt(btn.dataset.id);
+        const confessionId = btn.dataset.id; // Now kept as UUID
         const box = btn.closest('.comment-box');
         const textarea = box.querySelector('textarea');
         const text = textarea.value.trim();
@@ -343,4 +343,3 @@
   </script>
 </body>
 </html>
-
