@@ -154,15 +154,19 @@
       font-size: 1rem;
       color: #fefefe;
     }
-    .like-button {
-      margin-top: 10px;
-      background: none;
-      border: 1px solid #555;
-      border-radius: 6px;
-      padding: 6px 10px;
-      color: #ff69b4;
+    .reaction-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .reaction-icon {
+      width: 36px;
+      height: auto;
       cursor: pointer;
-      font-size: 0.9rem;
+      transition: transform 0.2s;
+    }
+    .reaction-icon:hover {
+      transform: scale(1.2);
     }
     .comment-box {
       margin-top: 12px;
@@ -214,9 +218,10 @@
     </main>
   </div>
   <script>
-    const supabaseUrl = 'https://qmvnvcykudcbzyiupkdq.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtdm52Y3lrdWRjYnp5aXVwa2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjkyNjAsImV4cCI6MjA2ODUwNTI2MH0.y5SDc3Vu6VzyuwcZ6o3QKijIR8AW4cb8GlmyN0Zfuzw';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const supabase = window.supabase.createClient(
+      'https://qmvnvcykudcbzyiupkdq.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtdm52Y3lrdWRjYnp5aXVwa2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjkyNjAsImV4cCI6MjA2ODUwNTI2MH0.y5SDc3Vu6VzyuwcZ6o3QKijIR8AW4cb8GlmyN0Zfuzw'
+    );
 
     async function fetchConfessions() {
       const { data, error } = await supabase
@@ -246,7 +251,11 @@
         div.className = 'confession';
         div.innerHTML = `
           <p>${confession.text}</p>
-          <button class="like-button">Like</button>
+          <div class="reaction-buttons">
+            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/death.png" alt="Death" class="reaction-icon">
+            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/judgement.png" alt="Judgement" class="reaction-icon">
+            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/thequeen.png" alt="Queen" class="reaction-icon">
+          </div>
           <div class="comment-box">
             <textarea rows="2" placeholder="Add a comment..."></textarea>
           </div>
@@ -277,5 +286,6 @@
   </script>
 </body>
 </html>
+
 
 
