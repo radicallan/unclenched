@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Unclenched — Confess Anonymously</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <style>
     body {
       margin: 0;
@@ -101,7 +102,7 @@
   <h1>UNCLENCHED</h1>
   <p class="tagline">Where the gays go to scream anonymously. Submit your truths, spirals, secrets and voice notes — judgment free.</p>
 
-  <form class="confession-form" onsubmit="event.preventDefault(); alert('Confession received. Stay unclenched.');">
+  <form class="confession-form" id="confessionForm">
     <label for="confession">Anonymous Confession</label>
     <textarea id="confession" rows="6" placeholder="Spill it. No names. No limits." required></textarea>
 
@@ -112,5 +113,30 @@
   </form>
 
   <p class="footer-note">No account. No pressure. Just unfiltered, anonymous expression. Your chaos is safe here.</p>
+
+  <script>
+    const { createClient } = supabase;
+    const supabaseUrl = 'https://YOUR-PROJECT-ID.supabase.co';
+    const supabaseKey = 'YOUR-ANON-KEY';
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+    document.getElementById('confessionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const text = document.getElementById('confession').value;
+
+      const { data, error } = await supabaseClient
+        .from('confessions')
+        .insert([{ text, voice_url: null, category: 'uncategorised' }]);
+
+      if (error) {
+        alert('Something went wrong.');
+        console.error(error);
+      } else {
+        alert('Confession received. Stay unclenched.');
+        document.getElementById('confessionForm').reset();
+      }
+    });
+  </script>
 </body>
 </html>
