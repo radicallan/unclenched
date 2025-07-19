@@ -269,7 +269,7 @@
           </div>
         `;
         list.appendChild(div);
-        loadComments(confession.id);
+        await loadComments(confession.id);
       }
     }
 
@@ -281,6 +281,8 @@
         .order('created_at', { ascending: true });
 
       const container = document.getElementById(`comments-${confessionId}`);
+      if (!container) return;
+
       container.innerHTML = '';
 
       if (error) {
@@ -300,7 +302,7 @@
     document.addEventListener('click', async (e) => {
       if (e.target && e.target.matches('.submit-comment')) {
         const btn = e.target;
-        const confessionId = btn.dataset.id; // Now kept as UUID
+        const confessionId = btn.dataset.id;
         const box = btn.closest('.comment-box');
         const textarea = box.querySelector('textarea');
         const text = textarea.value.trim();
@@ -317,7 +319,7 @@
         }
 
         textarea.value = '';
-        loadComments(confessionId);
+        fetchConfessions(); // reload full list so new comment appears
       }
     });
 
@@ -343,3 +345,4 @@
   </script>
 </body>
 </html>
+
