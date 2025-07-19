@@ -180,6 +180,12 @@
       border: 1px solid #444;
       color: #fff;
     }
+    .comment-box button {
+      margin-top: 6px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+    }
     h2 {
       font-size: 1.2rem;
       color: #ff99cc;
@@ -246,7 +252,7 @@
         return;
       }
 
-      data.forEach(confession => {
+      for (const confession of data) {
         const div = document.createElement('div');
         div.className = 'confession';
         div.innerHTML = `
@@ -256,11 +262,58 @@
             <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/judgement.png" alt="Judgement" class="reaction-icon">
             <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/thequeen.png" alt="Queen" class="reaction-icon">
           </div>
-          <div class="comment-box">
+          <div class="comment-box" data-id="${confession.id}">
             <textarea rows="2" placeholder="Add a comment..."></textarea>
+            <button onclick="submitComment(${confession.id}, this)">Post</button>
+            <div class="comment-list" id="comments-${confession.id}"></div>
           </div>
         `;
         list.appendChild(div);
+        loadComments(confession.id);
+      }
+    }
+
+    async function submitComment(confessionId, btn) {
+      const box = btn.parentElement;
+      const textarea = box.querySelector('textarea');
+      const text = textarea.value.trim();
+      if (!text) return;
+
+      const { error } = await supabase
+        .from('comments')
+        .insert([{ confession_id: confessionId, text }]);
+
+      if (error) {
+        console.error('Error submitting comment:', error);
+        alert('Comment failed. Try again.');
+        return;
+      }
+
+      textarea.value = '';
+      loadComments(confessionId);
+    }
+
+    async function loadComments(confessionId) {
+      const { data, error } = await supabase
+        .from('comments')
+        .select('id, text, created_at')
+        .eq('confession_id', confessionId)
+        .order('created_at', { ascending: true });
+
+      const container = document.getElementById(`comments-${confessionId}`);
+      container.innerHTML = '';
+
+      if (error) {
+        console.error('Error loading comments:', error);
+        return;
+      }
+
+      data.forEach(comment => {
+        const p = document.createElement('p');
+        p.style.fontSize = '0.85rem';
+        p.style.color = '#ccc';
+        p.textContent = comment.text;
+        container.appendChild(p);
       });
     }
 
@@ -268,7 +321,7 @@
       e.preventDefault();
       const text = document.getElementById('confession').value;
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('confessions')
         .insert([{ text, voice_url: null, category: 'uncategorised' }]);
 
