@@ -244,14 +244,6 @@
         return;
       }
 
-      if (data.length === 0) {
-        const div = document.createElement('div');
-        div.className = 'confession';
-        div.textContent = 'No confessions yet. Be the first to spiral.';
-        list.appendChild(div);
-        return;
-      }
-
       for (const confession of data) {
         const div = document.createElement('div');
         div.className = 'confession';
@@ -269,23 +261,23 @@
           </div>
         `;
         list.appendChild(div);
-
-        // Ensure the comment container is rendered before loading
-        setTimeout(() => {
-          loadComments(confession.id);
-        }, 50);
+        loadComments(confession.id);
       }
     }
 
     async function loadComments(confessionId) {
+      console.log('🔁 Loading comments for:', confessionId);
+      const container = document.getElementById(`comments-${confessionId}`);
+      if (!container) {
+        console.warn('⚠️ No comment container found for', confessionId);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('comments')
         .select('id, text, created_at')
         .eq('confession_id', confessionId)
         .order('created_at', { ascending: true });
-
-      const container = document.getElementById(`comments-${confessionId}`);
-      if (!container) return;
 
       container.innerHTML = '';
 
@@ -349,3 +341,4 @@
   </script>
 </body>
 </html>
+
