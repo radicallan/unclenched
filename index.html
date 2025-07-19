@@ -1,3 +1,14 @@
+EyAdsD6f5
+
+
+Find…
+F
+
+Source
+Output
+index.html
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,40 +25,32 @@
       font-family: 'Inter', sans-serif;
       background: linear-gradient(145deg, #1a0033, #000);
       color: #fefefe;
-      height: 100%;
     }
     .container {
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       min-height: 100vh;
     }
     .sidebar {
-      width: 220px;
+      display: block;
+      width: 100%;
       background: #12001f;
-      padding: 20px;
-      border-right: 1px solid #300033;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
+      padding: 10px 16px;
+      border-bottom: 1px solid #300033;
+      text-align: center;
     }
     .sidebar h3 {
       color: #ff99cc;
       font-size: 1rem;
       text-transform: uppercase;
-      margin: 0 0 20px 0;
-      text-align: center;
+      margin: 10px 0;
     }
     .sidebar ul {
       list-style: none;
       padding: 0;
-      margin: 0;
       display: flex;
-      flex-direction: column;
-      gap: 16px;
+      justify-content: space-around;
+      margin: 0;
     }
     .sidebar li {
       font-size: 0.9rem;
@@ -56,305 +59,4 @@
     }
     .sidebar li:hover {
       color: #ff69b4;
-    }
-    .main-content {
-      flex: 1;
-      margin-left: 220px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 60px 16px;
-      width: 100%;
-    }
-    h1 {
-      font-family: 'Rubik Mono One', sans-serif;
-      color: #FF69B4;
-      font-size: 2.5rem;
-      margin-bottom: 0.3rem;
-      text-align: center;
-      word-break: break-word;
-    }
-    p.tagline {
-      color: #fcd3f4;
-      margin-bottom: 2rem;
-      font-size: 1rem;
-      max-width: 90%;
-      text-align: center;
-      line-height: 1.6;
-    }
-    .confession-form, .confession-wall {
-      background: rgba(255, 255, 255, 0.06);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      padding: 24px;
-      border-radius: 18px;
-      width: 100%;
-      max-width: 500px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      border: 1px solid rgba(255,255,255,0.1);
-      margin-top: 24px;
-    }
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #ff9ed3;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    textarea, input[type="file"] {
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #333;
-      font-size: 1rem;
-      background: #0f0f0f;
-      color: #fff;
-      width: 100%;
-    }
-    textarea:focus, input[type="file"]:focus {
-      border-color: #FF69B4;
-      outline: none;
-    }
-    button {
-      padding: 14px 20px;
-      background: linear-gradient(90deg, #FF69B4, #FF1493);
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-    .footer-note {
-      margin-top: 3rem;
-      font-size: 0.8rem;
-      color: #aaa;
-      text-align: center;
-      max-width: 80%;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .confession {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid #444;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 14px;
-      font-size: 1rem;
-      color: #fefefe;
-    }
-    .reaction-buttons {
-      display: flex;
-      gap: 12px;
-      margin-top: 12px;
-      align-items: center;
-    }
-    .reaction-icon {
-      width: 36px;
-      height: auto;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .reaction-icon:hover {
-      transform: scale(1.2);
-    }
-    .reaction-count {
-      font-size: 0.8rem;
-      color: #ccc;
-      margin-left: 4px;
-    }
-    .comment-box {
-      margin-top: 12px;
-    }
-    .comment-box textarea {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      background: #1a1a1a;
-      border: 1px solid #444;
-      color: #fff;
-    }
-    .comment-box button {
-      margin-top: 6px;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      border-radius: 8px;
-    }
-    .comment-list {
-      margin-top: 12px;
-    }
-    .comment-item {
-      background: #111;
-      border: 1px solid #333;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 6px;
-    }
-    .comment-label {
-      font-weight: bold;
-      font-size: 0.85rem;
-      color: #ff99cc;
-      margin-bottom: 4px;
-    }
-    .comment-text {
-      font-size: 0.9rem;
-      color: #eee;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="sidebar">
-      <h3>UNCLENCHED</h3>
-      <ul>
-        <li>Confess</li>
-        <li>Wall</li>
-        <li>Categories</li>
-        <li>About</li>
-        <li>Help</li>
-      </ul>
-    </div>
-    <main class="main-content">
-      <h1>UNCLENCHED</h1>
-      <p class="tagline">Where the gays go to scream anonymously. Drop your chaos. No names. No judgment. Just pure spiral.</p>
-      <form class="confession-form" id="confessionForm">
-        <label for="confession">Anonymous Confession</label>
-        <textarea id="confession" rows="6" placeholder="Spill the tea, darling..." required></textarea>
-        <label for="voice">Voice Note Upload (optional)</label>
-        <input type="file" id="voice" accept="audio/*">
-        <button type="submit">Submit Confession</button>
-      </form>
-      <div class="confession-wall" id="confessionWall">
-        <h2>Recent Confessions</h2>
-        <div id="confessionList"></div>
-      </div>
-      <p class="footer-note">Unclenched is your place to overshare in peace. No data. No login. Just vibes.</p>
-    </main>
-  </div>
-<script>
-  const supabase = window.supabase.createClient(
-    'https://qmvnvcykudcbzyiupkdq.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtdm52Y3lrdWRjYnp5aXVwa2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjkyNjAsImV4cCI6MjA2ODUwNTI2MH0.y5SDc3Vu6VzyuwcZ6o3QKijIR8AW4cb8GlmyN0Zfuzw'
-  );
 
-  async function fetchConfessions() {
-    const { data, error } = await supabase
-      .from('confessions')
-      .select('id, text, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    const list = document.getElementById('confessionList');
-    list.innerHTML = '';
-
-    if (error) {
-      console.error('Error fetching confessions:', error);
-      return;
-    }
-
-    for (const confession of data) {
-      const div = document.createElement('div');
-      div.className = 'confession';
-      div.innerHTML = `
-        <div><strong>Anonymous confessed:</strong></div>
-        <p>${confession.text}</p>
-        <div class="reaction-buttons">
-          <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/death.png" alt="Death" class="reaction-icon">
-          <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/judgement.png" alt="Judgement" class="reaction-icon">
-          <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/thequeen.png" alt="Queen" class="reaction-icon">
-        </div>
-        <div class="comment-box" data-id="${confession.id}">
-          <textarea rows="2" placeholder="Add a comment..."></textarea>
-          <button class="submit-comment" data-id="${confession.id}">Post</button>
-          <div class="comment-list" id="comments-${confession.id}"></div>
-        </div>
-      `;
-      list.appendChild(div);
-      loadComments(confession.id);
-    }
-  }
-
-  async function loadComments(confessionId) {
-    const container = document.getElementById(`comments-${confessionId}`);
-    if (!container) return;
-
-    const { data, error } = await supabase
-      .from('comments')
-      .select('id, text, created_at')
-      .eq('confession_id', confessionId)
-      .order('created_at', { ascending: true });
-
-    container.innerHTML = '';
-
-    if (error) {
-      console.error('Error loading comments:', error);
-      return;
-    }
-
-    data.forEach(comment => {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'comment-item';
-
-      const label = document.createElement('div');
-      label.className = 'comment-label';
-      label.textContent = 'Anonymous replied:';
-
-      const p = document.createElement('p');
-      p.className = 'comment-text';
-      p.textContent = comment.text;
-
-      wrapper.appendChild(label);
-      wrapper.appendChild(p);
-      container.appendChild(wrapper);
-    });
-  }
-
-  document.addEventListener('click', async (e) => {
-    if (e.target && e.target.matches('.submit-comment')) {
-      const btn = e.target;
-      const confessionId = btn.dataset.id;
-      const box = btn.closest('.comment-box');
-      const textarea = box.querySelector('textarea');
-      const text = textarea.value.trim();
-      if (!text) return;
-
-      const { error } = await supabase
-        .from('comments')
-        .insert([{ confession_id: confessionId, text }]);
-
-      if (error) {
-        console.error('Error submitting comment:', error);
-        alert('Comment failed. Try again.');
-        return;
-      }
-
-      textarea.value = '';
-      fetchConfessions();
-    }
-  });
-
-  document.getElementById('confessionForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = document.getElementById('confession').value;
-
-    const { error } = await supabase
-      .from('confessions')
-      .insert([{ text, voice_url: null, category: 'uncategorised' }]);
-
-    if (error) {
-      alert('Something went wrong.');
-      console.error(error);
-    } else {
-      alert('Submitted. Stay feral.');
-      document.getElementById('confessionForm').reset();
-      fetchConfessions();
-    }
-  });
-
-  fetchConfessions();
-</script>
-</body>
-</html>
