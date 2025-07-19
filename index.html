@@ -7,9 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Rubik+Mono+One&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     html, body {
       margin: 0;
       padding: 0;
@@ -23,7 +21,51 @@
       min-height: 100vh;
     }
     .sidebar {
-      display: none;
+      display: block;
+      width: 100%;
+      background: #12001f;
+      padding: 10px 16px;
+      border-bottom: 1px solid #300033;
+      text-align: center;
+    }
+    .sidebar h3 {
+      color: #ff99cc;
+      font-size: 1rem;
+      text-transform: uppercase;
+      margin: 10px 0;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      justify-content: space-around;
+      margin: 0;
+    }
+    .sidebar li {
+      font-size: 0.9rem;
+      color: #eee;
+      cursor: pointer;
+    }
+    .sidebar li:hover {
+      color: #ff69b4;
+    }
+    @media (min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+      .sidebar {
+        width: 220px;
+        height: 100vh;
+        flex-direction: column;
+        border-right: 1px solid #300033;
+      }
+      .sidebar ul {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .sidebar li {
+        margin: 10px 0;
+      }
     }
     .main-content {
       flex: 1;
@@ -140,38 +182,6 @@
       margin-bottom: 10px;
       text-align: center;
     }
-    @media (min-width: 768px) {
-      .container {
-        flex-direction: row;
-      }
-      .sidebar {
-        display: block;
-        width: 220px;
-        padding: 40px 20px;
-        background: #12001f;
-        border-right: 1px solid #300033;
-        height: 100vh;
-      }
-      .sidebar h3 {
-        color: #ff99cc;
-        font-size: 1rem;
-        text-transform: uppercase;
-        margin-bottom: 20px;
-      }
-      .sidebar ul {
-        list-style: none;
-        padding: 0;
-      }
-      .sidebar li {
-        margin: 10px 0;
-        color: #eee;
-        font-size: 0.95rem;
-        cursor: pointer;
-      }
-      .sidebar li:hover {
-        color: #ff69b4;
-      }
-    }
   </style>
 </head>
 <body>
@@ -189,22 +199,17 @@
     <main class="main-content">
       <h1>UNCLENCHED</h1>
       <p class="tagline">Where the gays go to scream anonymously. Drop your chaos. No names. No judgment. Just pure spiral.</p>
-
       <form class="confession-form" id="confessionForm">
         <label for="confession">Anonymous Confession</label>
         <textarea id="confession" rows="6" placeholder="Spill the tea, darling..." required></textarea>
-
         <label for="voice">Voice Note Upload (optional)</label>
         <input type="file" id="voice" accept="audio/*">
-
         <button type="submit">Submit Confession</button>
       </form>
-
       <div class="confession-wall" id="confessionWall">
         <h2>Recent Confessions</h2>
         <div id="confessionList"></div>
       </div>
-
       <p class="footer-note">Unclenched is your place to overshare in peace. No data. No login. Just vibes.</p>
     </main>
   </div>
@@ -272,4 +277,5 @@
   </script>
 </body>
 </html>
+
 
