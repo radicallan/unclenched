@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Unclenched</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
@@ -94,35 +94,6 @@
     .reaction-icon:hover {
       transform: scale(1.2);
     }
-    .comment-box textarea {
-      width: 100%;
-      margin-top: 10px;
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background: #1a1a1a;
-      color: #fff;
-    }
-    .comment-submit {
-      margin-top: 6px;
-      padding: 4px 12px;
-      background: #ff99cc;
-      border: none;
-      color: #000;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .comments {
-      margin-top: 10px;
-      font-size: 0.9rem;
-      color: #ccc;
-    }
-    .comment {
-      background: #222;
-      padding: 6px 10px;
-      margin-bottom: 4px;
-      border-radius: 4px;
-    }
     @media (min-width: 768px) {
       .sidebar {
         display: block;
@@ -189,36 +160,7 @@
             <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/judgement.png" alt="Judgement" class="reaction-icon">
             <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/thequeen.png" alt="Queen" class="reaction-icon">
           </div>
-          <div class="comment-box">
-            <textarea rows="2" placeholder="Add a comment..."></textarea>
-            <button class="comment-submit">Send</button>
-            <div class="comments"></div>
-          </div>
         `;
-
-        const textarea = div.querySelector('textarea');
-        const button = div.querySelector('.comment-submit');
-        const commentsDiv = div.querySelector('.comments');
-
-        button.addEventListener('click', async () => {
-          const text = textarea.value.trim();
-          if (!text) return;
-          await supabase.from('comments').insert({ text, confession_id: confession.id });
-          textarea.value = '';
-          loadComments();
-        });
-
-        async function loadComments() {
-          const { data: comments } = await supabase
-            .from('comments')
-            .select('*')
-            .eq('confession_id', confession.id)
-            .order('created_at', { ascending: true });
-
-          commentsDiv.innerHTML = comments.map(c => `<div class="comment">${c.text}</div>`).join('');
-        }
-
-        loadComments();
         list.appendChild(div);
       });
     }
