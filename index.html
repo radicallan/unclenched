@@ -6,25 +6,55 @@
   <title>Unclenched</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: #0a0a0a;
       color: #fff;
-      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    h1 {
+    header {
+      background: #1a1a1a;
+      padding: 20px;
       text-align: center;
-      font-size: 2rem;
-      margin-bottom: 30px;
+      border-bottom: 2px solid #ff99cc;
+    }
+    header h1 {
+      font-size: 2.2rem;
+      margin: 0;
       color: #ff99cc;
     }
+    header p {
+      font-size: 1rem;
+      color: #ccc;
+      margin-top: 6px;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+    }
+    .sidebar {
+      width: 220px;
+      background: #141414;
+      padding: 20px;
+      display: none;
+    }
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
     form {
-      max-width: 600px;
-      margin: 0 auto 40px;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      margin-bottom: 40px;
     }
     textarea {
       padding: 10px;
@@ -93,17 +123,36 @@
       margin-bottom: 4px;
       border-radius: 4px;
     }
+    @media (min-width: 768px) {
+      .sidebar {
+        display: block;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>UNCLENCHED</h1>
-
-  <form id="confess-form">
-    <textarea id="confession" placeholder="Get it off your chest..." required></textarea>
-    <button type="submit">Confess</button>
-  </form>
-
-  <div id="confession-list"></div>
+  <header>
+    <h1>UNCLENCHED</h1>
+    <p>Tell it. Delete it. Unclench.</p>
+  </header>
+  <div class="container">
+    <div class="sidebar">
+      <p><strong>Trending:</strong></p>
+      <ul style="padding-left: 20px;">
+        <li>#drama</li>
+        <li>#crush</li>
+        <li>#revenge</li>
+        <li>#lol</li>
+      </ul>
+    </div>
+    <div class="main-content">
+      <form id="confess-form">
+        <textarea id="confession" placeholder="Get it off your chest..." required></textarea>
+        <button type="submit">Confess</button>
+      </form>
+      <div id="confession-list"></div>
+    </div>
+  </div>
 
   <script>
     const supabaseUrl = "https://qmvnvcykudcbzyiupkdq.supabase.co";
@@ -178,4 +227,5 @@
   </script>
 </body>
 </html>
+
 
