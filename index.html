@@ -2,157 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Unclenched — Confess Anonymously</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Rubik+Mono+One&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unclenched</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
-    * { box-sizing: border-box; }
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(145deg, #1a0033, #000);
-      color: #fefefe;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    .sidebar {
-      display: block;
-      width: 100%;
-      background: #12001f;
-      padding: 10px 16px;
-      border-bottom: 1px solid #300033;
-      text-align: center;
-    }
-    .sidebar h3 {
-      color: #ff99cc;
-      font-size: 1rem;
-      text-transform: uppercase;
-      margin: 10px 0;
-    }
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-      display: flex;
-      justify-content: space-around;
-      margin: 0;
-    }
-    .sidebar li {
-      font-size: 0.9rem;
-      color: #eee;
-      cursor: pointer;
-    }
-    .sidebar li:hover {
-      color: #ff69b4;
-    }
-    @media (min-width: 768px) {
-      .container {
-        flex-direction: row;
-      }
-      .sidebar {
-        width: 220px;
-        height: 100vh;
-        flex-direction: column;
-        border-right: 1px solid #300033;
-      }
-      .sidebar ul {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .sidebar li {
-        margin: 10px 0;
-      }
-    }
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 60px 16px;
-      width: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      padding: 20px;
     }
     h1 {
-      font-family: 'Rubik Mono One', sans-serif;
-      color: #FF69B4;
-      font-size: 2.5rem;
-      margin-bottom: 0.3rem;
       text-align: center;
-      word-break: break-word;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      color: #ff99cc;
     }
-    p.tagline {
-      color: #fcd3f4;
-      margin-bottom: 2rem;
-      font-size: 1rem;
-      max-width: 90%;
-      text-align: center;
-      line-height: 1.6;
-    }
-    .confession-form, .confession-wall {
-      background: rgba(255, 255, 255, 0.06);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      padding: 24px;
-      border-radius: 18px;
-      width: 100%;
-      max-width: 500px;
+    form {
+      max-width: 600px;
+      margin: 0 auto 40px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      border: 1px solid rgba(255,255,255,0.1);
-      margin-top: 24px;
+      gap: 10px;
     }
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #ff9ed3;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    textarea, input[type="file"] {
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #333;
-      font-size: 1rem;
-      background: #0f0f0f;
+    textarea {
+      padding: 10px;
+      background: #1a1a1a;
       color: #fff;
-      width: 100%;
-    }
-    textarea:focus, input[type="file"]:focus {
-      border-color: #FF69B4;
-      outline: none;
+      border: 1px solid #444;
+      border-radius: 6px;
+      font-size: 1rem;
     }
     button {
-      padding: 14px 20px;
-      background: linear-gradient(90deg, #FF69B4, #FF1493);
-      color: white;
-      font-weight: bold;
+      background: #ff99cc;
+      color: #000;
       border: none;
-      border-radius: 10px;
-      font-size: 1rem;
+      padding: 10px;
+      border-radius: 6px;
       cursor: pointer;
-      text-transform: uppercase;
-    }
-    .footer-note {
-      margin-top: 3rem;
-      font-size: 0.8rem;
-      color: #aaa;
-      text-align: center;
-      max-width: 80%;
-      margin-left: auto;
-      margin-right: auto;
+      font-weight: bold;
     }
     .confession {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid #444;
+      background: #121212;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
       padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 14px;
-      font-size: 1rem;
-      color: #fefefe;
+      margin-bottom: 20px;
     }
     .reaction-buttons {
       display: flex;
@@ -168,83 +64,71 @@
     .reaction-icon:hover {
       transform: scale(1.2);
     }
-    .comment-box {
-      margin-top: 12px;
-    }
     .comment-box textarea {
       width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      background: #1a1a1a;
+      margin-top: 10px;
+      padding: 6px;
+      border-radius: 6px;
       border: 1px solid #444;
+      background: #1a1a1a;
       color: #fff;
     }
-    h2 {
-      font-size: 1.2rem;
-      color: #ff99cc;
-      margin-bottom: 10px;
-      text-align: center;
+    .comment-submit {
+      margin-top: 6px;
+      padding: 4px 12px;
+      background: #ff99cc;
+      border: none;
+      color: #000;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .comments {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+    .comment {
+      background: #222;
+      padding: 6px 10px;
+      margin-bottom: 4px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="sidebar">
-      <h3>UNCLENCHED</h3>
-      <ul>
-        <li>Confess</li>
-        <li>Wall</li>
-        <li>Categories</li>
-        <li>About</li>
-        <li>Help</li>
-      </ul>
-    </div>
-    <main class="main-content">
-      <h1>UNCLENCHED</h1>
-      <p class="tagline">Where the gays go to scream anonymously. Drop your chaos. No names. No judgment. Just pure spiral.</p>
-      <form class="confession-form" id="confessionForm">
-        <label for="confession">Anonymous Confession</label>
-        <textarea id="confession" rows="6" placeholder="Spill the tea, darling..." required></textarea>
-        <label for="voice">Voice Note Upload (optional)</label>
-        <input type="file" id="voice" accept="audio/*">
-        <button type="submit">Submit Confession</button>
-      </form>
-      <div class="confession-wall" id="confessionWall">
-        <h2>Recent Confessions</h2>
-        <div id="confessionList"></div>
-      </div>
-      <p class="footer-note">Unclenched is your place to overshare in peace. No data. No login. Just vibes.</p>
-    </main>
-  </div>
-  <script>
-    const supabase = window.supabase.createClient(
-      'https://qmvnvcykudcbzyiupkdq.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtdm52Y3lrdWRjYnp5aXVwa2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjkyNjAsImV4cCI6MjA2ODUwNTI2MH0.y5SDc3Vu6VzyuwcZ6o3QKijIR8AW4cb8GlmyN0Zfuzw'
-    );
+  <h1>UNCLENCHED</h1>
 
-    async function fetchConfessions() {
+  <form id="confess-form">
+    <textarea id="confession" placeholder="Get it off your chest..." required></textarea>
+    <button type="submit">Confess</button>
+  </form>
+
+  <div id="confession-list"></div>
+
+  <script>
+    const supabaseUrl = "https://qmvnvcykudcbzyiupkdq.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtdm52Y3lrdWRjYnp5aXVwa2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjkyNjAsImV4cCI6MjA2ODUwNTI2MH0.y5SDc3Vu6VzyuwcZ6o3QKijIR8AW4cb8GlmyN0Zfuzw";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const form = document.getElementById('confess-form');
+    const input = document.getElementById('confession');
+    const list = document.getElementById('confession-list');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      await supabase.from('confessions').insert({ text });
+      input.value = '';
+      loadConfessions();
+    });
+
+    async function loadConfessions() {
+      list.innerHTML = '';
       const { data, error } = await supabase
         .from('confessions')
-        .select('id, text, created_at')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      const list = document.getElementById('confessionList');
-      list.innerHTML = '';
-
-      if (error) {
-        console.error('Error fetching confessions:', error);
-        return;
-      }
-
-      if (data.length === 0) {
-        const div = document.createElement('div');
-        div.className = 'confession';
-        div.textContent = 'No confessions yet. Be the first to spiral.';
-        list.appendChild(div);
-        return;
-      }
+        .select('*')
+        .order('created_at', { ascending: false });
 
       data.forEach(confession => {
         const div = document.createElement('div');
@@ -258,34 +142,41 @@
           </div>
           <div class="comment-box">
             <textarea rows="2" placeholder="Add a comment..."></textarea>
+            <button class="comment-submit">Send</button>
+            <div class="comments"></div>
           </div>
         `;
+
+        const textarea = div.querySelector('textarea');
+        const button = div.querySelector('.comment-submit');
+        const commentsDiv = div.querySelector('.comments');
+
+        button.addEventListener('click', async () => {
+          const text = textarea.value.trim();
+          if (!text) return;
+          await supabase.from('comments').insert({ text, confession_id: confession.id });
+          textarea.value = '';
+          loadComments();
+        });
+
+        async function loadComments() {
+          const { data: comments } = await supabase
+            .from('comments')
+            .select('*')
+            .eq('confession_id', confession.id)
+            .order('created_at', { ascending: true });
+
+          commentsDiv.innerHTML = comments.map(c => `<div class="comment">${c.text}</div>`).join('');
+        }
+
+        loadComments();
         list.appendChild(div);
       });
     }
 
-    document.getElementById('confessionForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = document.getElementById('confession').value;
-
-      const { data, error } = await supabase
-        .from('confessions')
-        .insert([{ text, voice_url: null, category: 'uncategorised' }]);
-
-      if (error) {
-        alert('Something went wrong.');
-        console.error(error);
-      } else {
-        alert('Submitted. Stay feral.');
-        document.getElementById('confessionForm').reset();
-        fetchConfessions();
-      }
-    });
-
-    fetchConfessions();
+    loadConfessions();
   </script>
 </body>
 </html>
-
 
 
