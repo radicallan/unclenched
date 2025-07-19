@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -145,10 +146,19 @@
       margin-left: auto;
       margin-right: auto;
     }
-    .timestamp {
-      font-size: 0.75rem;
-      color: #bbb;
-      margin-top: 6px;
+    .confession {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #444;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      font-size: 1rem;
+      color: #fefefe;
+    }
+    .reaction-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
     }
     .reaction-icon {
       width: 36px;
@@ -159,28 +169,43 @@
     .reaction-icon:hover {
       transform: scale(1.2);
     }
-    .reaction-count {
-      font-size: 0.75rem;
-      color: #ccc;
-      text-align: center;
-      margin-top: 4px;
-    }
     .comment-box {
-      margin-top: 16px;
+      margin-top: 12px;
     }
     .comment-box textarea {
-      margin-bottom: 12px;
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      color: #fff;
     }
-    .comment-list div {
-      margin-bottom: 12px;
-      padding-left: 8px;
-      border-left: 2px solid #444;
-      line-height: 1.5;
+    .comment-box button {
+      margin-top: 6px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      border-radius: 8px;
     }
-    @media (max-width: 480px) {
-      h1 { font-size: 1.8rem; }
-      .confession-form, .confession-wall { padding: 16px; }
-      button { font-size: 0.9rem; padding: 10px 16px; }
+    .comment-list {
+      margin-top: 12px;
+    }
+    .comment-item {
+      background: #111;
+      border: 1px solid #333;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+    .comment-label {
+      font-weight: bold;
+      font-size: 0.85rem;
+      color: #ff99cc;
+      margin-bottom: 4px;
+    }
+    .comment-text {
+      font-size: 0.9rem;
+      color: #eee;
     }
   </style>
 </head>
@@ -234,69 +259,86 @@
         return;
       }
 
-      if (data.length === 0) {
-        const div = document.createElement('div');
-        div.className = 'confession';
-        div.textContent = 'No confessions yet. Be the first to spiral.';
-        list.appendChild(div);
-        return;
-      }
-
-      data.forEach(confession => {
+      for (const confession of data) {
         const div = document.createElement('div');
         div.className = 'confession';
         div.innerHTML = `
-          <p><strong>Anonymous says:</strong> ${confession.text}</p>
-          <div class="timestamp">${new Date(confession.created_at).toLocaleString()}</div>
+          <div><strong>Anonymous confessed:</strong></div>
+          <p>${confession.text}</p>
           <div class="reaction-buttons">
-            <div><img src="https://raw.githubusercontent.com/radicallan/unclenched/main/death.png" alt="Death" class="reaction-icon"><div class="reaction-count">0</div></div>
-            <div><img src="https://raw.githubusercontent.com/radicallan/unclenched/main/judgement.png" alt="Judgement" class="reaction-icon"><div class="reaction-count">0</div></div>
-            <div><img src="https://raw.githubusercontent.com/radicallan/unclenched/main/thequeen.png" alt="Queen" class="reaction-icon"><div class="reaction-count">0</div></div>
+            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/death.png" alt="Death" class="reaction-icon">
+            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/judgement.png" alt="Judgement" class="reaction-icon">
+            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/thequeen.png" alt="Queen" class="reaction-icon">
           </div>
-          <div class="comment-box">
+          <div class="comment-box" data-id="${confession.id}">
             <textarea rows="2" placeholder="Add a comment..."></textarea>
-            <button onclick="submitComment(${confession.id}, this)">Post</button>
+            <button class="submit-comment" data-id="${confession.id}">Post</button>
             <div class="comment-list" id="comments-${confession.id}"></div>
           </div>
         `;
         list.appendChild(div);
-        fetchComments(confession.id);
+        loadComments(confession.id);
+      }
+    }
+
+    async function loadComments(confessionId) {
+      const container = document.getElementById(`comments-${confessionId}`);
+      if (!container) return;
+
+      const { data, error } = await supabase
+        .from('comments')
+        .select('id, text, created_at')
+        .eq('confession_id', confessionId)
+        .order('created_at', { ascending: true });
+
+      container.innerHTML = '';
+
+      if (error) {
+        console.error('Error loading comments:', error);
+        return;
+      }
+
+      data.forEach(comment => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'comment-item';
+
+        const label = document.createElement('div');
+        label.className = 'comment-label';
+        label.textContent = 'Anonymous replied:';
+
+        const p = document.createElement('p');
+        p.className = 'comment-text';
+        p.textContent = comment.text;
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(p);
+        container.appendChild(wrapper);
       });
     }
 
-    async function fetchComments(confessionId) {
-      const { data, error } = await supabase
-        .from('comments')
-        .select('text')
-        .eq('confession_id', confessionId);
+    document.addEventListener('click', async (e) => {
+      if (e.target && e.target.matches('.submit-comment')) {
+        const btn = e.target;
+        const confessionId = btn.dataset.id;
+        const box = btn.closest('.comment-box');
+        const textarea = box.querySelector('textarea');
+        const text = textarea.value.trim();
+        if (!text) return;
 
-      if (!error && data.length) {
-        const list = document.getElementById(`comments-${confessionId}`);
-        data.forEach(c => {
-          const comment = document.createElement('div');
-          comment.textContent = `Anonymous says: ${c.text}`;
-          list.appendChild(comment);
-        });
-      }
-    }
+        const { error } = await supabase
+          .from('comments')
+          .insert([{ confession_id: confessionId, text }]);
 
-    async function submitComment(confessionId, buttonEl) {
-      const textarea = buttonEl.previousElementSibling;
-      const text = textarea.value.trim();
-      if (!text) return;
+        if (error) {
+          console.error('Error submitting comment:', error);
+          alert('Comment failed. Try again.');
+          return;
+        }
 
-      const { error } = await supabase
-        .from('comments')
-        .insert([{ confession_id: confessionId, text }]);
-
-      if (!error) {
         textarea.value = '';
-        fetchComments(confessionId);
-      } else {
-        alert('Comment failed. Try again.');
-        console.error('Comment error:', error);
+        fetchConfessions();
       }
-    }
+    });
 
     document.getElementById('confessionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
