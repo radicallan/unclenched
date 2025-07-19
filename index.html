@@ -269,7 +269,11 @@
           </div>
         `;
         list.appendChild(div);
-        await loadComments(confession.id);
+
+        // Ensure the comment container is rendered before loading
+        setTimeout(() => {
+          loadComments(confession.id);
+        }, 50);
       }
     }
 
@@ -319,7 +323,7 @@
         }
 
         textarea.value = '';
-        fetchConfessions(); // reload full list so new comment appears
+        fetchConfessions();
       }
     });
 
