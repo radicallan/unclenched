@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unclenched — Confess Anonymously</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0D0D0D, #1A1A1A);
+      color: #F4F4F4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+      min-height: 100vh;
+    }
+    h1 {
+      color: #FF6B81;
+      font-size: 3.5rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    p.tagline {
+      color: #C8C8C8;
+      margin-bottom: 3rem;
+      font-size: 1.4rem;
+      max-width: 500px;
+      text-align: center;
+    }
+    .confession-form {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border: 1px solid #333;
+    }
+    label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #FF6B81;
+    }
+    textarea, input[type="file"] {
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      resize: vertical;
+      font-size: 1rem;
+      background: #121212;
+      color: #F4F4F4;
+      transition: border 0.3s;
+    }
+    textarea:focus, input[type="file"]:focus {
+      border-color: #FF6B81;
+      outline: none;
+    }
+    button {
+      padding: 14px;
+      background: #FF6B81;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background: #ff4f6a;
+      transform: scale(1.03);
+    }
+    .footer-note {
+      margin-top: 4rem;
+      font-size: 0.85rem;
+      color: #888;
+      text-align: center;
+      max-width: 500px;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+      p.tagline {
+        font-size: 1.1rem;
+      }
+      .confession-form {
+        padding: 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>UNCLENCHED</h1>
+  <p class="tagline">Where the gays go to scream anonymously. Submit your truths, spirals, secrets and voice notes — judgment free.</p>
+
+  <form class="confession-form" onsubmit="event.preventDefault(); alert('Confession received. Stay unclenched.');">
+    <label for="confession">Anonymous Confession</label>
+    <textarea id="confession" rows="6" placeholder="Spill it. No names. No limits." required></textarea>
+
+    <label for="voice">Voice Note Upload (optional)</label>
+    <input type="file" id="voice" accept="audio/*">
+
+    <button type="submit">Submit Confession</button>
+  </form>
+
+  <p class="footer-note">No account. No pressure. Just unfiltered, anonymous expression. Your chaos is safe here.</p>
+</body>
+</html>
