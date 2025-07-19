@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Unclenched — Confess Anonymously</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Rubik+Mono+One&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
@@ -10,12 +10,16 @@
     * {
       box-sizing: border-box;
     }
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       font-family: 'Inter', sans-serif;
       background: linear-gradient(145deg, #1a0033, #000);
       color: #fefefe;
+    }
+    .container {
       display: flex;
+      flex-direction: column;
       min-height: 100vh;
     }
     .sidebar {
@@ -26,13 +30,13 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 60px 20px;
+      padding: 60px 16px;
       width: 100%;
     }
     h1 {
       font-family: 'Rubik Mono One', sans-serif;
       color: #FF69B4;
-      font-size: 3rem;
+      font-size: 2.5rem;
       margin-bottom: 0.3rem;
       text-align: center;
       word-break: break-word;
@@ -40,8 +44,8 @@
     p.tagline {
       color: #fcd3f4;
       margin-bottom: 2rem;
-      font-size: 1.2rem;
-      max-width: 600px;
+      font-size: 1rem;
+      max-width: 90%;
       text-align: center;
       line-height: 1.6;
     }
@@ -49,30 +53,31 @@
       background: rgba(255, 255, 255, 0.06);
       backdrop-filter: blur(12px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      padding: 32px;
+      padding: 24px;
       border-radius: 18px;
       width: 100%;
-      max-width: 540px;
+      max-width: 500px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
       border: 1px solid rgba(255,255,255,0.1);
       margin-top: 24px;
     }
     label {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
       color: #ff9ed3;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
     textarea, input[type="file"] {
-      padding: 14px;
+      padding: 12px;
       border-radius: 10px;
       border: 1px solid #333;
       font-size: 1rem;
       background: #0f0f0f;
       color: #fff;
+      width: 100%;
     }
     textarea:focus, input[type="file"]:focus {
       border-color: #FF69B4;
@@ -91,10 +96,12 @@
     }
     .footer-note {
       margin-top: 3rem;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #aaa;
       text-align: center;
-      max-width: 400px;
+      max-width: 80%;
+      margin-left: auto;
+      margin-right: auto;
     }
     .confession {
       background: rgba(255,255,255,0.05);
@@ -128,13 +135,13 @@
       color: #fff;
     }
     h2 {
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       color: #ff99cc;
       margin-bottom: 10px;
       text-align: center;
     }
     @media (min-width: 768px) {
-      body {
+      .container {
         flex-direction: row;
       }
       .sidebar {
@@ -168,38 +175,39 @@
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <h3>UNCLENCHED</h3>
-    <ul>
-      <li>Confess</li>
-      <li>Wall</li>
-      <li>Categories</li>
-      <li>About</li>
-      <li>Help</li>
-    </ul>
-  </div>
-  <main class="main-content">
-    <h1>UNCLENCHED</h1>
-    <p class="tagline">Where the gays go to scream anonymously. Drop your chaos. No names. No judgment. Just pure spiral.</p>
-
-    <form class="confession-form" id="confessionForm">
-      <label for="confession">Anonymous Confession</label>
-      <textarea id="confession" rows="6" placeholder="Spill the tea, darling..." required></textarea>
-
-      <label for="voice">Voice Note Upload (optional)</label>
-      <input type="file" id="voice" accept="audio/*">
-
-      <button type="submit">Submit Confession</button>
-    </form>
-
-    <div class="confession-wall" id="confessionWall">
-      <h2>Recent Confessions</h2>
-      <div id="confessionList"></div>
+  <div class="container">
+    <div class="sidebar">
+      <h3>UNCLENCHED</h3>
+      <ul>
+        <li>Confess</li>
+        <li>Wall</li>
+        <li>Categories</li>
+        <li>About</li>
+        <li>Help</li>
+      </ul>
     </div>
+    <main class="main-content">
+      <h1>UNCLENCHED</h1>
+      <p class="tagline">Where the gays go to scream anonymously. Drop your chaos. No names. No judgment. Just pure spiral.</p>
 
-    <p class="footer-note">Unclenched is your place to overshare in peace. No data. No login. Just vibes.</p>
-  </main>
+      <form class="confession-form" id="confessionForm">
+        <label for="confession">Anonymous Confession</label>
+        <textarea id="confession" rows="6" placeholder="Spill the tea, darling..." required></textarea>
 
+        <label for="voice">Voice Note Upload (optional)</label>
+        <input type="file" id="voice" accept="audio/*">
+
+        <button type="submit">Submit Confession</button>
+      </form>
+
+      <div class="confession-wall" id="confessionWall">
+        <h2>Recent Confessions</h2>
+        <div id="confessionList"></div>
+      </div>
+
+      <p class="footer-note">Unclenched is your place to overshare in peace. No data. No login. Just vibes.</p>
+    </main>
+  </div>
   <script>
     const supabaseUrl = 'https://qmvnvcykudcbzyiupkdq.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtdm52Y3lrdWRjYnp5aXVwa2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjkyNjAsImV4cCI6MjA2ODUwNTI2MH0.y5SDc3Vu6VzyuwcZ6o3QKijIR8AW4cb8GlmyN0Zfuzw';
