@@ -186,11 +186,25 @@
       font-size: 0.8rem;
       border-radius: 8px;
     }
-    h2 {
-      font-size: 1.2rem;
+    .comment-list {
+      margin-top: 12px;
+    }
+    .comment-item {
+      background: #111;
+      border: 1px solid #333;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+    .comment-label {
+      font-weight: bold;
+      font-size: 0.85rem;
       color: #ff99cc;
-      margin-bottom: 10px;
-      text-align: center;
+      margin-bottom: 4px;
+    }
+    .comment-text {
+      font-size: 0.9rem;
+      color: #eee;
     }
   </style>
 </head>
@@ -248,6 +262,7 @@
         const div = document.createElement('div');
         div.className = 'confession';
         div.innerHTML = `
+          <div><strong>Anonymous confessed:</strong></div>
           <p>${confession.text}</p>
           <div class="reaction-buttons">
             <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/death.png" alt="Death" class="reaction-icon">
@@ -266,12 +281,8 @@
     }
 
     async function loadComments(confessionId) {
-      console.log('🔁 Loading comments for:', confessionId);
       const container = document.getElementById(`comments-${confessionId}`);
-      if (!container) {
-        console.warn('⚠️ No comment container found for', confessionId);
-        return;
-      }
+      if (!container) return;
 
       const { data, error } = await supabase
         .from('comments')
@@ -287,11 +298,20 @@
       }
 
       data.forEach(comment => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'comment-item';
+
+        const label = document.createElement('div');
+        label.className = 'comment-label';
+        label.textContent = 'Anonymous replied:';
+
         const p = document.createElement('p');
-        p.style.fontSize = '0.85rem';
-        p.style.color = '#ccc';
+        p.className = 'comment-text';
         p.textContent = comment.text;
-        container.appendChild(p);
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(p);
+        container.appendChild(wrapper);
       });
     }
 
