@@ -1,363 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Unclenched — Confess Anonymously</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Rubik+Mono+One&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Acme Coaches | Reliable Coach Hire Across the UK</title>
+  <meta name="description" content="Modern coach hire for schools, corporate events, tours and private groups. Clean vehicles, professional drivers, simple online quotes." />
+  <meta name="theme-color" content="#0f172a" />
+  <meta property="og:title" content="Acme Coaches" />
+  <meta property="og:description" content="Reliable coach hire across the UK: modern fleet, professional drivers, fast quotes." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/placeholder-hero.jpg" />
+  <meta property="og:url" content="https://example.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(145deg, #1a0033, #000);
-      color: #fefefe;
+    :root{
+      --bg:#0b1020; /* deep navy */
+      --card:#11182d; /* slightly lighter navy */
+      --text:#e6ecff; /* off-white */
+      --muted:#a7b3d1; /* muted text */
+      --brand:#6ee7ff; /* accent */
+      --brand-2:#7c3aed; /* secondary accent */
+      --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+      --ring: 0 0 0 3px rgba(110,231,255,.35)
     }
-    .container {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif; color:var(--text); background:linear-gradient(180deg,#070b18, #0b1020 40%, #0b1020 100%);}    
+    a{color:inherit}
+    .container{max-width:1200px; margin:0 auto; padding:0 24px}
+    header{position:sticky; top:0; z-index:50; background:rgba(11,16,32,.7); backdrop-filter: blur(10px); border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav{display:flex; align-items:center; justify-content:space-between; height:72px}
+    .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.2px}
+    .brand-logo{width:36px; height:36px; border-radius:9px; background:linear-gradient(135deg,var(--brand),var(--brand-2)); display:grid; place-items:center; font-weight:800; color:#001;}
+    .nav a{opacity:.9; text-decoration:none; margin-left:20px}
+    .nav a:hover{opacity:1}
+    .cta{padding:12px 16px; border-radius:12px; background:linear-gradient(135deg,var(--brand),var(--brand-2)); color:#001; font-weight:700; border:none; cursor:pointer}
+    .cta:focus{outline: none; box-shadow: var(--ring)}
+
+    /* Hero */
+    .hero{position:relative; overflow:hidden; border-bottom:1px solid rgba(255,255,255,.06)}
+    .hero-inner{display:grid; grid-template-columns:1.1fr .9fr; gap:32px; align-items:center; min-height:78vh}
+    .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:14px; color:var(--muted); background:rgba(255,255,255,.05); padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08)}
+    h1{font-size: clamp(28px, 4vw, 56px); line-height:1.05; margin:12px 0 10px}
+    .lead{font-size: clamp(16px, 2.1vw, 20px); color:#c7d2fe}
+    .hero-card{background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.08); padding:20px; border-radius:16px}
+    .badge-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:22px}
+    .pill{font-size:13px; color:#cfe7ff; background:rgba(110,231,255,.08); border:1px solid rgba(110,231,255,.25); padding:6px 10px; border-radius:999px}
+    .hero-bg{position:absolute; inset:-20% -10% auto -10%; height:120%; background:radial-gradient(1200px 500px at 80% 60%, rgba(110,231,255,.14), transparent 60%), radial-gradient(800px 400px at 20% 30%, rgba(124,58,237,.18), transparent 60%)}
+
+    /* Sections */
+    section{padding:64px 0}
+    .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+    .card{background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.08); padding:22px; border-radius:16px}
+    .card h3{margin:6px 0 8px}
+    .muted{color:var(--muted)}
+
+    /* Booking form */
+    .form-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px}
+    label{font-size:14px; color:#c7d2fe}
+    input, select, textarea{width:100%; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0c1328; color:var(--text)}
+    input:focus, select:focus, textarea:focus{outline:none; box-shadow: var(--ring); border-color:rgba(110,231,255,.45)}
+    textarea{min-height:110px}
+    .actions{display:flex; gap:10px; align-items:center}
+
+    /* Fleet gallery */
+    .gallery{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+    .gallery img{width:100%; height:180px; object-fit:cover; border-radius:12px; border:1px solid rgba(255,255,255,.1)}
+
+    /* Testimonials */
+    .quotes{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+    blockquote{margin:0; padding:18px; background:#0c1328; border:1px solid rgba(255,255,255,.08); border-radius:16px; font-size:15px}
+
+    /* Footer */
+    footer{border-top:1px solid rgba(255,255,255,.08); background:#0a0f1f; padding:40px 0}
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .hero-inner{grid-template-columns:1fr; min-height:auto; padding:36px 0}
+      .cards{grid-template-columns:1fr 1fr}
+      .quotes{grid-template-columns:1fr 1fr}
+      .gallery{grid-template-columns:1fr 1fr}
     }
-    .sidebar {
-      display: block;
-      width: 100%;
-      background: #12001f;
-      padding: 10px 16px;
-      border-bottom: 1px solid #300033;
-      text-align: center;
-    }
-    .sidebar h3 {
-      color: #ff99cc;
-      font-size: 1rem;
-      text-transform: uppercase;
-      margin: 10px 0;
-    }
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-      display: flex;
-      justify-content: space-around;
-      margin: 0;
-    }
-    .sidebar li {
-      font-size: 0.9rem;
-      color: #eee;
-      cursor: pointer;
-    }
-    .sidebar li:hover {
-      color: #ff69b4;
-    }
-    @media (min-width: 768px) {
-      .container {
-        flex-direction: row;
-      }
-      .sidebar {
-        width: 220px;
-        height: 100vh;
-        flex-direction: column;
-        border-right: 1px solid #300033;
-      }
-      .sidebar ul {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .sidebar li {
-        margin: 10px 0;
-      }
-    }
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 60px 16px;
-      width: 100%;
-    }
-    h1 {
-      font-family: 'Rubik Mono One', sans-serif;
-      color: #FF69B4;
-      font-size: 2.5rem;
-      margin-bottom: 0.3rem;
-      text-align: center;
-      word-break: break-word;
-    }
-    p.tagline {
-      color: #fcd3f4;
-      margin-bottom: 2rem;
-      font-size: 1rem;
-      max-width: 90%;
-      text-align: center;
-      line-height: 1.6;
-    }
-    .confession-form, .confession-wall {
-      background: rgba(255, 255, 255, 0.06);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      padding: 24px;
-      border-radius: 18px;
-      width: 100%;
-      max-width: 500px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      border: 1px solid rgba(255,255,255,0.1);
-      margin-top: 24px;
-    }
-    label {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #ff9ed3;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    textarea, input[type="file"] {
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #333;
-      font-size: 1rem;
-      background: #0f0f0f;
-      color: #fff;
-      width: 100%;
-    }
-    textarea:focus, input[type="file"]:focus {
-      border-color: #FF69B4;
-      outline: none;
-    }
-    button {
-      padding: 14px 20px;
-      background: linear-gradient(90deg, #FF69B4, #FF1493);
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-    .footer-note {
-      margin-top: 3rem;
-      font-size: 0.8rem;
-      color: #aaa;
-      text-align: center;
-      max-width: 80%;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .confession {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid #444;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 14px;
-      font-size: 1rem;
-      color: #fefefe;
-    }
-    .reaction-buttons {
-      display: flex;
-      gap: 12px;
-      margin-top: 12px;
-    }
-    .reaction-icon {
-      width: 36px;
-      height: auto;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    .reaction-icon:hover {
-      transform: scale(1.2);
-    }
-    .comment-box {
-      margin-top: 12px;
-    }
-    .comment-box textarea {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      background: #1a1a1a;
-      border: 1px solid #444;
-      color: #fff;
-    }
-    .comment-box button {
-      margin-top: 6px;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      border-radius: 8px;
-    }
-    .comment-list {
-      margin-top: 12px;
-    }
-    .comment-item {
-      background: #111;
-      border: 1px solid #333;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 6px;
-    }
-    .comment-label {
-      font-weight: bold;
-      font-size: 0.85rem;
-      color: #ff99cc;
-      margin-bottom: 4px;
-    }
-    .comment-text {
-      font-size: 0.9rem;
-      color: #eee;
+    @media (max-width: 640px){
+      .cards, .quotes, .gallery{grid-template-columns:1fr}
+      .form-grid{grid-template-columns:1fr}
+      .nav a{margin-left:12px}
+      .brand span{display:none}
     }
   </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Acme Coaches",
+    "url": "https://example.com",
+    "telephone": "+44 0115 000 0000",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "123 Coach Park",
+      "addressLocality": "Nottingham",
+      "postalCode": "NG1 1AA",
+      "addressCountry": "GB"
+    },
+    "areaServed": "United Kingdom",
+    "description": "Coach hire for schools, corporate, tours and private groups.",
+    "openingHours": "Mo-Fr 08:00-18:00",
+    "sameAs": [
+      "https://facebook.com/yourpage"
+    ]
+  }
+  </script>
 </head>
 <body>
-  <div class="container">
-    <div class="sidebar">
-      <h3>UNCLENCHED</h3>
-      <ul>
-        <li>Confess</li>
-        <li>Wall</li>
-        <li>Categories</li>
-        <li>About</li>
-        <li>Help</li>
-      </ul>
-    </div>
-    <main class="main-content">
-      <h1>UNCLENCHED</h1>
-      <p class="tagline">Where the gays go to scream anonymously. Drop your chaos. No names. No judgment. Just pure spiral.</p>
-      <form class="confession-form" id="confessionForm">
-        <label for="confession">Anonymous Confession</label>
-        <textarea id="confession" rows="6" placeholder="Spill the tea, darling..." required></textarea>
-        <label for="voice">Voice Note Upload (optional)</label>
-        <input type="file" id="voice" accept="audio/*">
-        <button type="submit">Submit Confession</button>
-      </form>
-      <div class="confession-wall" id="confessionWall">
-        <h2>Recent Confessions</h2>
-        <div id="confessionList"></div>
+  <header>
+    <div class="container nav">
+      <div class="brand" aria-label="Brand">
+        <div class="brand-logo" aria-hidden="true">AC</div>
+        <span>Acme Coaches</span>
       </div>
-      <p class="footer-note">Unclenched is your place to overshare in peace. No data. No login. Just vibes.</p>
-    </main>
-  </div>
+      <nav aria-label="Main">
+        <a href="#services">Services</a>
+        <a href="#fleet">Fleet</a>
+        <a href="#areas">Areas</a>
+        <a href="#quote" class="cta" role="button">Get a Quote</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container hero-inner">
+        <div>
+          <span class="eyebrow">Modern, reliable, fully insured</span>
+          <h1>Coach hire that just… works.</h1>
+          <p class="lead">From school trips to corporate events and weekends away, our modern fleet and professional drivers keep your journey smooth, safe and on time.</p>
+          <div class="badge-row">
+            <span class="pill">DBS-checked drivers</span>
+            <span class="pill">Real-time tracking</span>
+            <span class="pill">Accessible options</span>
+            <span class="pill">24/7 support</span>
+          </div>
+        </div>
+        <div class="hero-card" aria-labelledby="quoteTitle">
+          <h2 id="quoteTitle" style="margin:0 0 8px">Quick quote</h2>
+          <p class="muted" style="margin:0 0 14px">Tell us a few details—get a same‑day price.</p>
+          <form id="quoteForm" novalidate aria-describedby="formHelp">
+            <div class="form-grid">
+              <div>
+                <label for="tripType">Trip type</label>
+                <select id="tripType" required>
+                  <option value="">Select…</option>
+                  <option>Single</option>
+                  <option>Return</option>
+                  <option>Multi-stop</option>
+                </select>
+              </div>
+              <div>
+                <label for="passengers">Passengers</label>
+                <input id="passengers" inputmode="numeric" pattern="^[0-9]{1,3}$" placeholder="e.g., 35" required />
+              </div>
+              <div>
+                <label for="pickup">Pickup location</label>
+                <input id="pickup" placeholder="Postcode or address" required />
+              </div>
+              <div>
+                <label for="dropoff">Drop-off location</label>
+                <input id="dropoff" placeholder="Postcode or address" required />
+              </div>
+              <div>
+                <label for="date">Travel date</label>
+                <input id="date" type="date" required />
+              </div>
+              <div>
+                <label for="time">Pickup time</label>
+                <input id="time" type="time" required />
+              </div>
+              <div style="grid-column:1/-1">
+                <label for="notes">Notes (optional)</label>
+                <textarea id="notes" placeholder="Flight number, accessibility needs, child seats…"></textarea>
+              </div>
+            </div>
+            <div class="actions" style="margin-top:14px">
+              <button class="cta" type="submit">Request quote</button>
+              <span id="formHelp" class="muted">No spam. We usually reply within a few hours.</span>
+            </div>
+            <div id="formMsg" role="status" aria-live="polite" style="margin-top:10px"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="services">
+      <div class="container">
+        <h2>What we do</h2>
+        <p class="muted">Flexible coach hire for every type of trip.</p>
+        <div class="cards" style="margin-top:14px">
+          <div class="card">
+            <h3>Schools & colleges</h3>
+            <p class="muted">Regular contracts and one‑off trips. DBS‑checked drivers and safety‑first policies.</p>
+          </div>
+          <div class="card">
+            <h3>Corporate & events</h3>
+            <p class="muted">Shuttles, off‑sites, conferences and VIP transfers with real‑time tracking.</p>
+          </div>
+          <div class="card">
+            <h3>Private hire & tours</h3>
+            <p class="muted">Weddings, weekend breaks and UK tours with curated stop suggestions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fleet" style="padding-top:0">
+      <div class="container">
+        <h2>Our fleet</h2>
+        <p class="muted">Clean, comfortable vehicles maintained to the highest standard.</p>
+        <div class="gallery" style="margin-top:14px">
+          <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1200&auto=format&fit=crop" alt="Luxury coach exterior" />
+          <img src="https://images.unsplash.com/photo-1519852476561-ec618b018aa5?q=80&w=1200&auto=format&fit=crop" alt="Coach interior seating" />
+          <img src="https://images.unsplash.com/photo-1554200876-56f8e788e7db?q=80&w=1200&auto=format&fit=crop" alt="Minibus for smaller groups" />
+          <img src="https://images.unsplash.com/photo-1501706362039-c06b2d715385?q=80&w=1200&auto=format&fit=crop" alt="Accessible coach ramp" />
+        </div>
+      </div>
+    </section>
+
+    <section id="areas">
+      <div class="container">
+        <h2>Where we operate</h2>
+        <p class="muted">Based in Nottingham. Regular routes across the Midlands and nationwide coverage on request.</p>
+        <div class="cards" style="margin-top:14px">
+          <div class="card"><h3>Local</h3><p class="muted">Nottinghamshire, Derbyshire, Leicestershire</p></div>
+          <div class="card"><h3>Regional</h3><p class="muted">Midlands, Yorkshire, Lincolnshire</p></div>
+          <div class="card"><h3>Nationwide</h3><p class="muted">Anywhere in mainland UK by arrangement</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2>What customers say</h2>
+        <div class="quotes" style="margin-top:14px">
+          <blockquote>
+            “Flawless service from booking to drop‑off. Our go‑to for school trips.”
+            <footer class="muted" style="margin-top:10px">— Head of Year, Nottingham</footer>
+          </blockquote>
+          <blockquote>
+            “Immaculate coaches and bang‑on‑time drivers. Made our event logistics painless.”
+            <footer class="muted" style="margin-top:10px">— Events Lead, Derby</footer>
+          </blockquote>
+          <blockquote>
+            “Great price, friendly team, will book again.”
+            <footer class="muted" style="margin-top:10px">— Private Hire, Leicester</footer>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <section id="quote">
+      <div class="container">
+        <div class="card">
+          <h2>Ready for a fast quote?</h2>
+          <p class="muted">Prefer email or phone? Use bookings@example.com or 0115 000 0000.</p>
+          <form id="quoteFormBottom" novalidate>
+            <div class="form-grid">
+              <div>
+                <label for="name2">Your name</label>
+                <input id="name2" placeholder="Full name" required />
+              </div>
+              <div>
+                <label for="email2">Email</label>
+                <input id="email2" type="email" placeholder="you@example.com" required />
+              </div>
+              <div>
+                <label for="phone2">Phone (optional)</label>
+                <input id="phone2" type="tel" placeholder="07…" />
+              </div>
+              <div>
+                <label for="passengers2">Passengers</label>
+                <input id="passengers2" inputmode="numeric" pattern="^[0-9]{1,3}$" placeholder="e.g., 49" required />
+              </div>
+              <div style="grid-column:1/-1">
+                <label for="details2">Trip details</label>
+                <textarea id="details2" placeholder="Pickup, drop‑off, dates, times and any extras" required></textarea>
+              </div>
+            </div>
+            <div class="actions" style="margin-top:14px">
+              <button class="cta" type="submit">Send</button>
+              <span class="muted">We aim to reply the same working day.</span>
+            </div>
+            <div id="formMsg2" role="status" aria-live="polite" style="margin-top:10px"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container" style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:18px">
+      <div>
+        <div class="brand" style="margin-bottom:8px">
+          <div class="brand-logo" aria-hidden="true">AC</div>
+          <span>Acme Coaches</span>
+        </div>
+        <p class="muted">Registered in England & Wales. Fully insured. Operator licence OX0000000.</p>
+        <p class="muted">© <span id="year"></span> Acme Coaches. All rights reserved.</p>
+      </div>
+      <div>
+        <h4 style="margin:6px 0">Company</h4>
+        <ul style="list-style:none; padding:0; margin:0; color:var(--muted)">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#fleet">Fleet</a></li>
+          <li><a href="#quote">Get a quote</a></li>
+          <li><a href="#">Privacy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="margin:6px 0">Contact</h4>
+        <p class="muted">0115 000 0000<br>bookings@example.com<br>123 Coach Park, Nottingham NG1 1AA</p>
+      </div>
+    </div>
+  </footer>
+
   <script>
-    const supabase = window.supabase.createClient(
-      'https://qmvnvcykudcbzyiupkdq.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtdm52Y3lrdWRjYnp5aXVwa2RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjkyNjAsImV4cCI6MjA2ODUwNTI2MH0.y5SDc3Vu6VzyuwcZ6o3QKijIR8AW4cb8GlmyN0Zfuzw'
-    );
-
-    async function fetchConfessions() {
-      const { data, error } = await supabase
-        .from('confessions')
-        .select('id, text, created_at')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      const list = document.getElementById('confessionList');
-      list.innerHTML = '';
-
-      if (error) {
-        console.error('Error fetching confessions:', error);
-        return;
-      }
-
-      for (const confession of data) {
-        const div = document.createElement('div');
-        div.className = 'confession';
-        div.innerHTML = `
-          <div><strong>Anonymous confessed:</strong></div>
-          <p>${confession.text}</p>
-          <div class="reaction-buttons">
-            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/death.png" alt="Death" class="reaction-icon">
-            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/judgement.png" alt="Judgement" class="reaction-icon">
-            <img src="https://raw.githubusercontent.com/radicallan/unclenched/main/thequeen.png" alt="Queen" class="reaction-icon">
-          </div>
-          <div class="comment-box" data-id="${confession.id}">
-            <textarea rows="2" placeholder="Add a comment..."></textarea>
-            <button class="submit-comment" data-id="${confession.id}">Post</button>
-            <div class="comment-list" id="comments-${confession.id}"></div>
-          </div>
-        `;
-        list.appendChild(div);
-        loadComments(confession.id);
-      }
-    }
-
-    async function loadComments(confessionId) {
-      const container = document.getElementById(`comments-${confessionId}`);
-      if (!container) return;
-
-      const { data, error } = await supabase
-        .from('comments')
-        .select('id, text, created_at')
-        .eq('confession_id', confessionId)
-        .order('created_at', { ascending: true });
-
-      container.innerHTML = '';
-
-      if (error) {
-        console.error('Error loading comments:', error);
-        return;
-      }
-
-      data.forEach(comment => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'comment-item';
-
-        const label = document.createElement('div');
-        label.className = 'comment-label';
-        label.textContent = 'Anonymous replied:';
-
-        const p = document.createElement('p');
-        p.className = 'comment-text';
-        p.textContent = comment.text;
-
-        wrapper.appendChild(label);
-        wrapper.appendChild(p);
-        container.appendChild(wrapper);
-      });
-    }
-
-    document.addEventListener('click', async (e) => {
-      if (e.target && e.target.matches('.submit-comment')) {
-        const btn = e.target;
-        const confessionId = btn.dataset.id;
-        const box = btn.closest('.comment-box');
-        const textarea = box.querySelector('textarea');
-        const text = textarea.value.trim();
-        if (!text) return;
-
-        const { error } = await supabase
-          .from('comments')
-          .insert([{ confession_id: confessionId, text }]);
-
-        if (error) {
-          console.error('Error submitting comment:', error);
-          alert('Comment failed. Try again.');
+    // Simple a11y-friendly form handling (replace with real endpoint)
+    function handleForm(formId, msgId){
+      const form = document.getElementById(formId);
+      const msg = document.getElementById(msgId);
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const invalid = [...form.querySelectorAll('[required]')].filter(el => !el.value.trim() || (el.pattern && !(new RegExp(el.pattern).test(el.value))));
+        if(invalid.length){
+          msg.textContent = 'Please complete the required fields.';
+          msg.style.color = '#fca5a5';
+          invalid[0].focus();
           return;
         }
-
-        textarea.value = '';
-        fetchConfessions();
-      }
-    });
-
-    document.getElementById('confessionForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = document.getElementById('confession').value;
-
-      const { error } = await supabase
-        .from('confessions')
-        .insert([{ text, voice_url: null, category: 'uncategorised' }]);
-
-      if (error) {
-        alert('Something went wrong.');
-        console.error(error);
-      } else {
-        alert('Submitted. Stay feral.');
-        document.getElementById('confessionForm').reset();
-        fetchConfessions();
-      }
-    });
-
-    fetchConfessions();
+        // Simulate success
+        msg.textContent = 'Thanks! Your request has been received. We\'ll be in touch shortly.';
+        msg.style.color = '#86efac';
+        form.reset();
+      });
+    }
+    handleForm('quoteForm','formMsg');
+    handleForm('quoteFormBottom','formMsg2');
+    document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
