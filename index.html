@@ -1,387 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Acorn Travel | Coach Hire Nottingham & Midlands</title>
-  <meta name="description" content="Family‑run coach & minibus hire in Nottingham and the Midlands. Friendly drivers, clean vehicles, simple booking. Get a fast quote today." />
+  <meta name="description" content="Family-run coach and minibus hire based in Nottingham. Modern, reliable fleet for schools, corporate events, tours and private groups. Fast quotes." />
   <meta name="theme-color" content="#0b1020" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ===== Base (mobile‑first) ===== */
-    :root{
-      --bg:#0b1020;         /* deep navy */
-      --surface:#101831;    /* cards */
-      --text:#eaf2ff;       /* off white */
-      --muted:#a7b3d1;      /* secondary text */
-      --brand:#3b82f6;      /* Acorn blue */
-      --brand-2:#1e40af;    /* deeper blue */
-      --ring:0 0 0 3px rgba(59,130,246,.35);
-      --radius:14px;
+    :root {
+      --bg: #0b1020;
+      --card: #0f172a;
+      --text: #eaf2ff;
+      --muted: #a7b3d1;
+      --brand: #3b82f6;
+      --brand-2: #1e40af;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    html{-webkit-text-size-adjust:100%}
-    body{
-      margin:0; color:var(--text);
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
-      background:linear-gradient(180deg,#070b18,#0b1020 45%,#0b1020);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      -webkit-tap-highlight-color:transparent;
-    }
-    a{color:inherit; text-decoration:none}
-    img{max-width:100%; display:block; height:auto}
-    .container{max-width:1120px; margin:0 auto; padding:0 16px}
-
-    /* ===== Header / Nav ===== */
-    header{position:sticky; top:0; z-index:100; background:rgba(11,16,32,.95); backdrop-filter:blur(8px); border-bottom:1px solid rgba(255,255,255,.06)}
-    .nav{display:flex; align-items:center; justify-content:space-between; height:84px}
-    .brand{display:flex; align-items:center; gap:10px}
-    /* Bigger logo + pure white treatment */
-    .brand img{height:clamp(64px, 12vw, 120px); width:auto; filter:brightness(0) invert(1);}
-
-    .nav-links{display:none; gap:16px; align-items:center}
-    .nav-links a{font-size:15px; opacity:.9}
-    .nav-links a:hover{opacity:1}
-
-    .hamburger{display:inline-flex; flex-direction:column; gap:4px; width:44px; height:44px; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:#0c142b}
-    .hamburger span{width:20px; height:2px; background:#fff; border-radius:2px}
-
-    .cta{padding:12px 16px; border-radius:10px; background:linear-gradient(135deg,var(--brand),var(--brand-2)); color:#fff; font-weight:600; border:none; cursor:pointer; font-size:15px}
-    .cta:focus{outline:none; box-shadow:var(--ring)}
-
-    /* Mobile menu */
-    .mobile-menu{position:fixed; inset:84px 0 auto 0; background:#0b1020; border-top:1px solid rgba(255,255,255,.06); display:none}
-    .mobile-menu.open{display:block}
-    .mobile-menu .menu-inner{padding:12px 16px 20px}
-    .mobile-menu a{display:block; padding:14px 8px; border-bottom:1px solid rgba(255,255,255,.06); font-size:16px; opacity:.95}
-
-    @media (min-width:900px){
-      .hamburger{display:none}
-      .nav-links{display:flex}
-      .mobile-menu{display:none !important}
-      .nav{height:96px}
-      .brand img{height:clamp(80px, 8vw, 140px)}
-    }
-
-    /* ===== Hero ===== */
-    .hero{position:relative; border-bottom:1px solid rgba(255,255,255,.06)}
-    .hero-bg{position:absolute; inset:0; background:radial-gradient(1000px 420px at 85% 60%, rgba(59,130,246,.18), transparent 60%), radial-gradient(700px 340px at 15% 30%, rgba(30,64,175,.22), transparent 60%)}
-    .hero-inner{position:relative; display:grid; grid-template-columns:1fr; gap:22px; align-items:center; padding:28px 0 36px; text-align:center}
-    .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); background:rgba(255,255,255,.06); padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08)}
-    h1{font-size:clamp(28px, 7vw, 44px); line-height:1.1; margin:12px 0 8px}
-    .lead{font-size:clamp(15px, 3.4vw, 18px); color:#c7d2fe; margin:0 auto; max-width:42ch}
-    .badge-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; justify-content:center}
-    .pill{font-size:12px; color:#dbeafe; background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.28); padding:5px 10px; border-radius:999px}
-
-    .hero-card{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.08); padding:16px; border-radius:var(--radius); text-align:left}
-
-    @media (min-width:900px){
-      .hero-inner{grid-template-columns:1.1fr .9fr; text-align:left; padding:48px 0 64px}
-      .lead{margin:0}
-    }
-
-    /* ===== Sections ===== */
-    section{padding:44px 0}
-
-    .cards{display:grid; grid-template-columns:1fr; gap:12px}
-    @media(min-width:700px){.cards{grid-template-columns:repeat(3,1fr); gap:16px}}
-    .card{background:var(--surface); border:1px solid rgba(255,255,255,.08); padding:16px; border-radius:var(--radius)}
-    .card h3{margin:6px 0 8px; font-size:18px}
-    .muted{color:var(--muted); font-size:15px}
-
-    /* ===== Forms ===== */
-    .form-grid{display:grid; grid-template-columns:1fr; gap:12px}
-    @media(min-width:640px){.form-grid{grid-template-columns:repeat(2,1fr); gap:12px}}
-    label{font-size:14px; color:#dbeafe}
-    input, select, textarea{width:100%; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:#0c1328; color:var(--text); font-size:16px}
-    input:focus, select:focus, textarea:focus{outline:none; box-shadow:var(--ring); border-color:rgba(59,130,246,.45)}
-    textarea{min-height:110px}
-    .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-
-    /* ===== Gallery ===== */
-    .gallery{display:grid; grid-template-columns:1fr 1fr; gap:8px}
-    @media(min-width:900px){.gallery{grid-template-columns:repeat(4,1fr); gap:10px}}
-    .gallery img{width:100%; height:160px; object-fit:cover; border-radius:12px; border:1px solid rgba(255,255,255,.1)}
-
-    /* ===== Quotes ===== */
-    .quotes{display:grid; grid-template-columns:1fr; gap:14px}
-    @media(min-width:900px){.quotes{grid-template-columns:repeat(3,1fr); gap:16px}}
-    blockquote{margin:0; padding:16px; background:#0c1328; border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); font-size:14px}
-
-    /* ===== Footer ===== */
-    footer{border-top:1px solid rgba(255,255,255,.08); background:#0a0f1f; padding:26px 0}
-    .footer-grid{display:grid; grid-template-columns:1fr; gap:16px}
-    @media(min-width:800px){.footer-grid{grid-template-columns:2fr 1fr 1fr}}
-    .footer-logo{height:60px; filter:brightness(0) invert(1)}
-
-    /* Motion preference */
-    @media (prefers-reduced-motion: reduce){
-      *{animation:none !important; transition:none !important; scroll-behavior:auto !important}
-    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', sans-serif; color: var(--text); background: var(--bg); }
+    header { position: sticky; top: 0; z-index: 50; background: rgba(11, 16, 32, 0.9); padding: 1rem; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    header img { height: clamp(80px, 15vw, 160px); filter: brightness(0) invert(1); }
+    nav { margin-left: auto; }
+    nav ul { display: flex; list-style: none; gap: 1rem; margin: 0; padding: 0; }
+    nav a { color: var(--text); text-decoration: none; font-weight: 500; }
+    nav a:hover { color: var(--brand); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+    h1, h2, h3 { margin-top: 0; }
+    h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+    p.muted { color: var(--muted); font-size: 1rem; margin-bottom: 1.5rem; }
+    section { padding: 48px 0; }
+    .hero { display: grid; grid-template-columns: 1fr; gap: 24px; text-align: center; padding: 48px 0; }
+    @media(min-width: 768px) { .hero { grid-template-columns: 1fr 1fr; text-align: left; align-items: center; } }
+    .hero img { max-width: 100%; border-radius: 14px; }
+    .cta-button { display: inline-block; margin-top: 1rem; padding: 12px 24px; background: var(--brand); color: white; border-radius: 6px; text-decoration: none; font-weight: 600; }
+    .cta-button:hover { background: var(--brand-2); }
+    .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    @media(min-width: 768px) { .gallery { grid-template-columns: repeat(4, 1fr); } }
+    .gallery img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
+    footer { background-color: #0a0f1f; padding: 2rem; text-align: center; font-size: 0.875rem; color: var(--muted); border-top: 1px solid rgba(255,255,255,0.08); }
   </style>
 </head>
 <body>
-  <!-- ===== Header ===== -->
   <header>
-    <div class="container nav">
-      <a class="brand" href="#top" aria-label="Acorn Travel home">
-        <img src="banner.png" alt="Acorn Travel" loading="eager" decoding="async" />
-      </a>
-      <nav class="nav-links" aria-label="Primary">
-        <a href="#services">Services</a>
-        <a href="#fleet">Fleet</a>
-        <a href="#areas">Areas</a>
-        <a href="#quote" class="cta">Get a Quote</a>
-      </nav>
-      <button class="hamburger" id="menuBtn" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-    <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Mobile menu">
-      <div class="menu-inner container">
-        <a href="#services">Services</a>
-        <a href="#fleet">Fleet</a>
-        <a href="#areas">Areas</a>
-        <a href="#quote">Get a Quote</a>
-      </div>
-    </div>
+    <img src="/banner.png" alt="Acorn Travel Logo" />
+    <nav>
+      <ul>
+        <li><a href="#fleet">Fleet</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
   </header>
 
-  <!-- ===== Main ===== -->
-  <main id="top">
-    <section class="hero">
-      <div class="hero-bg" aria-hidden="true"></div>
-      <div class="container hero-inner">
-        <div>
-          <span class="eyebrow">Nottingham • Family‑run • Friendly drivers</span>
-          <h1>Coach hire you can count on.</h1>
-          <p class="lead">From school trips to corporate shuttles and weekend getaways, Acorn Travel keeps your journey smooth, safe and on time with a modern, well‑kept fleet.</p>
-          <div class="badge-row">
-            <span class="pill">DBS‑checked drivers</span>
-            <span class="pill">Comfortable seating</span>
-            <span class="pill">Great local knowledge</span>
-            <span class="pill">Straightforward booking</span>
-          </div>
-        </div>
-        <div class="hero-card" aria-labelledby="quoteTitle">
-          <h2 id="quoteTitle" style="margin:0 0 8px">Quick quote</h2>
-          <p class="muted" style="margin:0 0 14px">Tell us a few details—get a same‑day price.</p>
-          <form id="quoteForm" novalidate aria-describedby="formHelp">
-            <div class="form-grid">
-              <div>
-                <label for="tripType">Trip type</label>
-                <select id="tripType" required>
-                  <option value="">Select…</option>
-                  <option>Single</option>
-                  <option>Return</option>
-                  <option>Multi‑stop</option>
-                </select>
-              </div>
-              <div>
-                <label for="passengers">Passengers</label>
-                <input id="passengers" inputmode="numeric" pattern="^[0-9]{1,3}$" placeholder="e.g., 35" required />
-              </div>
-              <div>
-                <label for="pickup">Pickup location</label>
-                <input id="pickup" placeholder="Postcode or address" required />
-              </div>
-              <div>
-                <label for="dropoff">Drop‑off location</label>
-                <input id="dropoff" placeholder="Postcode or address" required />
-              </div>
-              <div>
-                <label for="date">Travel date</label>
-                <input id="date" type="date" required />
-              </div>
-              <div>
-                <label for="time">Pickup time</label>
-                <input id="time" type="time" required />
-              </div>
-              <div style="grid-column:1/-1">
-                <label for="notes">Notes (optional)</label>
-                <textarea id="notes" placeholder="Accessibility needs, child seats, flight no.…"></textarea>
-              </div>
-            </div>
-            <div class="actions" style="margin-top:14px">
-              <button class="cta" type="submit">Request quote</button>
-              <span id="formHelp" class="muted">No spam. We usually reply within a few hours.</span>
-            </div>
-            <div id="formMsg" role="status" aria-live="polite" style="margin-top:10px"></div>
-          </form>
+  <main>
+    <section class="hero container">
+      <div>
+        <h1>Reliable Coach Hire in Nottingham & the Midlands</h1>
+        <p class="muted">From school trips to corporate travel, our modern fleet offers comfort, safety, and great value for every journey.</p>
+        <a href="#contact" class="cta-button">Get a Quote</a>
+      </div>
+      <img src="/images/coach.png" alt="Acorn Travel Coach" />
+    </section>
+
+    <section id="fleet" class="fleet">
+      <div class="container">
+        <h2>Our Fleet</h2>
+        <p class="muted">Modern, comfortable, and safe coaches designed for every journey.</p>
+        <div class="gallery">
+          <img src="/images/coach.png" alt="Acorn Travel Coach">
+          <img src="/images/tech.png" alt="Onboard Technology">
+          <img src="/images/comfort.png" alt="Comfortable Seating">
+          <img src="/images/safety.png" alt="Safety Features">
         </div>
       </div>
     </section>
 
-    <section id="services">
-      <div class="container">
-        <h2>What we do</h2>
-        <p class="muted">Flexible coach and minibus hire for every type of trip.</p>
-        <div class="cards" style="margin-top:14px">
-          <div class="card">
-            <h3>Schools & colleges</h3>
-            <p class="muted">Regular contracts and one‑off trips. Safety‑first policies and DBS‑checked drivers.</p>
-          </div>
-          <div class="card">
-            <h3>Corporate & events</h3>
-            <p class="muted">Shuttles, conferences and team days with reliable timing and clear comms.</p>
-          </div>
-          <div class="card">
-            <h3>Private hire & tours</h3>
-            <p class="muted">Weddings, weekend breaks and UK tours with friendly, helpful drivers.</p>
-          </div>
-        </div>
-      </div>
+    <section id="about" class="container">
+      <h2>About Us</h2>
+      <p class="muted">Acorn Travel is a family-run coach company based in Nottingham, providing modern, safe, and reliable travel solutions across the UK. We specialise in school trips, corporate travel, private hire, and tours — all with a focus on comfort, safety, and exceptional service.</p>
     </section>
 
-    <section id="fleet" style="padding-top:0">
-      <div class="container">
-        <h2>Our fleet</h2>
-        <p class="muted">Clean, comfortable vehicles maintained to a high standard.</p>
-        <div class="gallery" style="margin-top:14px">
-          <!-- Replace with your own images when ready -->
-          <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1200&auto=format&fit=crop" alt="Coach exterior" loading="lazy" decoding="async" />
-          <img src="https://images.unsplash.com/photo-1519852476561-ec618b018aa5?q=80&w=1200&auto=format&fit=crop" alt="Coach interior seating" loading="lazy" decoding="async" />
-          <img src="https://images.unsplash.com/photo-1554200876-56f8e788e7db?q=80&w=1200&auto=format&fit=crop" alt="Minibus for smaller groups" loading="lazy" decoding="async" />
-          <img src="https://images.unsplash.com/photo-1501706362039-c06b2d715385?q=80&w=1200&auto=format&fit=crop" alt="Accessible ramp" loading="lazy" decoding="async" />
-        </div>
-      </div>
-    </section>
-
-    <section id="areas">
-      <div class="container">
-        <h2>Where we operate</h2>
-        <p class="muted">Based in Nottingham. Regular routes across the Midlands and nationwide coverage by arrangement.</p>
-        <div class="cards" style="margin-top:14px">
-          <div class="card"><h3>Local</h3><p class="muted">Nottinghamshire, Derbyshire, Leicestershire</p></div>
-          <div class="card"><h3>Regional</h3><p class="muted">Midlands, Yorkshire, Lincolnshire</p></div>
-          <div class="card"><h3>Nationwide</h3><p class="muted">Anywhere in mainland UK on request</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="container">
-        <h2>What customers say</h2>
-        <div class="quotes" style="margin-top:14px">
-          <blockquote>
-            “Friendly, punctual and helpful—made our school trip easy.”
-            <footer class="muted" style="margin-top:10px">— Head of Year, Nottingham</footer>
-          </blockquote>
-          <blockquote>
-            “Immaculate vehicles and smooth logistics for our event.”
-            <footer class="muted" style="margin-top:10px">— Events Lead, Derby</footer>
-          </blockquote>
-          <blockquote>
-            “Great value and lovely driver. Would book again.”
-            <footer class="muted" style="margin-top:10px">— Private Hire, Leicester</footer>
-          </blockquote>
-        </div>
-      </div>
-    </section>
-
-    <section id="quote">
-      <div class="container">
-        <div class="card">
-          <h2>Ready for a fast quote?</h2>
-          <p class="muted">Prefer email or phone? Use <a href="mailto:bookings@example.com">bookings@example.com</a> or <a href="tel:+441150000000">0115 000 0000</a>.</p>
-          <form id="quoteFormBottom" novalidate>
-            <div class="form-grid">
-              <div>
-                <label for="name2">Your name</label>
-                <input id="name2" placeholder="Full name" required />
-              </div>
-              <div>
-                <label for="email2">Email</label>
-                <input id="email2" type="email" placeholder="you@example.com" required autocomplete="email" />
-              </div>
-              <div>
-                <label for="phone2">Phone (optional)</label>
-                <input id="phone2" type="tel" placeholder="07…" autocomplete="tel" />
-              </div>
-              <div>
-                <label for="passengers2">Passengers</label>
-                <input id="passengers2" inputmode="numeric" pattern="^[0-9]{1,3}$" placeholder="e.g., 49" required />
-              </div>
-              <div style="grid-column:1/-1">
-                <label for="details2">Trip details</label>
-                <textarea id="details2" placeholder="Pickup, drop‑off, dates, times and any extras" required></textarea>
-              </div>
-            </div>
-            <div class="actions" style="margin-top:14px">
-              <button class="cta" type="submit">Send</button>
-              <span class="muted">We aim to reply the same working day.</span>
-            </div>
-            <div id="formMsg2" role="status" aria-live="polite" style="margin-top:10px"></div>
-          </form>
-        </div>
-      </div>
+    <section id="contact" class="container">
+      <h2>Contact Us</h2>
+      <p class="muted">Request a quote or ask us a question — we're here to help plan your journey.</p>
+      <form action="#" method="POST">
+        <input type="text" name="name" placeholder="Your Name" required style="width:100%; padding:10px; margin-bottom:10px;">
+        <input type="email" name="email" placeholder="Your Email" required style="width:100%; padding:10px; margin-bottom:10px;">
+        <textarea name="message" placeholder="Your Message" rows="5" required style="width:100%; padding:10px; margin-bottom:10px;"></textarea>
+        <button type="submit" class="cta-button">Send Message</button>
+      </form>
     </section>
   </main>
 
-  <!-- ===== Footer ===== -->
   <footer>
-    <div class="container footer-grid">
-      <div>
-        <img src="banner.png" alt="Acorn Travel" class="footer-logo" loading="lazy" decoding="async" />
-        <p class="muted" style="margin:10px 0 0">Registered in England & Wales. Fully insured. Operator licence number available on request.</p>
-        <p class="muted">© <span id="year"></span> Acorn Travel. All rights reserved.</p>
-      </div>
-      <div>
-        <h4 style="margin:6px 0">Company</h4>
-        <ul style="list-style:none; padding:0; margin:0; color:var(--muted)">
-          <li><a href="#services">Services</a></li>
-          <li><a href="#fleet">Fleet</a></li>
-          <li><a href="#quote">Get a quote</a></li>
-          <li><a href="#">Privacy</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 style="margin:6px 0">Contact</h4>
-        <p class="muted"><a href="tel:+441150000000">0115 000 0000</a><br>
-        <a href="mailto:bookings@example.com">bookings@example.com</a><br>
-        Nottingham, NG — United Kingdom</p>
-      </div>
-    </div>
+    &copy; 2025 Acorn Travel. All rights reserved.
   </footer>
-
-  <script>
-    // Mobile menu toggle
-    const menuBtn = document.getElementById('menuBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
-    let menuOpen = false;
-    function toggleMenu(){
-      menuOpen = !menuOpen;
-      mobileMenu.classList.toggle('open', menuOpen);
-      menuBtn.setAttribute('aria-expanded', String(menuOpen));
-    }
-    menuBtn.addEventListener('click', toggleMenu);
-    mobileMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>{ if(menuOpen) toggleMenu(); }));
-
-    // Simple a11y-friendly form handling (replace with real endpoint)
-    function handleForm(formId, msgId){
-      const form = document.getElementById(formId);
-      const msg = document.getElementById(msgId);
-      form.addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const invalid = [...form.querySelectorAll('[required]')].filter(el => !el.value.trim() || (el.pattern && !(new RegExp(el.pattern).test(el.value))));
-        if(invalid.length){
-          msg.textContent = 'Please complete the required fields.';
-          msg.style.color = '#fca5a5';
-          invalid[0].focus();
-          return;
-        }
-        msg.textContent = 'Thanks! Your request has been received. We\'ll be in touch shortly.';
-        msg.style.color = '#86efac';
-        form.reset();
-      });
-    }
-    handleForm('quoteForm','formMsg');
-    handleForm('quoteFormBottom','formMsg2');
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
 </body>
 </html>
+
