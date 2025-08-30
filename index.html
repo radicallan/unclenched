@@ -1,110 +1,511 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mini Habbo Room</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Habbo-Style Single Room</title>
   <style>
-    body {
-      margin: 0;
-      background: #222;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+    :root{
+      --ui:#0e0e10; --panel:#151518; --ink:#e9e9ee; --muted:#9a9aa3; --accent:#6ee7ff; --line:#24242a;
+      --tileW:64px; --tileH:32px;
     }
-    canvas {
-      background: #3c2f2f;
-      border: 4px solid #fff;
-      image-rendering: pixelated;
+    html,body{height:100%;}
+    body{
+      margin:0; background: radial-gradient(1200px 600px at 50% 30%, #2b2b33, #1a1a1f 60%, #101014 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--ink); display:grid; grid-template-rows:auto 1fr auto; overflow:hidden;
+    }
+    header{
+      display:flex; align-items:center; gap:.75rem; padding:.6rem 1rem; background:linear-gradient(180deg,#1e1e24,#17171c);
+      border-bottom:1px solid var(--line); box-shadow:0 10px 40px rgba(0,0,0,.35);
+    }
+    header .title{font-weight:700; letter-spacing:.3px}
+    header .pill{margin-left:auto; font-size:.8rem; color:var(--muted)}
+    #wrap{display:grid; grid-template-columns: 1fr 320px; gap: 14px; padding:14px; height:100%; box-sizing:border-box}
+    #stageWrap{
+      position:relative; border:1px solid var(--line); background:#121216; border-radius:18px; overflow:hidden;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.02);
+    }
+    #stage{ display:block; width:100%; height:100%; image-rendering: pixelated; }
+    #overlay{ position:absolute; inset:0; pointer-events:none; }
+    .bubble{ position:absolute; transform:translate(-50%, -100%); background:#fff; color:#1a1a1f; padding:6px 10px; border-radius:8px; font-size:12px; box-shadow:0 6px 20px rgba(0,0,0,.35); white-space:nowrap;}
+    .bubble::after{content:""; position:absolute; left:50%; bottom:-6px; margin-left:-6px; border:6px solid transparent; border-top-color:#fff}
+
+    /* SIDE PANEL */
+    aside{ border:1px solid var(--line); background:var(--panel); border-radius:18px; padding:12px; display:flex; flex-direction:column; gap:10px; }
+    .card{ background:#101013; border:1px solid var(--line); border-radius:14px; padding:12px; }
+    .card h3{ margin:0 0 8px 0; font-size:13px; letter-spacing:.2px; color:#d9d9e0}
+    .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
+    .btn{ background:#1b1b22; border:1px solid #272733; color:#d9d9e0; padding:8px 10px; border-radius:10px; cursor:pointer; font-size:12px }
+    .btn:hover{ border-color:#3a3a50}
+    .btn.active{ outline:2px solid var(--accent); border-color:var(--accent)}
+    .hint{ color:var(--muted); font-size:12px }
+    .kbd{ background:#0f0f13; border:1px solid #2a2a36; padding:2px 6px; border-radius:6px; font-size:11px; }
+
+    /* CHAT BAR */
+    footer{ display:flex; gap:10px; padding:12px 14px; border-top:1px solid var(--line); background:#121216 }
+    #chat{ flex:1; background:#14141a; border:1px solid #2a2a36; border-radius:12px; padding:10px 12px; color:#e9e9ee}
+    #send{ background:#1b1b22; border:1px solid #2a2a36; color:#e9e9ee; border-radius:12px; padding:10px 16px; cursor:pointer}
+
+    /* RESPONSIVE */
+    @media (max-width: 1100px){
+      #wrap{ grid-template-columns: 1fr; }
+      aside{ order:-1; }
     }
   </style>
 </head>
 <body>
-  <canvas id="game" width="800" height="600"></canvas>
+  <header>
+    <div class="title">Habbo‑Style Single Room</div>
+    <div class="pill">Click a tile to walk • <span class="kbd">WASD</span>/<span class="kbd">Arrows</span> move • <span class="kbd">Shift</span> to run • Click sofa to sit</div>
+  </header>
+
+  <div id="wrap">
+    <div id="stageWrap">
+      <canvas id="stage"></canvas>
+      <div id="overlay"></div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <h3>Room Controls</h3>
+        <div class="row">
+          <button class="btn" id="resetBtn">Reset Room</button>
+          <button class="btn" id="toggleGrid">Toggle Grid</button>
+          <button class="btn" id="toggleShadow">Toggle Shadows</button>
+        </div>
+        <div class="hint" style="margin-top:8px">This is a handcrafted isometric engine (no libraries), with depth sorting, A* path‑finding, sit spots, chat bubbles, hover highlight and smooth tweening.</div>
+      </div>
+
+      <div class="card">
+        <h3>How to Play</h3>
+        <div class="hint">
+          • Click any floor tile to walk there.<br>
+          • Click the <b>sofa</b> to sit. Click elsewhere to stand.<br>
+          • Hold <span class="kbd">Shift</span> to run. Use <span class="kbd">WASD</span> or arrows.<br>
+          • Type below to chat; press Enter.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Room Theme</h3>
+        <div class="row">
+          <button class="btn" data-theme="classic">Classic</button>
+          <button class="btn" data-theme="teal">Teal Carpet</button>
+          <button class="btn" data-theme="midnight">Midnight</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>About</h3>
+        <div class="hint">Original pixel‑style rendering; no external assets. Designed to evoke the feel of classic isometric chat rooms without using any proprietary art.</div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <input id="chat" placeholder="Say something…" />
+    <button id="send">Send</button>
+  </footer>
 
   <script>
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+  // ======== CONFIG ========
+  const TILE_W = 64, TILE_H = 32; // diamond iso tile
+  const MAP_W = 16, MAP_H = 12;   // room size
+  const CAMERA_PADDING = 80;      // outside padding for canvas sizing
 
-    // grid size
-    const tileW = 64;
-    const tileH = 32;
+  const themes = {
+    classic: { floor:'#6c9e6b', alt:'#689768', edge:'#2d4a2d', wall:'#a88b6a' },
+    teal:    { floor:'#2aa8a8', alt:'#259b9b', edge:'#1f6a6a', wall:'#a88b6a' },
+    midnight:{ floor:'#3c3f64', alt:'#383b5e', edge:'#252740', wall:'#8a7a60' },
+  }
+  let THEME = themes.classic;
 
-    // room grid (10x10 tiles)
-    const mapW = 10, mapH = 10;
+  // ======== ROOM STATE ========
+  const state = {
+    grid: [],         // walkable (1) / blocked (0)
+    entities: [],     // furniture + avatar
+    showGrid: false,
+    softShadows: true,
+  }
 
-    // simple isometric floor
-    function drawTile(x, y, color="#6c4") {
-      const screenX = (x - y) * (tileW/2) + canvas.width/2;
-      const screenY = (x + y) * (tileH/2) + 50;
-      ctx.beginPath();
-      ctx.moveTo(screenX, screenY);
-      ctx.lineTo(screenX + tileW/2, screenY + tileH/2);
-      ctx.lineTo(screenX, screenY + tileH);
-      ctx.lineTo(screenX - tileW/2, screenY + tileH/2);
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.strokeStyle = "#333";
-      ctx.stroke();
+  // ======== CANVAS SETUP ========
+  const stage = document.getElementById('stage');
+  const overlay = document.getElementById('overlay');
+  const ctx = stage.getContext('2d');
+
+  function resizeCanvas(){
+    // Fit room snugly into container
+    const wrap = document.getElementById('stageWrap');
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    stage.width = w; stage.height = h;
+    overlay.style.width = w+'px'; overlay.style.height = h+'px';
+    camera.centerOnRoom();
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  // ======== CAMERA ========
+  const camera = {
+    x:0, y:0, // pixel offset
+    centerOnRoom(){
+      // center diamond in canvas
+      const roomW = (MAP_W + MAP_H) * (TILE_W/2);
+      const roomH = (MAP_W + MAP_H) * (TILE_H/2);
+      this.x = (stage.width - roomW)/2; // leftmost point x
+      this.y = 50; // some top margin
     }
+  }
 
-    // character
-    let player = {x: 5, y: 5};
+  // ======== ISO MATH ========
+  function gridToScreen(ix, iy){
+    const sx = (ix - iy) * (TILE_W/2) + camera.x + (MAP_H*(TILE_W/2));
+    const sy = (ix + iy) * (TILE_H/2) + camera.y;
+    return {x:sx, y:sy};
+  }
+  function screenToGrid(px, py){
+    // inverse transform
+    const tx = px - camera.x - (MAP_H*(TILE_W/2));
+    const ty = py - camera.y;
+    let ix = (ty / (TILE_H/2) + tx / (TILE_W/2)) / 2;
+    let iy = (ty / (TILE_H/2) - tx / (TILE_W/2)) / 2;
+    ix = Math.floor(ix + 0.5);
+    iy = Math.floor(iy + 0.5);
+    return {x:ix, y:iy};
+  }
 
-    function drawPlayer() {
-      const screenX = (player.x - player.y) * (tileW/2) + canvas.width/2;
-      const screenY = (player.x + player.y) * (tileH/2) + 50;
-      ctx.fillStyle = "blue";
-      ctx.beginPath();
-      ctx.arc(screenX, screenY - 10, 12, 0, Math.PI * 2);
-      ctx.fill();
+  // ======== DRAW PRIMITIVES ========
+  function drawTile(x,y, color, edge){
+    const p = gridToScreen(x,y);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + TILE_W/2, p.y + TILE_H/2);
+    ctx.lineTo(p.x, p.y + TILE_H);
+    ctx.lineTo(p.x - TILE_W/2, p.y + TILE_H/2);
+    ctx.closePath();
+    ctx.fillStyle = color; ctx.fill();
+    ctx.strokeStyle = edge; ctx.stroke();
+  }
+  function drawBox(x,y,w,l,h, colors){
+    // draw simple iso box at grid x,y with size w by l and height h (px)
+    const p = gridToScreen(x,y);
+    const right = {x: p.x + (w*(TILE_W/2)), y: p.y + (w*(TILE_H/2))};
+    const front = {x: p.x - (l*(TILE_W/2)), y: p.y + (l*(TILE_H/2))};
+    // top
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y - h);
+    ctx.lineTo(right.x, right.y - h);
+    ctx.lineTo(right.x + front.x - p.x, right.y + front.y - p.y - h);
+    ctx.lineTo(front.x, front.y - h);
+    ctx.closePath(); ctx.fillStyle = colors.top; ctx.fill(); ctx.strokeStyle = colors.edge; ctx.stroke();
+    // right
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y - h);
+    ctx.lineTo(right.x, right.y - h);
+    ctx.lineTo(right.x, right.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.closePath(); ctx.fillStyle = colors.right; ctx.fill(); ctx.strokeStyle = colors.edge; ctx.stroke();
+    // front
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y - h);
+    ctx.lineTo(front.x, front.y - h);
+    ctx.lineTo(front.x, front.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.closePath(); ctx.fillStyle = colors.front; ctx.fill(); ctx.strokeStyle = colors.edge; ctx.stroke();
+  }
+
+  // soft shadow ellipse
+  function drawShadow(ix, iy, scale=1){
+    if(!state.softShadows) return;
+    const p = gridToScreen(ix,iy);
+    ctx.save();
+    ctx.globalAlpha = .25;
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y + TILE_H*.55, (TILE_W*.32)*scale, (TILE_H*.35)*scale, 0, 0, Math.PI*2);
+    ctx.fillStyle = '#000';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ======== A* PATHFINDING ========
+  function neighbors(nx, ny){
+    const n=[]; const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    for(const [dx,dy] of dirs){
+      const x=nx+dx, y=ny+dy;
+      if(x>=0 && y>=0 && x<MAP_W && y<MAP_H && state.grid[y][x]===1){ n.push({x,y}); }
     }
-
-    // draw loop
-    function draw() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      for(let y=0;y<mapH;y++){
-        for(let x=0;x<mapW;x++){
-          drawTile(x,y);
+    return n;
+  }
+  function heuristic(a,b){ return Math.abs(a.x-b.x)+Math.abs(a.y-b.y); }
+  function aStar(start, goal){
+    if(start.x===goal.x && start.y===goal.y) return [start];
+    const open=[start], came=new Map(), g=new Map();
+    const key=p=>p.x+","+p.y; g.set(key(start),0);
+    const f=new Map(); f.set(key(start), heuristic(start,goal));
+    while(open.length){
+      // get node with smallest f
+      open.sort((A,B)=>f.get(key(A))-f.get(key(B)));
+      const cur=open.shift();
+      if(cur.x===goal.x && cur.y===goal.y){
+        const path=[cur]; let k=key(cur);
+        while(came.has(k)){ const prev=came.get(k); path.push(prev); k=key(prev); }
+        return path.reverse();
+      }
+      for(const nb of neighbors(cur.x,cur.y)){
+        const nk=key(nb); const ck=key(cur);
+        const tentative = g.get(ck)+1;
+        if(!g.has(nk) || tentative<g.get(nk)){
+          came.set(nk, cur); g.set(nk,tentative); f.set(nk, tentative+heuristic(nb,goal));
+          if(!open.find(p=>p.x===nb.x&&p.y===nb.y)) open.push(nb);
         }
       }
-      drawPlayer();
+    }
+    return null;
+  }
+
+  // ======== ENTITIES ========
+  class Entity{
+    constructor(kind, x,y, opts={}){ this.kind=kind; this.x=x; this.y=y; Object.assign(this, opts); }
+    screen(){ return gridToScreen(this.x,this.y); }
+    draw(){ /* overridden */ }
+    get z(){ return this.y*100 + (this.h||0); }
+  }
+
+  class Avatar extends Entity{
+    constructor(x,y){ super('avatar',x,y); this.tx=x; this.ty=y; this.speed=5; this.running=false; this.path=[]; this.sitting=null; }
+    draw(){
+      const p = this.screen();
+      // shadow
+      drawShadow(this.x,this.y, 1);
+      // body (simple pixel‑style)
+      ctx.save();
+      ctx.imageSmoothingEnabled=false;
+      const px = Math.floor(p.x), py = Math.floor(p.y);
+      // legs
+      ctx.fillStyle = '#2b2c36'; ctx.fillRect(px-4, py-18, 8, 12);
+      // torso
+      ctx.fillStyle = '#4a7bd1'; ctx.fillRect(px-7, py-32, 14, 16);
+      // head
+      ctx.fillStyle = '#f3c9a7'; ctx.fillRect(px-6, py-44, 12, 12);
+      // hair
+      ctx.fillStyle = '#2e2e2e'; ctx.fillRect(px-6, py-46, 12, 4);
+      // tiny outline
+      ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.strokeRect(px-7.5, py-46.5, 15, 40);
+      ctx.restore();
+    }
+    tick(dt){
+      const sp = (this.running? 4 : 2.2) * (dt/16.67);
+      if(this.path && this.path.length>0){
+        const next = this.path[0];
+        const dx = next.x - this.x; const dy = next.y - this.y;
+        const dist = Math.hypot(dx,dy);
+        if(dist < 0.01){ this.x=next.x; this.y=next.y; this.path.shift(); }
+        else { this.x += Math.sign(dx)*Math.min(sp, Math.abs(dx)); this.y += Math.sign(dy)*Math.min(sp, Math.abs(dy)); }
+      }
+    }
+    goTo(ix,iy){ this.sitting=null; const path=aStar({x:Math.round(this.x),y:Math.round(this.y)},{x:ix,y:iy}); if(path) this.path = path.slice(1); }
+  }
+
+  class Sofa extends Entity{
+    constructor(x,y,dir='E'){
+      super('sofa',x,y,{w:2,l:1,h:22, dir});
+      // sit spots relative to origin
+      this.sitSpots = dir==='E' ? [{x:x,y:y+1}] : [{x:x+1,y:y}];
+      this.block = dir==='E' ? [{x:x,y:y},{x:x+1,y:y}] : [{x:x,y:y},{x:x,y:y+1}];
+    }
+    draw(){
+      const c={ top:'#dd6f6f', right:'#c35f5f', front:'#b25656', edge:'#5a2c2c' };
+      // base box
+      drawBox(this.x,this.y,this.w,this.l,this.h,c);
+      // cushion hint
+      const p=gridToScreen(this.x,this.y);
+      ctx.fillStyle='rgba(255,255,255,.12)';
+      ctx.fillRect(p.x-18, p.y-18-this.h, 36, 10);
+    }
+  }
+
+  class Table extends Entity{
+    constructor(x,y){ super('table',x,y,{w:1,l:1,h:18}); this.block=[{x:x,y:y}]; }
+    draw(){
+      drawBox(this.x,this.y,1,1,18,{top:'#d8caa8',right:'#c2b690',front:'#b1a57f',edge:'#5c533e'});
+    }
+  }
+
+  class Plant extends Entity{
+    constructor(x,y){ super('plant',x,y,{h:30}); this.block=[{x:x,y:y}]; }
+    draw(){
+      const p=gridToScreen(this.x,this.y);
+      drawShadow(this.x,this.y,.9);
+      // pot
+      drawBox(this.x,this.y,1,1,8,{top:'#7a4f2b',right:'#6c4627',front:'#5f3e22',edge:'#3a2514'});
+      // leaves
+      ctx.save();
+      ctx.translate(p.x, p.y-20);
+      ctx.fillStyle='#1f7a45';
+      for(let i=0;i<6;i++){
+        ctx.beginPath(); ctx.ellipse(0,0, 6,14, i*Math.PI/3, 0, Math.PI*2); ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  class Door extends Entity{
+    constructor(x,y){ super('door',x,y,{w:1,l:1,h:36}); }
+    draw(){
+      drawBox(this.x,this.y,1,1,36,{top:'#bfa588',right:'#a58f76',front:'#977f66',edge:'#4e3e2f'});
+      const p=gridToScreen(this.x,this.y);
+      ctx.fillStyle='#27231c'; ctx.fillRect(p.x-10, p.y-36, 20, 24);
+    }
+  }
+
+  // Depth sort helper
+  function sortForDraw(){
+    state.entities.sort((a,b)=> (a.y===b.y? (a.x-b.x) : (a.y-b.y)) );
+  }
+
+  // ======== ROOM INITIALIZE ========
+  function makeGrid(){
+    state.grid = Array.from({length:MAP_H},()=>Array(MAP_W).fill(1));
+  }
+
+  function addWalls(){
+    // decorative back/side walls
+    for(let x=0;x<MAP_W;x++) drawTile(x, -1, THEME.wall, '#5c4a35');
+    for(let y=0;y<MAP_H;y++) drawTile(-1, y, THEME.wall, '#5c4a35');
+  }
+
+  function blockCells(cells){
+    for(const c of cells){ if(c.y>=0 && c.y<MAP_H && c.x>=0 && c.x<MAP_W) state.grid[c.y][c.x]=0; }
+  }
+
+  function seedFurniture(){
+    state.entities = [];
+    const avatar = new Avatar(4,6); state.avatar=avatar; state.entities.push(avatar);
+    const sofa = new Sofa(8,5,'E'); state.entities.push(sofa); blockCells(sofa.block);
+    const table = new Table(6,7); state.entities.push(table); blockCells(table.block);
+    const plant = new Plant(11,7); state.entities.push(plant); blockCells(plant.block);
+    const door = new Door(2,3); state.entities.push(door); // doors optional block
+    sortForDraw();
+  }
+
+  function resetRoom(){ makeGrid(); seedFurniture(); }
+
+  // ======== RENDER LOOP ========
+  let last=0, hoverCell=null;
+  function render(t){
+    const dt = last? (t-last):16.67; last=t;
+    // logic
+    state.avatar.tick(dt);
+
+    // draw
+    ctx.clearRect(0,0,stage.width,stage.height);
+    // floor
+    for(let y=0;y<MAP_H;y++){
+      for(let x=0;x<MAP_W;x++){
+        const useAlt = ((x+y)&1)===0;
+        drawTile(x,y, useAlt?THEME.floor:THEME.alt, THEME.edge);
+      }
+    }
+    addWalls();
+
+    // grid overlay
+    if(state.showGrid){
+      ctx.save(); ctx.globalAlpha=.20; ctx.strokeStyle='#000';
+      for(let y=0;y<MAP_H;y++) for(let x=0;x<MAP_W;x++) drawTile(x,y,'transparent','#000');
+      ctx.restore();
     }
 
-    draw();
+    // highlight hover cell
+    if(hoverCell && hoverCell.x>=0 && hoverCell.y>=0 && hoverCell.x<MAP_W && hoverCell.y<MAP_H){
+      ctx.save(); ctx.globalAlpha=.35; drawTile(hoverCell.x,hoverCell.y,'#ffffff22','#ffffff55'); ctx.restore();
+    }
 
-    // movement with arrow keys
-    window.addEventListener("keydown", e => {
-      if(e.key==="ArrowUp" || e.key==="w") player.y--;
-      if(e.key==="ArrowDown" || e.key==="s") player.y++;
-      if(e.key==="ArrowLeft" || e.key==="a") player.x--;
-      if(e.key==="ArrowRight" || e.key==="d") player.x++;
-      // keep inside room
-      player.x = Math.max(0, Math.min(mapW-1, player.x));
-      player.y = Math.max(0, Math.min(mapH-1, player.y));
-      draw();
-    });
+    // entities (depth‑sorted by y then x)
+    sortForDraw();
+    for(const e of state.entities){
+      if(e!==state.avatar) drawShadow(e.x,e.y,1);
+      e.draw();
+    }
 
-    // click-to-move
-    canvas.addEventListener("click", e=>{
-      // quick crude mapping: loop tiles, find closest
-      let bestDist = 9999, bestTile=null;
-      for(let y=0;y<mapH;y++){
-        for(let x=0;x<mapW;x++){
-          const screenX = (x - y) * (tileW/2) + canvas.width/2;
-          const screenY = (x + y) * (tileH/2) + 50;
-          const dx = e.offsetX - screenX;
-          const dy = e.offsetY - (screenY+tileH/2);
-          const dist = Math.sqrt(dx*dx+dy*dy);
-          if(dist < bestDist){
-            bestDist=dist; bestTile={x,y};
-          }
-        }
-      }
-      if(bestTile){ player.x=bestTile.x; player.y=bestTile.y; draw(); }
+    requestAnimationFrame(render);
+  }
+
+  // ======== INPUT ========
+  stage.addEventListener('mousemove', (e)=>{
+    const rect = stage.getBoundingClientRect();
+    const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
+    hoverCell = screenToGrid(mx,my);
+  });
+
+  stage.addEventListener('click', (e)=>{
+    const rect = stage.getBoundingClientRect();
+    const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
+    const cell = screenToGrid(mx,my);
+    // sit if clicking sofa top
+    const sofa = state.entities.find(it=>it.kind==='sofa');
+    const onSofa = sofa && sofa.sitSpots.some(s=>s.x===cell.x && s.y===cell.y);
+    if(onSofa){
+      state.avatar.sitting = {x:cell.x, y:cell.y};
+      state.avatar.goTo(cell.x, cell.y);
+      return;
+    }
+    // if blocked, try adjacent walkable
+    if(cell.x<0||cell.y<0||cell.x>=MAP_W||cell.y>=MAP_H) return;
+    if(state.grid[cell.y][cell.x]===0){
+      const options = neighbors(cell.x,cell.y);
+      if(options.length) state.avatar.goTo(options[0].x, options[0].y);
+    } else {
+      state.avatar.goTo(cell.x, cell.y);
+    }
+  });
+
+  window.addEventListener('keydown', (e)=>{
+    const av=state.avatar; av.running = e.shiftKey;
+    let dx=0,dy=0; if(['ArrowUp','w','W'].includes(e.key)) dy=-1; if(['ArrowDown','s','S'].includes(e.key)) dy=1; if(['ArrowLeft','a','A'].includes(e.key)) dx=-1; if(['ArrowRight','d','D'].includes(e.key)) dx=1;
+    if(dx||dy){
+      const nx=Math.max(0,Math.min(MAP_W-1, Math.round(av.x)+dx));
+      const ny=Math.max(0,Math.min(MAP_H-1, Math.round(av.y)+dy));
+      if(state.grid[ny][nx]===1) av.goTo(nx,ny);
+    }
+  });
+  window.addEventListener('keyup', (e)=>{ state.avatar.running = e.shiftKey; });
+
+  // ======== CHAT ========
+  const chatInput = document.getElementById('chat');
+  const sendBtn = document.getElementById('send');
+
+  function showBubble(text){
+    const p = state.avatar.screen();
+    const b = document.createElement('div'); b.className='bubble'; b.textContent=text;
+    b.style.left = (p.x) + 'px'; b.style.top = (p.y - 50) + 'px';
+    overlay.appendChild(b);
+    setTimeout(()=> b.remove(), 2200);
+  }
+
+  function sendChat(){
+    const t = chatInput.value.trim(); if(!t) return; chatInput.value=''; showBubble(t);
+  }
+  sendBtn.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); sendChat(); }});
+
+  // ======== UI BUTTONS ========
+  document.getElementById('resetBtn').addEventListener('click', ()=>{ resetRoom(); });
+  document.getElementById('toggleGrid').addEventListener('click', (e)=>{ state.showGrid=!state.showGrid; e.currentTarget.classList.toggle('active', state.showGrid); });
+  document.getElementById('toggleShadow').addEventListener('click', (e)=>{ state.softShadows=!state.softShadows; e.currentTarget.classList.toggle('active', !state.softShadows); });
+
+  document.querySelectorAll('[data-theme]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      THEME = themes[btn.dataset.theme];
     });
+  });
+
+  // ======== INIT ========
+  function init(){
+    resizeCanvas();
+    resetRoom();
+    requestAnimationFrame(render);
+  }
+  init();
+
   </script>
 </body>
 </html>
