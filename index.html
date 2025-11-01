@@ -2,109 +2,185 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+/>
   <title>The Eclectic Apothecary — Structure with soul</title>
-  <meta name="description" content="The Eclectic Apothecary blends operational excellence, design, and psychology to help small businesses run beautifully. Remedies for disordered businesses."/>
-  <meta name="color-scheme" content="light only">
+  <meta name="description" content="Remedies for disordered businesses. Calm systems, brand clarity, and efficient processes for small teams." />
+  <meta name="theme-color" content="#f7f4ef" />
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="The Eclectic Apothecary — Structure with soul">
-  <meta property="og:description" content="Remedies for disordered businesses. We design calm systems, brand clarity, and efficient processes.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://you-domain.example/">
-  <meta property="og:image" content="">
+  <!-- Performance hints (optional) -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Use system fonts for speed; add a serif if you want later -->
 
   <style>
-    :root{
-      --bg:#f7f4ef;         /* ivory paper */
-      --ink:#111111;        /* soft charcoal */
-      --muted:#6b6b6b;      /* secondary text */
-      --line:#ded9d0;       /* hairline */
-      --accent:#a6a08f;     /* sage-amber beige */
-      --accent-ink:#23221f;
-      --radius:14px;
-      --container:1100px;
+    /* ---------- Design tokens ---------- */
+    :root {
+      --bg: #f7f4ef;          /* ivory */
+      --ink: #121212;         /* charcoal */
+      --muted: #666666;
+      --line: #e5dfd6;
+      --accent: #a8a18f;      /* sage-amber */
+      --accent-ink: #22211e;
+
+      --radius: 14px;
+      --container: 1120px;
+
+      /* Type scale + spacing (mobile-first) */
+      --fs-1: clamp(2rem, 6vw, 3.6rem);  /* h1 */
+      --fs-2: clamp(1.5rem, 4.5vw, 2.2rem);
+      --fs-3: clamp(1.125rem, 3.2vw, 1.375rem);
+      --fs-body: clamp(1rem, 2.8vw, 1.125rem);
+      --lh: 1.55;
+
+      --space-1: clamp(10px, 2.6vw, 14px);
+      --space-2: clamp(16px, 3.2vw, 20px);
+      --space-3: clamp(24px, 4vw, 28px);
+      --space-4: clamp(36px, 6vw, 48px);
+      --space-5: clamp(56px, 9vw, 72px);
+
+      --tap: 48px; /* min tap target */
+      --shadow: 0 1px 0 rgba(0,0,0,.05), 0 6px 24px rgba(0,0,0,.05);
+      --safe-top: env(safe-area-inset-top);
+      --safe-bottom: env(safe-area-inset-bottom);
+      --safe-left: env(safe-area-inset-left);
+      --safe-right: env(safe-area-inset-right);
     }
-    /* Reset & base */
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:ui-serif, "Iowan Old Style", "Times New Roman", serif;line-height:1.45}
-    img{max-width:100%;display:block}
-    a{color:inherit}
-    .wrap{max-width:var(--container);margin:0 auto;padding:0 20px}
-    .grid{display:grid;gap:28px}
+
+    /* ---------- Base + reset ---------- */
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{height:100%}
+    html{scroll-behavior:smooth}
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+    }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, ui-sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: var(--lh);
+      -webkit-text-size-adjust: 100%;
+      text-rendering: optimizeLegibility;
+    }
+    img{max-width:100%;display:block;height:auto}
+    a{color:inherit;text-decoration:none}
+    p{font-size:var(--fs-body);margin:0 0 var(--space-1)}
+    h1,h2,h3{margin:0 0 .4em}
+    h1{font-size:var(--fs-1);letter-spacing:-.02em}
+    h2{font-size:var(--fs-2);letter-spacing:-.01em}
+    h3{font-size:var(--fs-3)}
+    small{color:var(--muted)}
+
+    .wrap{max-width:var(--container);margin:0 auto;padding:0 calc(16px + var(--safe-left)) 0 calc(16px + var(--safe-right))}
     .muted{color:var(--muted)}
-    hr{border:none;border-top:1px solid var(--line);margin:48px 0}
-    /* Typography */
-    h1{font-size:clamp(40px,6vw,64px);letter-spacing:-0.02em;margin:0 0 12px}
-    h2{font-size:clamp(28px,4vw,38px);letter-spacing:-0.015em;margin:0 0 8px}
-    h3{font-size:clamp(20px,3vw,24px);margin:0 0 6px}
-    p{margin:0 0 12px;font-size:clamp(16px,2.4vw,18px)}
-    small{font-size:14px}
+    .grid{display:grid;gap:var(--space-2)}
 
-    /* Buttons */
-    .btn{display:inline-block;padding:14px 18px;border:1px solid var(--ink);border-radius:10px;background:transparent;font-size:16px;text-decoration:none;transition:.2s ease;cursor:pointer}
+    /* ---------- Header / Nav ---------- */
+    header{
+      position: sticky; top:0; z-index:50;
+      background: color-mix(in srgb, var(--bg) 92%, white);
+      border-bottom:1px solid var(--line);
+      padding-top: calc(6px + var(--safe-top));
+    }
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+    .brand{display:flex;gap:10px;align-items:center}
+    .logo{width:28px;height:28px;border:1px solid var(--ink);border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px}
+    .brand-title{font-weight:600;letter-spacing:.02em;white-space:nowrap}
+
+    /* Mobile menu */
+    .menu-toggle{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:var(--tap);height:var(--tap);
+      border:1px solid var(--ink);border-radius:10px;background:transparent;cursor:pointer
+    }
+    .links{
+      display:none;flex-direction:column;gap:8px;padding:12px;border-top:1px solid var(--line)
+    }
+    .links a{padding:10px;border-radius:8px}
+    .links a:active{background:#0000000e}
+    .links.open{display:flex}
+
+    /* Desktop nav */
+    @media (min-width: 920px){
+      .menu-toggle{display:none}
+      .links{display:flex !important;border-top:none;flex-direction:row;gap:16px;padding:0}
+      .links a{padding:8px 10px}
+      .links a:hover{background:#0000000a}
+    }
+
+    /* ---------- Buttons & Inputs ---------- */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-height:var(--tap);padding:0 16px;
+      border:1px solid var(--ink);border-radius:12px;background:#fff;
+      font-weight:600;cursor:pointer;transition:.18s ease;
+      box-shadow: 0 0 0 rgba(0,0,0,0)
+    }
     .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
     .btn.accent{background:var(--accent);border-color:var(--accent-ink)}
-    .btn.block{display:block;width:100%;text-align:center}
+    .btn.block{width:100%}
 
-    /* Header */
-    header{position:sticky;top:0;background:linear-gradient(180deg, rgba(247,244,239,.95), rgba(247,244,239,.85));backdrop-filter:saturate(110%) blur(6px);border-bottom:1px solid var(--line);z-index:10}
-    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
-    .brand{display:flex;gap:12px;align-items:center;text-decoration:none}
-    .logo{width:26px;height:26px;border:1px solid var(--ink);border-radius:6px;display:grid;place-items:center;font-weight:700;font-family:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial}
-    .logo span{font-size:15px}
-    .brand-title{font-weight:600;letter-spacing:.02em}
+    input[type="email"]{
+      width:100%;min-height:var(--tap);
+      padding:0 12px;border:1px solid var(--ink);border-radius:12px;background:#fff;font-size:var(--fs-body)
+    }
 
-    .links{display:flex;gap:16px;align-items:center}
-    .links a{font-size:15px;text-decoration:none;padding:8px 10px;border-radius:8px}
-    .links a:hover{background:#eee7}
+    /* ---------- Sections ---------- */
+    section{padding: var(--space-4) 0}
+    .hero{padding: var(--space-5) 0 var(--space-4)}
+    .lede{font-size:clamp(1.05rem, 3.4vw, 1.25rem);color:var(--ink);max-width:70ch}
+    .hero-cta{display:grid;gap:10px;margin-top:var(--space-2)}
+    @media (min-width:700px){
+      .hero-cta{grid-auto-flow:column;justify-content:start}
+    }
 
-    /* Hero */
-    .hero{padding:72px 0}
-    .hero .lede{font-size:clamp(18px,2.6vw,20px)}
-    .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .card{
+      border:1px solid var(--line);border-radius:var(--radius);
+      background:#fff; box-shadow: var(--shadow); padding: var(--space-2)
+    }
+    .pill{display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+    .list-2{grid-template-columns:1fr}
+    .list-3{grid-template-columns:1fr}
+    @media (min-width: 860px){ .list-2{grid-template-columns:repeat(2,1fr)} }
+    @media (min-width: 1020px){ .list-3{grid-template-columns:repeat(3,1fr)} }
 
-    /* Sections */
-    section{padding:48px 0}
-    .card{border:1px solid var(--ink);border-radius:var(--radius);padding:24px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.04)}
-    .card.label{background:linear-gradient(#fff, #fbfaf8);border:1px solid var(--line)}
-    .pill{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-    .list-2{grid-template-columns:repeat(2,1fr)}
-    .list-3{grid-template-columns:repeat(3,1fr)}
-    @media (max-width:900px){.list-3{grid-template-columns:1fr}.list-2{grid-template-columns:1fr}}
-    .label-title{font-size:20px;font-weight:700;letter-spacing:.02em;margin-bottom:2px}
-    .label-sub{font-size:14px;color:var(--muted);margin-bottom:12px}
-
-    /* Lead magnet form */
-    form{display:grid;gap:10px;grid-template-columns:1fr auto}
-    input[type="email"]{padding:14px 12px;border:1px solid var(--ink);border-radius:10px;background:#fff;font-size:16px}
-    @media (max-width:640px){form{grid-template-columns:1fr}}
+    /* Lead magnet form layout */
+    .form-grid{display:grid;gap:10px;grid-template-columns:1fr}
+    @media (min-width:640px){ .form-grid{grid-template-columns:1fr auto} }
 
     /* Footer */
-    footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted)}
-    .foot{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    footer{padding: calc(var(--space-3) + var(--safe-bottom)) 0 var(--space-3);border-top:1px solid var(--line);color:var(--muted)}
+    .foot{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+
+    /* Accessibility helpers */
+    .visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)}
   </style>
 </head>
 <body>
-
   <!-- Header -->
-  <header aria-label="Primary">
+  <header>
     <div class="wrap nav">
-      <a class="brand" href="#top">
-        <div class="logo" aria-hidden="true"><span>EA</span></div>
+      <a class="brand" href="#top" aria-label="Home">
+        <span class="logo" aria-hidden="true">EA</span>
         <span class="brand-title">The Eclectic Apothecary</span>
       </a>
-      <nav class="links" aria-label="Site">
-        <a href="#remedies">Remedies</a>
-        <a href="#about">About</a>
-        <a href="#formula">The Balance Formula</a>
-        <a class="btn" href="#book">Book an audit</a>
-      </nav>
+      <button class="menu-toggle" aria-expanded="false" aria-controls="primary-links" aria-label="Toggle menu">
+        ☰
+      </button>
     </div>
+    <nav id="primary-links" class="wrap links" aria-label="Primary">
+      <a href="#remedies">Remedies</a>
+      <a href="#about">About</a>
+      <a href="#formula">Balance Formula</a>
+      <a href="#book" class="btn" style="margin-top:6px">Book an audit</a>
+    </nav>
   </header>
 
-  <!-- Hero -->
   <main id="top">
+    <!-- Hero -->
     <section class="hero">
       <div class="wrap">
         <h1>Structure with soul.</h1>
@@ -116,42 +192,39 @@
       </div>
     </section>
 
-    <hr aria-hidden="true"/>
-
     <!-- Remedies -->
     <section id="remedies" aria-labelledby="remedies-title">
       <div class="wrap">
         <h2 id="remedies-title">Remedies</h2>
-        <p class="muted">Elegant, fixed-scope services crafted like formulations — clear ingredients, measured doses, predictable outcomes.</p>
-        <div class="grid list-3" style="margin-top:18px">
-          <article class="card label" aria-labelledby="clarity-tonic">
+        <p class="muted">Fixed-scope services crafted like formulations — clear ingredients, measured doses, predictable outcomes.</p>
+
+        <div class="grid list-3" style="margin-top: var(--space-2)">
+          <article class="card" aria-labelledby="clarity-tonic">
             <span class="pill">90 min · diagnosis</span>
-            <h3 id="clarity-tonic" class="label-title">The Clarity Tonic</h3>
-            <p class="label-sub">A precise audit of tools, workflows, and brand coherence. You leave with a 3-page plan and three quick wins.</p>
+            <h3 id="clarity-tonic">The Clarity Tonic</h3>
+            <p>A precise audit of tools, workflows, and brand coherence. You leave with a 3-page plan and three quick wins.</p>
             <p><strong>Launch price:</strong> £300</p>
-            <a class="btn" href="#book">Book your session</a>
+            <a class="btn block" href="#book">Book your session</a>
           </article>
 
-          <article class="card label" aria-labelledby="systems-elixir">
+          <article class="card" aria-labelledby="systems-elixir">
             <span class="pill">2 weeks · implementation</span>
-            <h3 id="systems-elixir" class="label-title">The Systems Elixir</h3>
-            <p class="label-sub">We rebuild your internal flow in Notion/Sheets, set naming conventions, and craft branded templates that people love to use.</p>
+            <h3 id="systems-elixir">The Systems Elixir</h3>
+            <p>We rebuild your internal flow in Notion/Sheets, set naming conventions, and craft branded templates people love to use.</p>
             <p><strong>From:</strong> £1,200</p>
-            <a class="btn" href="#book">Start a sprint</a>
+            <a class="btn block" href="#book">Start a sprint</a>
           </article>
 
-          <article class="card label" aria-labelledby="ritual-refill">
+          <article class="card" aria-labelledby="ritual-refill">
             <span class="pill">Monthly · stewardship</span>
-            <h3 id="ritual-refill" class="label-title">The Ritual Refill</h3>
-            <p class="label-sub">Ongoing operational well-being — we maintain dashboards, refine templates, and coach your team’s rituals.</p>
+            <h3 id="ritual-refill">The Ritual Refill</h3>
+            <p>Ongoing operational well-being — we maintain dashboards, refine templates, and coach your team’s rituals.</p>
             <p><strong>£400</strong> / month</p>
-            <a class="btn" href="#book">Join the roster</a>
+            <a class="btn block" href="#book">Join the roster</a>
           </article>
         </div>
       </div>
     </section>
-
-    <hr aria-hidden="true"/>
 
     <!-- About -->
     <section id="about" aria-labelledby="about-title">
@@ -184,16 +257,16 @@
               <ul>
                 <li>Diagnose the three most common chaos traps</li>
                 <li>Adopt a daily “ritual of clarity” (5 minutes)</li>
-                <li>See a before/after of a clean, branded workflow</li>
+                <li>Before/after of a clean, branded workflow</li>
               </ul>
             </div>
             <div>
               <!-- Replace action with your email platform endpoint -->
-              <form action="YOUR_MAILERLITE_FORM_ACTION" method="post" aria-label="Download the Balance Formula">
+              <form class="form-grid" action="YOUR_MAILERLITE_FORM_ACTION" method="post" aria-label="Download the Balance Formula">
                 <label class="visually-hidden" for="email">Email</label>
-                <input id="email" type="email" name="email" placeholder="you@company.com" required />
+                <input id="email" type="email" name="email" placeholder="you@company.com" required inputmode="email" autocomplete="email" />
                 <button class="btn accent" type="submit">Email me the PDF</button>
-                <small class="muted">No spam. One helpful email a week.</small>
+                <small>No spam. One helpful email a week.</small>
               </form>
             </div>
           </div>
@@ -205,7 +278,7 @@
     <section aria-labelledby="testimonials-title">
       <div class="wrap">
         <h2 id="testimonials-title">Quiet results</h2>
-        <div class="grid list-3" style="margin-top:18px">
+        <div class="grid list-3" style="margin-top: var(--space-2)">
           <figure class="card">
             <blockquote>“After the Systems Elixir, our studio finally breathes. Fewer tabs, fewer meetings, more momentum.”</blockquote>
             <figcaption class="muted">— Creative Director, design agency</figcaption>
@@ -222,13 +295,13 @@
       </div>
     </section>
 
-    <!-- Booking CTA -->
+    <!-- Booking -->
     <section id="book" aria-labelledby="book-title">
       <div class="wrap">
         <div class="card" style="text-align:center">
           <h2 id="book-title">Ready to restore balance?</h2>
           <p class="muted">Start with the 90-minute Clarity Tonic — a precise diagnosis and a plan you can act on tomorrow.</p>
-          <div style="margin-top:14px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <div style="margin-top:var(--space-2);display:grid;gap:10px;grid-auto-flow:row;justify-items:center">
             <a class="btn accent" href="https://calendly.com/YOUR-SCHEDULER/clarity-tonic" target="_blank" rel="noopener">Book your audit</a>
             <a class="btn" href="mailto:allan@yourexample.co?subject=Clarity%20Tonic%20enquiry">Email a question</a>
           </div>
@@ -241,7 +314,7 @@
   <footer role="contentinfo">
     <div class="wrap foot">
       <div style="display:flex;gap:10px;align-items:center">
-        <div class="logo" aria-hidden="true"><span>EA</span></div>
+        <span class="logo" aria-hidden="true">EA</span>
         <small>© <span id="year"></span> The Eclectic Apothecary</small>
       </div>
       <small>
@@ -253,26 +326,33 @@
   </footer>
 
   <script>
-    // small niceties
+    // Year stamp
     document.getElementById('year').textContent = new Date().getFullYear();
-    // smooth scroll for hash links
+
+    // Mobile menu
+    const btn = document.querySelector('.menu-toggle');
+    const links = document.getElementById('primary-links');
+    btn?.addEventListener('click', ()=>{
+      const open = links.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    // Respect reduced motion for anchor scroll (guard in CSS already)
     document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener('click', (e)=>{
+      a.addEventListener('click', e=>{
         const id = a.getAttribute('href');
-        if(id.length>1){
+        if(id && id.length>1){
+          // let CSS handle smooth scroll; avoid default jump for better UX
           e.preventDefault();
-          document.querySelector(id).scrollIntoView({behavior:'smooth', block:'start'});
+          document.querySelector(id)?.scrollIntoView({behavior:'smooth', block:'start'});
           history.pushState(null, '', id);
+          if (links.classList.contains('open')) { // close menu on nav
+            links.classList.remove('open');
+            btn.setAttribute('aria-expanded','false');
+          }
         }
       });
     });
   </script>
-
-  <!-- Accessibility helper (visually hidden class) -->
-  <style>
-    .visually-hidden{
-      position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)
-    }
-  </style>
 </body>
 </html>
