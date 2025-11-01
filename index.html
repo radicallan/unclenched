@@ -3,157 +3,363 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Isometric Room — From‑Scratch Minimal (Works Everywhere)</title>
+  <title>PIXEL PLAZA — Habbo‑Style Isometric Room (Single‑File)</title>
   <style>
-    :root{ --bg:#0d1117; --ink:#e6edf3; --muted:#9da7b3; --line:#1f2632; --floor:#1d2540; --edge:#2a3654; }
+    :root{ --bg:#0d1117; --ink:#e6edf3; --muted:#9da7b3; --line:#1f2632; --panel:#101624; }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    header{padding:10px 14px;border-bottom:1px solid var(--line)}
-    header b{letter-spacing:.3px}
-    .wrap{padding:12px}
-    .stage{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0f1422}
-    canvas{display:block;width:100%;height:520px;image-rendering:pixelated}
-    .bar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:12px}
-    .btn{background:#121a2b;border:1px solid var(--line);color:var(--ink);padding:6px 10px;border-radius:8px;cursor:pointer}
-    .pill{padding:4px 8px;border:1px solid var(--line);border-radius:999px}
+    header{display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0f1320,#0a0f19)}
+    .logo{font-weight:900;letter-spacing:.4px;background:linear-gradient(90deg,#ffd166,#fb8500,#ffb703);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+    .seg button{all:unset;padding:8px 10px;cursor:pointer;background:#11192a;color:var(--ink)}
+    .seg button.active{background:#1b2438}
+    .toolbar{margin-left:auto;display:flex;gap:8px}
+    .btn{background:#11192a;border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:10px;cursor:pointer}
+
+    .wrap{padding:12px;display:grid;grid-template-columns:1fr 320px;gap:12px}
+    @media (max-width: 1020px){ .wrap{grid-template-columns:1fr} }
+
+    .stage{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel);position:relative}
+    canvas{display:block;width:100%;height:62vh;min-height:420px;image-rendering:pixelated}
+
+    .hud{position:absolute;right:8px;bottom:8px;display:flex;gap:8px;z-index:2}
+    .pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0e1526;color:var(--muted);font-size:12px}
+
+    .side{border:1px solid var(--line);border-radius:16px;background:#0f1627;padding:12px}
+    .side h3{margin:4px 0 10px;font-size:14px;color:#e9eeff}
+    .row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+    label{min-width:86px;color:var(--muted);font-size:12px}
+    input,select{flex:1;background:#0d1427;border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:10px}
+    .log{height:220px;overflow:auto;background:#0e1526;border:1px solid var(--line);border-radius:10px;padding:8px}
+    .log p{margin:.35rem 0;font-size:12px;color:#cbd3e4}
+
+    .bubble{position:absolute;transform:translate(-50%, -100%);background:#172036;border:1px solid #243255;color:#e9ecff;padding:6px 8px;border-radius:10px;box-shadow:0 8px 20px #0009;font-size:12px;max-width:220px;display:none}
+    .bubble:after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #243255}
+
+    footer{display:flex;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);background:linear-gradient(180deg,#0b0f18,#090c13)}
+    footer input{flex:1}
   </style>
 </head>
 <body>
-  <header><b>Isometric Room</b> — ultra‑simple build to guarantee a visible room</header>
-  <div class="wrap">
-    <div class="stage"><canvas id="room" width="960" height="520"></canvas></div>
-    <div class="bar">
-      <div id="info" class="pill">—</div>
-      <div>
-        <button class="btn" id="fit">Fit</button>
-        <button class="btn" id="zoomOut">−</button>
-        <button class="btn" id="zoomIn">+</button>
-      </div>
+  <header>
+    <div class="logo">PIXEL&nbsp;PLAZA</div>
+    <div class="seg" role="group" aria-label="Zoom">
+      <button id="zoomOut">−</button>
+      <button id="zoomReset" class="active">Fit</button>
+      <button id="zoomIn">+</button>
     </div>
+    <div class="toolbar">
+      <button class="btn" id="shuffle">Shuffle Room</button>
+      <button class="btn" id="builderToggle">Builder: Off</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="stage">
+      <canvas id="room" width="960" height="540"></canvas>
+      <div class="hud">
+        <div class="pill" id="status">Ready</div>
+      </div>
+      <div id="bubble" class="bubble">Hi!</div>
+    </div>
+
+    <aside class="side">
+      <h3>Avatar & Room</h3>
+      <div class="row"><label>Nickname</label><input id="nick" maxlength="16" placeholder="Your name"/></div>
+      <div class="row"><label>Style</label>
+        <select id="style">
+          <option value="blue">Blue Hoodie</option>
+          <option value="red">Red Hoodie</option>
+          <option value="green">Green Hoodie</option>
+          <option value="purple">Purple Hoodie</option>
+        </select>
+      </div>
+      <div class="row"><label>Speed</label><input id="speed" type="range" min="2" max="12" value="8"/></div>
+      <div class="row"><label>Brush</label>
+        <select id="brush">
+          <option value="floor">Floor</option>
+          <option value="wall">Wall</option>
+          <option value="rug">Rug</option>
+          <option value="sofa">Sofa</option>
+          <option value="plant">Plant</option>
+          <option value="lamp">Lamp</option>
+          <option value="erase">Erase</option>
+        </select>
+      </div>
+      <p style="font-size:12px;color:var(--muted)">Shift‑click to place items when Builder is ON. R to rotate furniture.</p>
+      <h3>Chat Log</h3>
+      <div id="log" class="log" aria-live="polite"></div>
+    </aside>
   </div>
 
+  <footer>
+    <input id="chat" placeholder="Say something… (Enter to send)" />
+    <button class="btn" id="send">Send</button>
+  </footer>
+
   <script>
-    // ====== Clean slate: no DPR tricks, no transforms, just draw ======
+    // ===== CORE: geometry & canvas =====
     const canvas=document.getElementById('room');
     const ctx=canvas.getContext('2d');
     ctx.imageSmoothingEnabled=false;
 
-    // Grid + tile geometry
-    const GRID_W=14, GRID_H=10;      // smaller so it always fits
-    const TILE_W=64, TILE_H=32;      // isometric diamond base
-    let zoom=1.0;                    // simple zoom scalar
+    const GRID_W=16, GRID_H=12; // playable area
+    const TILE_W=64, TILE_H=32, TILE_Z=16;
 
-    // Basic palette
-    const FLOOR_COLS=['#1d2540','#212a4a'];
+    let zoom=1, originX=0, originY=0; // fit transform
 
-    // Compute world dimensions in screen px (at zoom=1)
+    const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+    const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+
     function worldSize(){
-      const w = (GRID_W + GRID_H) * (TILE_W/2);
-      const h = (GRID_W + GRID_H) * (TILE_H/2);
+      const w=(GRID_W+GRID_H)*(TILE_W/2);
+      const h=(GRID_W+GRID_H)*(TILE_H/2)+120; // extra headroom
       return {w,h};
     }
 
-    // Place world so the whole grid is centered and visible
-    let originX=0, originY=0; // top-left of the diamond bounds
     function fit(){
-      const rect=canvas.getBoundingClientRect(); // CSS size
+      const rect=canvas.getBoundingClientRect();
       const {w,h}=worldSize();
-      // leave soft padding
-      const pad=24;
-      const availW=rect.width - pad*2;
-      const availH=rect.height - pad*2;
-      // calc zoom to fit both dimensions
+      const pad=24; const availW=rect.width-pad*2; const availH=rect.height-pad*2;
       zoom=Math.min(availW/w, availH/h);
-      // recompute origin so world is centered
-      originX = (rect.width  - w*zoom)/2;
-      originY = (rect.height - h*zoom)/2 + 24; // nudge down for headroom
+      originX=(rect.width - w*zoom)/2 + (GRID_H*(TILE_W/2))*zoom; // centered plus diamond shift
+      originY=(rect.height- h*zoom)/2 + 40; // nudge down
       draw();
     }
 
-    // Iso <-> Screen (z ignored)
-    function isoToScreen(ix,iy){
-      const x=(ix - iy) * (TILE_W/2) * zoom + originX + (GRID_H*(TILE_W/2))*zoom; // shift to keep everything positive
-      const y=(ix + iy) * (TILE_H/2) * zoom + originY;
+    function isoToScreen(ix,iy,iz=0){
+      const x=(ix-iy)*(TILE_W/2)*zoom + originX;
+      const y=(ix+iy)*(TILE_H/2)*zoom + originY - iz*TILE_Z*zoom;
       return {x,y};
     }
-
-    // Draw a single diamond tile
-    function tile(x,y,fill){
-      const p=isoToScreen(x,y);
-      const hw=(TILE_W/2)*zoom, hh=(TILE_H/2)*zoom;
-      ctx.fillStyle=fill; ctx.strokeStyle='#2b375a';
-      ctx.beginPath();
-      ctx.moveTo(p.x,       p.y);
-      ctx.lineTo(p.x+hw,    p.y+hh);
-      ctx.lineTo(p.x,       p.y+2*hh);
-      ctx.lineTo(p.x-hw,    p.y+hh);
-      ctx.closePath();
-      ctx.fill(); ctx.stroke();
+    function screenToIso(px,py){
+      const x=((px-originX)/zoom)/(TILE_W/2); const y=((py-originY)/zoom)/(TILE_H/2);
+      return {x:(x+y)/2, y:(y-x)/2};
     }
 
-    // Simple checkerboard floor so you can SEE it immediately
+    // ===== WORLD STATE =====
+    const floor = Array.from({length:GRID_H},()=>Array.from({length:GRID_W},()=>({type:'floor',h:0})));
+    const items = Array.from({length:GRID_H},()=>Array.from({length:GRID_W},()=>null)); // {kind,rot}
+
+    function seedRoom(){
+      // checker floor + perimeter walls
+      for(let y=0;y<GRID_H;y++) for(let x=0;x<GRID_W;x++){ floor[y][x]={type:'floor',h:0, alt: (x+y)%2}; items[y][x]=null; }
+      for(let x=1;x<GRID_W-1;x++){ items[2][x]={kind:'wall',rot:0}; items[GRID_H-3][x]={kind:'wall',rot:0}; }
+      // scatter props
+      for(let i=0;i<10;i++){ const y=rand(3,GRID_H-4), x=rand(2,GRID_W-3); items[y][x]={kind:'plant',rot:0}; }
+      for(let i=0;i<6;i++){ const y=rand(3,GRID_H-4), x=rand(2,GRID_W-3); items[y][x]={kind:'sofa',rot:rand(0,3)}; }
+      for(let i=0;i<4;i++){ const y=rand(3,GRID_H-4), x=rand(2,GRID_W-3); items[y][x]={kind:'lamp',rot:0}; }
+      for(let i=0;i<5;i++){ const y=rand(3,GRID_H-4), x=rand(2,GRID_W-3); items[y][x]={kind:'rug',rot:0}; }
+    }
+    seedRoom();
+
+    // avatar
+    const avatar={ x:Math.floor(GRID_W/2), y:Math.floor(GRID_H/2)+2, z:0, name:'Guest', style:'blue', path:[], t:0 };
+
+    // ===== DRAW HELPERS =====
+    function drawDiamond(p,tw,th,fill,stroke){
+      ctx.fillStyle=fill; ctx.strokeStyle=stroke||'#2a3654';
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x+tw/2, p.y+th/2);
+      ctx.lineTo(p.x, p.y+th);
+      ctx.lineTo(p.x-tw/2, p.y+th/2);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+
     function drawFloor(){
+      const TW=TILE_W*zoom, TH=TILE_H*zoom;
       for(let y=0;y<GRID_H;y++){
         for(let x=0;x<GRID_W;x++){
-          const c = FLOOR_COLS[(x+y)%2];
-          tile(x,y,c);
+          const p=isoToScreen(x,y,floor[y][x].h);
+          const fill = floor[y][x].alt? '#1d2540' : '#202b4a';
+          drawDiamond(p,TW,TH,fill);
         }
       }
     }
 
-    // A tiny avatar block so it feels alive
-    const avatar={x:Math.floor(GRID_W/2), y:Math.floor(GRID_H/2)};
-    function drawAvatar(){
-      const p=isoToScreen(avatar.x, avatar.y);
-      const hh=(TILE_H/2)*zoom;
-      ctx.fillStyle='#5a79e6';
-      ctx.fillRect(p.x-6*zoom, p.y+hh-14*zoom, 12*zoom, 12*zoom);
-      ctx.fillStyle='#f0d9c2';
-      ctx.fillRect(p.x-5*zoom, p.y+hh-22*zoom, 10*zoom, 8*zoom);
+    function drawItem(x,y,it){
+      const TW=TILE_W*zoom, TH=TILE_H*zoom;
+      const p=isoToScreen(x,y,0);
+      // depth: draw based on kind
+      switch(it.kind){
+        case 'wall':{
+          const h=34*zoom;
+          // right face
+          ctx.fillStyle='#0f1424'; ctx.beginPath();
+          ctx.moveTo(p.x, p.y); ctx.lineTo(p.x+TW/2, p.y+TH/2); ctx.lineTo(p.x+TW/2, p.y+TH/2-h); ctx.lineTo(p.x, p.y-h); ctx.closePath(); ctx.fill();
+          // left face
+          ctx.fillStyle='#131a2e'; ctx.beginPath();
+          ctx.moveTo(p.x, p.y); ctx.lineTo(p.x-TW/2, p.y+TH/2); ctx.lineTo(p.x-TW/2, p.y+TH/2-h); ctx.lineTo(p.x, p.y-h); ctx.closePath(); ctx.fill();
+          // top edge
+          ctx.strokeStyle='#2e3b6a'; ctx.beginPath(); ctx.moveTo(p.x-TW/2, p.y+TH/2-h); ctx.lineTo(p.x, p.y-h); ctx.lineTo(p.x+TW/2, p.y+TH/2-h); ctx.stroke();
+        } break;
+        case 'rug':{
+          ctx.fillStyle='#2b3b70';
+          drawDiamond({x:p.x, y:p.y+4*zoom}, TW*0.9, TH*0.9, '#2b3b70','#31427d');
+        } break;
+        case 'sofa':{
+          const w=TW*0.62, h=26*zoom; const r=6*zoom;
+          rounded(p.x, p.y-10*zoom, w, h, '#7d3aa1', r);
+          rounded(p.x, p.y-6*zoom, 8*zoom, 8*zoom, '#caa7ff', r/2);
+        } break;
+        case 'plant':{
+          dot(p.x, p.y-10*zoom, 5*zoom, '#2f7d32');
+          dot(p.x-4*zoom, p.y-14*zoom, 3*zoom, '#3fab4a');
+          dot(p.x+4*zoom, p.y-14*zoom, 3*zoom, '#3fab4a');
+        } break;
+        case 'lamp':{
+          // pole
+          ctx.fillStyle='#384562'; ctx.fillRect(p.x-1.5*zoom, p.y-20*zoom, 3*zoom, 18*zoom);
+          // shade
+          drawDiamond({x:p.x, y:p.y-24*zoom}, TW*0.25, TH*0.25, '#e3e1bd','#c5c39a');
+          // glow
+          const g=ctx.createRadialGradient(p.x, p.y-18*zoom, 2*zoom, p.x, p.y-18*zoom, 42*zoom);
+          g.addColorStop(0,'#ffffaa40'); g.addColorStop(1,'#0000');
+          ctx.fillStyle=g; ctx.beginPath(); ctx.arc(p.x, p.y-18*zoom, 42*zoom, 0, Math.PI*2); ctx.fill();
+        } break;
+      }
     }
 
-    // Full draw
+    function rounded(cx,cy,w,h,color,r){ ctx.fillStyle=color; ctx.beginPath(); ctx.moveTo(cx-w/2+r, cy-h/2); ctx.arcTo(cx+w/2, cy-h/2, cx+w/2, cy-h/2+r, r); ctx.arcTo(cx+w/2, cy+h/2, cx+w/2-r, cy+h/2, r); ctx.arcTo(cx-w/2, cy+h/2, cx-w/2, cy+h/2-r, r); ctx.arcTo(cx-w/2, cy-h/2, cx-w/2+r, cy-h/2, r); ctx.closePath(); ctx.fill(); }
+    function dot(x,y,r,color){ ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+
+    function drawAvatar(){
+      const t=floor[avatar.y]?.[avatar.x]||{h:0};
+      const base=isoToScreen(avatar.x,avatar.y,t.h);
+      const s={ x: base.x, y: base.y-8*zoom };
+      // shadow
+      ctx.fillStyle='#00000070'; ctx.beginPath(); ctx.ellipse(s.x, s.y+18*zoom, 10*zoom, 4*zoom, 0, 0, Math.PI*2); ctx.fill();
+      // colors
+      const colors={ blue:['#86a7ff','#5a79e6'], red:['#ff8b86','#e65a5a'], green:['#86ffb4','#46c87a'], purple:['#c59bff','#8a60e6'] }[avatar.style];
+      // legs
+      rounded(s.x-6*zoom, s.y+8*zoom, 8*zoom,16*zoom,'#2a2f45',3*zoom);
+      rounded(s.x+6*zoom, s.y+8*zoom, 8*zoom,16*zoom,'#2a2f45',3*zoom);
+      // body
+      rounded(s.x, s.y-2*zoom, 22*zoom,24*zoom, colors[1],4*zoom);
+      rounded(s.x, s.y-8*zoom, 18*zoom,10*zoom, colors[0],3*zoom);
+      // head
+      rounded(s.x, s.y-18*zoom, 14*zoom,12*zoom, '#f0d9c2',3*zoom);
+      // name tag
+      ctx.fillStyle='#0009'; ctx.fillRect(s.x-26*zoom, s.y-34*zoom, 52*zoom, 14*zoom);
+      ctx.fillStyle='#fff'; ctx.font=`${10*zoom}px Inter,ui-sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(avatar.name, s.x, s.y-27*zoom);
+    }
+
+    function drawHover(){
+      if(!hover) return; const TW=TILE_W*zoom, TH=TILE_H*zoom; const p=isoToScreen(hover.x,hover.y,0);
+      ctx.strokeStyle='#7dc4ff'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x+TW/2, p.y+TH/2); ctx.lineTo(p.x, p.y+TH); ctx.lineTo(p.x-TW/2, p.y+TH/2); ctx.closePath(); ctx.stroke(); ctx.lineWidth=1;
+    }
+
+    // ===== RENDER ORDER =====
     function draw(){
       // clear
-      ctx.fillStyle='#0f1422';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle='#0f1422'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      // floor
       drawFloor();
+      // items (painter's algorithm)
+      for(let y=0;y<GRID_H;y++) for(let x=0;x<GRID_W;x++){ const it=items[y][x]; if(it) drawItem(x,y,it); }
+      // avatar
       drawAvatar();
-      // debug info
-      const info=`Canvas ${canvas.width}×${canvas.height} | Zoom ${(zoom*100).toFixed(0)}% | Grid ${GRID_W}×${GRID_H}`;
-      document.getElementById('info').textContent=info;
+      // hover
+      drawHover();
     }
 
-    // Resize canvas pixels to its CSS size so it never looks blank
-    function resizeCanvasToCSS(){
-      const rect=canvas.getBoundingClientRect();
-      // Make the drawing buffer match CSS size exactly (no DPR scaling to keep it bulletproof)
-      const w=Math.max(300, Math.floor(rect.width));
-      const h=Math.max(260, Math.floor(rect.height));
-      if(canvas.width!==w || canvas.height!==h){ canvas.width=w; canvas.height=h; }
+    // ===== PATHFINDING & MOVEMENT =====
+    function walkable(x,y){ if(x<0||y<0||x>=GRID_W||y>=GRID_H) return false; const it=items[y][x]; if(!it) return true; return (it.kind==='rug' || it.kind==='plant' || it.kind==='lamp'); }
+    function aStar(start,goal){
+      const key=(x,y)=>x+','+y; const pr=k=>k.split(',').map(Number);
+      const H=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
+      const open=new Set([key(start.x,start.y)]); const came=new Map(); const g=new Map([[key(start.x,start.y),0]]); const f=new Map([[key(start.x,start.y),H(start,goal)]]);
+      const low=()=>{let bk=null,bv=Infinity; for(const k of open){const v=f.get(k)??Infinity; if(v<bv){bv=v; bk=k;}} return bk;};
+      while(open.size){
+        const curK=low(); const [cx,cy]=pr(curK); if(cx===goal.x&&cy===goal.y){ const path=[{x:cx,y:cy}]; let k=curK; while(came.has(k)){ k=came.get(k); const [px,py]=pr(k); path.unshift({x:px,y:py}); } return path; }
+        open.delete(curK);
+        for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+          const nx=cx+dx, ny=cy+dy; if(!walkable(nx,ny)) continue; const nk=key(nx,ny); const ng=(g.get(curK)??Infinity)+1; if(ng < (g.get(nk)??Infinity)){ came.set(nk,curK); g.set(nk,ng); f.set(nk, ng + H({x:nx,y:ny},goal)); open.add(nk); }
+        }
+      }
+      return null;
     }
 
-    // Controls
-    document.getElementById('zoomIn').onclick=()=>{ zoom=Math.min(2.5, zoom+0.1); draw(); };
-    document.getElementById('zoomOut').onclick=()=>{ zoom=Math.max(0.4, zoom-0.1); draw(); };
-    document.getElementById('fit').onclick=()=>{ fit(); };
+    let last=performance.now();
+    function loop(t){ const dt=(t-last)/1000; last=t; step(dt); draw(); requestAnimationFrame(loop); }
 
-    canvas.addEventListener('click',(e)=>{
-      const rect=canvas.getBoundingClientRect();
-      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-      // super simple: move avatar toward click by one step
-      if(mx>canvas.width/2) avatar.x=Math.min(GRID_W-1, avatar.x+1); else avatar.x=Math.max(0, avatar.x-1);
-      if(my>canvas.height/2) avatar.y=Math.min(GRID_H-1, avatar.y+1); else avatar.y=Math.max(0, avatar.y-1);
-      draw();
+    let speed=8; // tiles per second scale
+    let lerp=0; let curSeg=null; // smooth stepping
+    function step(dt){
+      speed=+document.getElementById('speed').value;
+      if(avatar.path.length>0){
+        if(!curSeg){ const next=avatar.path.shift(); curSeg={sx:avatar.x,sy:avatar.y, tx:next.x,ty:next.y}; lerp=0; }
+        lerp+=dt*speed/6; if(lerp>=1){ avatar.x=curSeg.tx; avatar.y=curSeg.ty; curSeg=null; lerp=0; } else {
+          // interpolate virtual position (for future sprite direction)
+        }
+        document.getElementById('status').textContent='Walking…';
+      } else {
+        document.getElementById('status').textContent='Ready';
+      }
+    }
+
+    function goTo(tx,ty){ tx=clamp(tx,0,GRID_W-1); ty=clamp(ty,0,GRID_H-1); const p=aStar({x:avatar.x,y:avatar.y},{x:tx,y:ty}); if(!p||p.length<=1){ document.getElementById('status').textContent='No path'; return; } avatar.path=p.slice(1); }
+
+    // ===== UI / INPUT =====
+    const zoomIn=document.getElementById('zoomIn');
+    const zoomOut=document.getElementById('zoomOut');
+    const zoomReset=document.getElementById('zoomReset');
+    const nick=document.getElementById('nick');
+    const styleSel=document.getElementById('style');
+    const logEl=document.getElementById('log');
+    const chat=document.getElementById('chat');
+    const bubble=document.getElementById('bubble');
+
+    // hover tile highlight
+    let hover=null;
+
+    function pushLog(html){ const p=document.createElement('p'); p.innerHTML=html; logEl.appendChild(p); logEl.scrollTop=logEl.scrollHeight; }
+    function say(msg){ if(!msg.trim()) return; bubble.textContent=msg; const s=isoToScreen(avatar.x,avatar.y,0); bubble.style.left=s.x+'px'; bubble.style.top=(s.y-36*zoom)+'px'; bubble.style.display='block'; setTimeout(()=>bubble.style.display='none',3000); pushLog(`<b>${escapeHtml(avatar.name)}:</b> ${escapeHtml(msg)}`); }
+    const escapeHtml=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+    document.getElementById('send').onclick=()=>{ say(chat.value); chat.value=''; };
+    chat.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('send').click(); }});
+
+    nick.value=avatar.name; nick.addEventListener('input',()=>{ avatar.name=nick.value||'Guest'; localStorage.setItem('pp_nick',avatar.name);});
+    styleSel.addEventListener('change',()=>{ avatar.style=styleSel.value; localStorage.setItem('pp_style',avatar.style); });
+
+    zoomIn.onclick=()=>{ zoom=Math.min(3, zoom+0.1); draw(); };
+    zoomOut.onclick=()=>{ zoom=Math.max(0.5, zoom-0.1); draw(); };
+    zoomReset.onclick=fit;
+
+    // pointer interactions
+    canvas.addEventListener('mousemove', (e)=>{
+      const rect=canvas.getBoundingClientRect(); const mx=e.clientX-rect.left, my=e.clientY-rect.top; const iso=screenToIso(mx,my); const gx=Math.round(iso.x), gy=Math.round(iso.y); if(gx>=0&&gy>=0&&gx<GRID_W&&gy<GRID_H){ hover={x:gx,y:gy}; } else { hover=null; } draw();
     });
 
-    // Init
+    let builderOn=false; let rotation=0; const brushSel=document.getElementById('brush');
+    document.getElementById('builderToggle').onclick=()=>{ builderOn=!builderOn; document.getElementById('builderToggle').textContent=`Builder: ${builderOn?'On':'Off'}`; };
+    window.addEventListener('keydown',e=>{ if(e.key.toLowerCase()==='r'){ rotation=(rotation+1)%4; }});
+
+    canvas.addEventListener('click', (e)=>{
+      if(!hover) return;
+      if(e.shiftKey && builderOn){
+        const b=brushSel.value; if(b==='erase'){ items[hover.y][hover.x]=null; }
+        else if(b==='floor'){ floor[hover.y][hover.x].alt = (floor[hover.y][hover.x].alt?0:1); }
+        else { items[hover.y][hover.x]={kind:b,rot:rotation}; }
+        draw();
+      } else {
+        goTo(hover.x, hover.y);
+      }
+    });
+
+    document.getElementById('shuffle').onclick=()=>{ seedRoom(); draw(); };
+
+    // resize canvas buffer to CSS size (no DPR scaling → robust)
+    function resizeCanvasToCSS(){ const rect=canvas.getBoundingClientRect(); const w=Math.max(600, Math.floor(rect.width)); const h=Math.max(400, Math.floor(rect.height)); if(canvas.width!==w||canvas.height!==h){ canvas.width=w; canvas.height=h; } }
+
+    // init
     function init(){
-      resizeCanvasToCSS();
-      fit();
-      draw();
+      const stored=localStorage.getItem('pp_style'); if(stored){ avatar.style=stored; styleSel.value=stored; }
+      resizeCanvasToCSS(); fit(); draw(); requestAnimationFrame(loop);
     }
-    window.addEventListener('resize',()=>{ resizeCanvasToCSS(); fit(); });
+    window.addEventListener('resize', ()=>{ resizeCanvasToCSS(); fit(); });
     init();
   </script>
 </body>
