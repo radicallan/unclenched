@@ -34,7 +34,7 @@
     label{font-size:12px;color:var(--muted);min-width:82px}
     input,select{background:#0f1322;border:1px solid #1b2133;color:#e9eaf5;border-radius:10px;padding:8px 10px;flex:1}
 
-    .room-wrap{position:relative; background:var(--panel-2); border:1px solid #1b2133; border-radius:16px; box-shadow:0 12px 40px #0008, inset 0 0 0 1px #0004; overflow:hidden}
+    .room-wrap{position:relative;$1 min-height:60vh;}
     canvas{display:block; width:100%; height:100%; image-rendering: pixelated;}
 
     .hud{position:absolute; inset:auto 8px 8px auto; display:flex; gap:8px;}
@@ -62,6 +62,9 @@
         <button id="zoomReset" class="active" title="Reset zoom">100%</button>
         <button id="zoomIn" title="Zoom in">+</button>
       </div>
+      <button class="btn" id="fit">Fit</button>
+      <button class="btn" id="randomize">Shuffle Room</button>
+    </div>
       <button class="btn" id="randomize">Shuffle Room</button>
     </div>
   </header>
@@ -139,6 +142,7 @@
 
     let TILE_W=64, TILE_H=32; // iso diamond base
     let ZOOM=1; // zoom factor
+    let initialFit=true; // auto-fit on first load & resize
 
     const gridW=18, gridH=14; // logical grid size
     
@@ -369,12 +373,15 @@
     document.getElementById('center').onclick=()=>{ cam.x=avatar.x; cam.y=avatar.y; };
     document.getElementById('wave').onclick=()=>{ avatar.waving=40; };
 
-    document.getElementById('zoomIn').onclick=()=>{ ZOOM=clamp(ZOOM+0.1,0.6,2.2); updateZoomLabel(); };
-    document.getElementById('zoomOut').onclick=()=>{ ZOOM=clamp(ZOOM-0.1,0.6,2.2); updateZoomLabel(); };
-    document.getElementById('zoomReset').onclick=()=>{ ZOOM=1; updateZoomLabel(); };
+    document.getElementById('zoomIn').onclick=()=>{ ZOOM=clamp(ZOOM+0.1,0.6,2.2); initialFit=false; updateZoomLabel(); }; updateZoomLabel(); };
+    document.getElementById('zoomOut').onclick=()=>{ ZOOM=clamp(ZOOM-0.1,0.6,2.2); initialFit=false; updateZoomLabel(); }; updateZoomLabel(); };
+    document.getElementById('zoomReset').onclick=()=>{ ZOOM=1; initialFit=false; updateZoomLabel(); }; updateZoomLabel(); };
     function updateZoomLabel(){ document.getElementById('zoomReset').textContent=Math.round(ZOOM*100)+'%'; }
 
-    document.getElementById('randomize').onclick=()=>{ seedRoom(); };
+    document.getElementById('randomize').onclick=()=>{ seedRoom(); if(initialFit) fitToView(); };
+
+    // Fit button
+    document.getElementById('fit').onclick=()=>{ initialFit=true; fitToView(); };
 
     // builder
     function cellAt(px,py){
@@ -444,21 +451,25 @@
     requestAnimationFrame(loop);
 
     // responsive canvas
-    function resize(){
+    function fitToView(){
+      // approximate world bounds for an empty room at ZOOM=1
       const wrap=document.querySelector('.room-wrap');
-      const w=wrap.clientWidth, h=Math.max(420, window.innerHeight - document.querySelector('header').offsetHeight - 160);
-      canvas.width=w*devicePixelRatio; canvas.height=h*devicePixelRatio; canvas.style.width=w+'px'; canvas.style.height=h+'px'; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+      const worldW=((gridW+gridH)*TILE_W/2)+TILE_W; // add padding
+      const worldH=((gridW+gridH)*TILE_H/2)+96;     // add headroom
+      const w=wrap.clientWidth; const h=parseFloat(getComputedStyle(canvas).height);
+      const zW=w/worldW, zH=h/worldH; ZOOM=clamp(Math.min(zW,zH),0.6,2.0);
+      cam.x=gridW/2; cam.y=gridH/2; updateZoomLabel();
     }
     addEventListener('resize', resize); resize();
 
     // mobile drag to pan
     let pan=null;
-    canvas.addEventListener('pointerdown',e=>{ if(e.button===1 || e.pointerType==='touch'){ pan={sx:e.clientX, sy:e.clientY, ox:cam.x, oy:cam.y}; canvas.setPointerCapture(e.pointerId);} });
+    canvas.addEventListener('pointerdown',e=>{ if(e.button===1 || e.pointerType==='touch'){ initialFit=false; pan={sx:e.clientX, sy:e.clientY, ox:cam.x, oy:cam.y}; canvas.setPointerCapture(e.pointerId);} });} });
     canvas.addEventListener('pointermove',e=>{ if(pan){ const dx=e.clientX-pan.sx, dy=e.clientY-pan.sy; cam.x=pan.ox - dx/80; cam.y=pan.oy - dy/80; }});
     canvas.addEventListener('pointerup',()=>{ pan=null; });
 
     // mouse wheel zoom
-    canvas.addEventListener('wheel',e=>{ e.preventDefault(); const d=Math.sign(e.deltaY); ZOOM=clamp(ZOOM - d*0.1,0.6,2.2); updateZoomLabel(); }, {passive:false});
+    canvas.addEventListener('wheel',e=>{ e.preventDefault(); const d=Math.sign(e.deltaY); ZOOM=clamp(ZOOM - d*0.1,0.6,2.2); initialFit=false; updateZoomLabel(); }, {passive:false});
 
     // preload from storage
     (function init(){
