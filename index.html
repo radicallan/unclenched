@@ -1,422 +1,661 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-/>
-  <title>Unclenched Studio — Where structure meets relief</title>
-  <meta name="description" content="Unclenched Studio blends operational excellence, design and psychology to help small teams breathe again. Systems, rituals and brand clarity that feel good to use." />
-  <meta name="theme-color" content="#0f0f10" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
-  <meta name="color-scheme" content="light dark">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Gantt — Unclenched Project Studio</title>
+<meta name="color-scheme" content="light dark" />
+<style>
+  :root{
+    --bg: #f7f6f4;
+    --ink: #161616;
+    --muted:#6b6b6b;
+    --line:#e7e1d8;
+    --panel:#ffffff;
+    --accent:#8ea2a6;
+    --accent-ink:#0a0b0c;
+    --good:#3fb077;
+    --warn:#caa64a;
+    --bad:#ca5a5a;
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="Unclenched Studio — Where structure meets relief">
-  <meta property="og:description" content="Systems that help you exhale. Calm operational design for creative brands.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://unclenched.co.uk/">
-  <meta property="og:image" content="">
+    --radius:16px;
+    --shadow: 0 2px 6px rgba(0,0,0,.06), 0 12px 24px rgba(0,0,0,.06);
+    --tap: 44px;
 
-  <!-- Favicon placeholders (swap when ready) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23000000%22/><text x=%2232%22 y=%2238%22 font-size=%2230%22 text-anchor=%22middle%22 fill=%22%23fff%22>U</text></svg>">
-
-  <style>
-    /* ------------------ Tokens ------------------ */
+    --row-h: 40px;
+    --bar-h: 14px;
+    --bar-radius: 10px;
+  }
+  @media (prefers-color-scheme: dark){
     :root{
-      /* Light */
-      --bg: #f6f4f1;
-      --ink: #141414;
-      --muted:#6a6a6a;
-      --line:#e7e1d8;
-      --panel:#ffffff;
-      --accent:#c9c3b2;          /* warm sage-amber */
-      --accent-ink:#22211e;
-
-      /* Dark */
-      --bg-d:#0f0f10;
-      --ink-d:#f3f3f3;
-      --muted-d:#a0a0a0;
-      --line-d:#2a2a2c;
-      --panel-d:#141416;
-      --accent-d:#9a9483;
-
-      --radius:16px;
-      --tap:48px;
-      --wrap:1120px;
-
-      /* Type + spacing */
-      --fs-1: clamp(2.1rem, 6.2vw, 3.8rem);
-      --fs-2: clamp(1.35rem, 4.2vw, 2.2rem);
-      --fs-3: clamp(1.05rem, 3.2vw, 1.35rem);
-      --fs-body: clamp(1rem, 2.8vw, 1.125rem);
-      --lh:1.55;
-
-      --s-1: clamp(10px, 2.6vw, 14px);
-      --s-2: clamp(16px, 3.2vw, 20px);
-      --s-3: clamp(24px, 4.5vw, 32px);
-      --s-4: clamp(38px, 6.5vw, 56px);
-      --s-5: clamp(56px, 9vw, 80px);
-
-      --safe-top: env(safe-area-inset-top);
-      --safe-bottom: env(safe-area-inset-bottom);
-      --safe-left: env(safe-area-inset-left);
-      --safe-right: env(safe-area-inset-right);
-
-      --shadow-l: 0 1px 0 rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.06);
-      --shadow-d: 0 1px 0 rgba(255,255,255,.04), 0 12px 32px rgba(0,0,0,.4);
+      --bg: #0f1012;
+      --ink: #f2f2f2;
+      --muted:#a1a1a8;
+      --line:#23262b;
+      --panel:#14161a;
+      --accent:#99a6b6;
+      --accent-ink:#0b0d10;
+      --shadow: 0 1px 0 rgba(255,255,255,.04), 0 12px 34px rgba(0,0,0,.5);
     }
-    @media (prefers-color-scheme: dark){
-      :root{
-        --bg: var(--bg-d);
-        --ink: var(--ink-d);
-        --muted: var(--muted-d);
-        --line: var(--line-d);
-        --panel: var(--panel-d);
-        --accent: var(--accent-d);
-        --accent-ink:#0d0d0d;
-      }
-    }
-
-    /* ------------------ Base ------------------ */
-    *,*::before,*::after{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
-    body{
-      margin:0;background:
-        radial-gradient(1200px 800px at 80% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
-        radial-gradient(1400px 900px at -10% 100%, color-mix(in srgb, var(--accent) 12%, transparent), transparent),
-        var(--bg);
-      color:var(--ink);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, ui-sans-serif;
-      line-height:var(--lh);
-      -webkit-text-size-adjust:100%;
-      text-rendering:optimizeLegibility;
-    }
-    img{max-width:100%;display:block;height:auto}
-    a{text-decoration:none;color:inherit}
-    p{font-size:var(--fs-body);margin:0 0 var(--s-1)}
-    h1,h2,h3{margin:0 0 .45em}
-    h1{font-size:var(--fs-1);letter-spacing:-.02em}
-    h2{font-size:var(--fs-2);letter-spacing:-.01em}
-    h3{font-size:var(--fs-3)}
-    .wrap{max-width:var(--wrap);margin:0 auto;padding:0 calc(18px + var(--safe-left))}
-
-    /* Utilities */
-    .muted{color:var(--muted)}
-    .grid{display:grid;gap:var(--s-2)}
-    .list-2{grid-template-columns:1fr}
-    .list-3{grid-template-columns:1fr}
-    @media (min-width:880px){ .list-2{grid-template-columns:repeat(2,1fr)} }
-    @media (min-width:1040px){ .list-3{grid-template-columns:repeat(3,1fr)} }
-    .pill{display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-
-    /* ------------------ Header ------------------ */
-    .skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
-    .skip:focus{left:12px;top:12px;width:auto;height:auto;z-index:999;background:var(--panel);padding:8px 12px;border-radius:10px;border:1px solid var(--line)}
-
-    header{
-      position:sticky;top:0;z-index:50;
-      background: color-mix(in srgb, var(--bg) 92%, white);
-      border-bottom:1px solid var(--line);
-      padding-top: calc(6px + var(--safe-top));
-      backdrop-filter: saturate(115%) blur(6px);
-    }
-    .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
-    .brand{display:flex;gap:10px;align-items:center}
-    .logo{width:28px;height:28px;border:1px solid var(--ink);border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:14px}
-    .brand-title{font-weight:650;letter-spacing:.02em;white-space:nowrap}
-
-    .menu-toggle{
-      display:inline-flex;align-items:center;justify-content:center;
-      width:var(--tap);height:var(--tap);
-      border:1px solid var(--ink);border-radius:12px;background:transparent;cursor:pointer
-    }
-    .links{display:none;flex-direction:column;gap:8px;padding:12px;border-top:1px solid var(--line)}
-    .links a{padding:12px;border-radius:10px}
-    .links a:active{background:#00000012}
-    .links.open{display:flex}
-
-    @media (min-width:940px){
-      .menu-toggle{display:none}
-      .links{display:flex !important;border-top:none;flex-direction:row;gap:16px;padding:0}
-      .links a{padding:8px 10px}
-      .links a:hover{background:#0000000a}
-    }
-
-    /* ------------------ Buttons & Inputs ------------------ */
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      min-height:var(--tap);padding:0 18px;
-      border:1px solid var(--ink);border-radius:14px;background:var(--panel);
-      font-weight:650;cursor:pointer;transition:.18s ease; box-shadow:0 0 0 rgba(0,0,0,0)
-    }
-    .btn:hover{transform:translateY(-1px)}
-    .btn:active{transform:translateY(0)}
-    .btn.accent{background:var(--accent);border-color:var(--accent-ink)}
-    .btn.block{width:100%}
-    input[type="email"]{
-      width:100%;min-height:var(--tap);
-      padding:0 14px;border:1px solid var(--ink);border-radius:14px;background:var(--panel);font-size:var(--fs-body)
-    }
-
-    /* ------------------ Sections ------------------ */
-    section{padding:var(--s-4) 0}
-    .hero{padding:var(--s-5) 0 var(--s-4)}
-    .lede{font-size:clamp(1.05rem,3.4vw,1.25rem);max-width:70ch}
-    .hero-cta{display:grid;gap:10px;margin-top:var(--s-2)}
-    @media (min-width:720px){ .hero-cta{grid-auto-flow:column;justify-content:start} }
-
-    .card{
-      border:1px solid var(--line);border-radius:var(--radius);
-      background:var(--panel); box-shadow: var(--shadow-l); padding: var(--s-2)
-    }
-    @media (prefers-color-scheme: dark){
-      .card{ box-shadow: var(--shadow-d) }
-    }
-
-    .process{counter-reset:step}
-    .process li{list-style:none;margin:0 0 var(--s-2);padding-left:54px;position:relative}
-    .process li::before{
-      counter-increment:step;content:counter(step);
-      position:absolute;left:0;top:0;width:40px;height:40px;border-radius:50%;
-      border:1px solid var(--ink);display:grid;place-items:center;font-weight:700;
-      background:var(--panel)
-    }
-
-    /* Lead magnet form */
-    .form-grid{display:grid;gap:10px;grid-template-columns:1fr}
-    @media (min-width:640px){ .form-grid{grid-template-columns:1fr auto} }
-
-    /* Footer */
-    footer{padding: calc(var(--s-3) + var(--safe-bottom)) 0 var(--s-3);border-top:1px solid var(--line);color:var(--muted)}
-    .foot{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-
-    /* Visually hidden */
-    .vh{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)}
-  </style>
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:
+      radial-gradient(1200px 800px at 120% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent),
+      radial-gradient(1200px 900px at -20% 120%, color-mix(in srgb, var(--accent) 10%, transparent), transparent),
+      var(--bg);
+    color:var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    -webkit-text-size-adjust:100%;
+  }
+  header{
+    position:sticky;top:0;z-index:40;
+    backdrop-filter:saturate(115%) blur(8px);
+    background: color-mix(in srgb, var(--bg) 92%, white);
+    border-bottom:1px solid var(--line);
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:0 14px}
+  .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .brand{display:flex;gap:10px;align-items:center}
+  .logo{width:28px;height:28px;border:1px solid var(--ink);border-radius:10px;display:grid;place-items:center;font-weight:800}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;justify-content:center;
+    min-height:var(--tap); padding:6px 12px;
+    border:1px solid var(--ink);border-radius:12px;background:var(--panel);
+    box-shadow:var(--shadow); cursor:pointer; user-select:none;
+    font-weight:600
+  }
+  .btn.secondary{border-color:var(--line);color:var(--muted)}
+  .btn.ghost{background:transparent;border-color:var(--line)}
+  .btn.warn{border-color:var(--warn);color:var(--warn)}
+  .btn.good{border-color:var(--good);color:var(--good)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .seg button{border:0;background:transparent;padding:10px 12px;min-height:var(--tap);cursor:pointer}
+  .seg button.active{background:var(--panel);border-right:1px solid var(--line)}
+  .seg button+button{border-left:1px solid var(--line)}
+  .search{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:0 12px;min-height:var(--tap)}
+  .search input{border:0;outline:0;background:transparent;color:inherit;min-width:120px}
+  main{display:grid;grid-template-columns:320px 1fr;gap:14px;max-width:1400px;margin:14px auto;padding:0 14px}
+  @media (max-width:1000px){ main{grid-template-columns:1fr} }
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+  }
+  .left{overflow:auto;max-height:calc(100dvh - 160px)}
+  .left header{position:sticky;top:0;background:var(--panel);padding:10px;border-bottom:1px solid var(--line)}
+  .tasklist{padding:10px}
+  .task{display:grid;grid-template-columns: 1fr 80px 80px 60px;gap:8px;align-items:center;border-bottom:1px dashed var(--line);padding:8px 2px}
+  .task input[type="text"]{border:1px solid var(--line);border-radius:10px;padding:8px;background:transparent}
+  .pill{display:inline-flex;align-items:center;justify-content:center;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted)}
+  .right{position:relative;overflow:hidden}
+  .r-head{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--line)}
+  .chart-wrap{position:relative;overflow:auto;max-height:calc(100dvh - 160px)}
+  .layers{position:relative;min-width:900px}
+  .grid-bg{position:absolute;inset:0;background:
+      repeating-linear-gradient(to bottom, transparent, transparent var(--row-h), color-mix(in srgb, var(--ink) 6%, transparent) var(--row-h), color-mix(in srgb, var(--ink) 6%, transparent) calc(var(--row-h) + 1px));
+  }
+  svg{display:block}
+  .legend{display:flex;gap:10px;flex-wrap:wrap}
+  .legend .dot{width:10px;height:10px;border-radius:50%}
+  .hint{color:var(--muted);font-size:12px}
+  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;background:color-mix(in srgb, var(--ink) 6%, transparent);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+  .status{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .range{appearance:none; height:6px; border-radius:5px; background:linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 30%, transparent)); outline:none}
+  .range::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border-radius:50%;border:1px solid var(--ink);background:var(--panel);box-shadow:var(--shadow);cursor:pointer}
+  .modal{
+    position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;padding:20px;z-index:99
+  }
+  .modal.open{display:flex}
+  .sheet{max-width:900px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+  textarea{width:100%;min-height:300px;border:1px solid var(--line);border-radius:12px;background:transparent;padding:10px;color:inherit}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+  .badge{font-size:12px;color:var(--muted)}
+</style>
 </head>
 <body>
-  <a href="#main" class="skip">Skip to content</a>
-
-  <!-- Header -->
   <header>
-    <div class="wrap nav">
-      <a class="brand" href="#top" aria-label="Home">
-        <span class="logo" aria-hidden="true">U</span>
-        <span class="brand-title">Unclenched Studio</span>
-      </a>
-      <button class="menu-toggle" aria-expanded="false" aria-controls="primary-links" aria-label="Toggle menu">☰</button>
+    <div class="wrap toolbar">
+      <div class="brand">
+        <div class="logo">U</div>
+        <div>
+          <div style="font-weight:800;letter-spacing:.02em">Unclenched Gantt</div>
+          <div class="badge">Fancy, innovative, and fast — no libraries</div>
+        </div>
+      </div>
+      <div class="tools">
+        <div class="seg" aria-label="Zoom">
+          <button id="zoomOut" title="Zoom out ( - )">–</button>
+          <button id="zoomReset" class="active" title="Reset zoom ( 0 )">100%</button>
+          <button id="zoomIn" title="Zoom in ( + )">+</button>
+        </div>
+        <button class="btn" id="addTask">＋ Task</button>
+        <button class="btn secondary" id="toggleCritical">Critical Path</button>
+        <button class="btn" id="exportPNG" title="Export chart as PNG">Export PNG</button>
+        <button class="btn" id="exportCSV" title="Export tasks as CSV">Export CSV</button>
+        <button class="btn" id="importJSON">Import / Export JSON</button>
+        <div class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.3-4.3m1.3-5.2A7 7 0 1 1 7 4a7 7 0 0 1 11 7.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input id="search" placeholder="Search tasks…" />
+        </div>
+      </div>
     </div>
-    <nav id="primary-links" class="wrap links" aria-label="Primary">
-      <a href="#remedies">Services</a>
-      <a href="#about">About</a>
-      <a href="#playbook">Playbook</a>
-      <a class="btn" href="#book" style="margin-top:6px">Book an audit</a>
-    </nav>
   </header>
 
-  <main id="main">
-    <!-- Hero -->
-    <section class="hero" id="top">
-      <div class="wrap">
-        <h1>Where structure meets relief.</h1>
-        <p class="lede">We design calm systems for creative brands — blending operational excellence, design craft, and human psychology. When teams unclench, work flows.</p>
-        <div class="hero-cta">
-          <a class="btn accent" href="#playbook">Get the free Unclench Playbook</a>
-          <a class="btn" href="#remedies">Explore services</a>
+  <main>
+    <!-- LEFT: Task table -->
+    <section class="panel left" aria-label="Task list">
+      <header>
+        <div class="row">
+          <strong>Tasks</strong>
+          <span class="spacer"></span>
+          <span class="hint">Double-click a date to edit. Drag bars on the chart to move/resize. </span>
         </div>
-      </div>
+      </header>
+      <div class="tasklist" id="taskList"></div>
     </section>
 
-    <!-- Services -->
-    <section id="remedies" aria-labelledby="services-title">
-      <div class="wrap">
-        <h2 id="services-title">Services that help you exhale</h2>
-        <p class="muted">Fixed-scope, beautifully made. Clear ingredients, measured doses, predictable outcomes.</p>
-
-        <div class="grid list-3" style="margin-top:var(--s-2)">
-          <article class="card" aria-labelledby="audit">
-            <span class="pill">90 min · diagnosis</span>
-            <h3 id="audit">The Audit</h3>
-            <p>A precise read on your tools, workflows and tone. You leave with a 3-page plan and three quick wins.</p>
-            <p><strong>Launch price:</strong> £300</p>
-            <a class="btn block" href="#book">Book your session</a>
-          </article>
-
-          <article class="card" aria-labelledby="reset">
-            <span class="pill">2 weeks · implementation</span>
-            <h3 id="reset">The Reset Sprint</h3>
-            <p>We rebuild your internal flow in Notion/Sheets, set naming conventions, and craft branded templates people love to use.</p>
-            <p><strong>From:</strong> £1,200</p>
-            <a class="btn block" href="#book">Start a sprint</a>
-          </article>
-
-          <article class="card" aria-labelledby="ritual">
-            <span class="pill">Monthly · stewardship</span>
-            <h3 id="ritual">The Ritual Retainer</h3>
-            <p>Ongoing operational well-being — we maintain dashboards, refine templates, and coach your team’s rituals.</p>
-            <p><strong>£400</strong> / month</p>
-            <a class="btn block" href="#book">Join the roster</a>
-          </article>
+    <!-- RIGHT: Chart -->
+    <section class="panel right" aria-label="Gantt chart">
+      <div class="r-head">
+        <div class="legend">
+          <div class="dot" style="background:var(--good)"></div><span class="hint">On track</span>
+          <div class="dot" style="background:var(--warn)"></div><span class="hint">At risk</span>
+          <div class="dot" style="background:var(--bad)"></div><span class="hint">Blocked</span>
+          <span class="hint">| Today line • <span class="kbd">←→</span> pan • <span class="kbd">+</span>/<span class="kbd">-</span> zoom</span>
+        </div>
+        <div class="status">
+          <label class="hint">Zoom</label>
+          <input type="range" id="zoomRange" class="range" min="40" max="160" value="80" />
         </div>
       </div>
-    </section>
 
-    <!-- About / Principles -->
-    <section id="about" aria-labelledby="about-title">
-      <div class="wrap grid list-2">
-        <div>
-          <h2 id="about-title">Operational excellence with heart.</h2>
-          <p>Traditional ops can feel rigid. Unclenched takes a calmer route — part systems design, part aesthetic craft, part behavioural insight — so structure becomes culture, not a chore.</p>
-          <p class="muted">Belief: when systems feel beautiful, people treat them with care. When people feel cared for, businesses thrive naturally.</p>
-        </div>
-        <div class="card">
-          <h3>Principles</h3>
-          <ul>
-            <li><strong>Clarity over complexity</strong> — plain language, visible flow.</li>
-            <li><strong>Consistency as kindness</strong> — predictable rituals reduce stress.</li>
-            <li><strong>Design that works</strong> — beautiful templates invite adoption.</li>
-            <li><strong>Evidence & empathy</strong> — insight guided by human reality.</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- Process -->
-    <section aria-labelledby="process-title">
-      <div class="wrap">
-        <h2 id="process-title">How we unclench</h2>
-        <ol class="process">
-          <li><strong>Diagnosis</strong> — a 90-min audit to surface friction, duplication and tone drift.</li>
-          <li><strong>Design</strong> — a clean, branded system (dashboards, naming, templates) that people enjoy using.</li>
-          <li><strong>Rituals</strong> — simple cadences and checklists that keep clarity alive.</li>
-          <li><strong>Stewardship</strong> — monthly refinements as your team evolves.</li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- Lead magnet -->
-    <section id="playbook" aria-labelledby="playbook-title">
-      <div class="wrap">
-        <div class="card">
-          <div class="grid list-2">
-            <div>
-              <h2 id="playbook-title">The Unclench Playbook (free)</h2>
-              <p class="muted">A 2-page roadmap to restore operational calm: <em>Clarity → Consistency → Calm → Growth</em>. Share it with your team. Start small.</p>
-              <ul>
-                <li>Spot the three most common chaos traps</li>
-                <li>Adopt a 5-minute daily ritual of clarity</li>
-                <li>See a before/after of a clean, branded workflow</li>
-              </ul>
-            </div>
-            <div>
-              <!-- Replace action with your email platform endpoint -->
-              <form class="form-grid" action="YOUR_MAILERLITE_FORM_ACTION" method="post" aria-label="Download the Unclench Playbook">
-                <label class="vh" for="email">Email</label>
-                <input id="email" name="email" type="email" placeholder="you@company.com" required inputmode="email" autocomplete="email" />
-                <button class="btn accent" type="submit">Email me the PDF</button>
-                <small class="muted">No spam. One helpful email a week.</small>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Testimonials (placeholders) -->
-    <section aria-labelledby="proof-title">
-      <div class="wrap">
-        <h2 id="proof-title">Quiet results</h2>
-        <div class="grid list-3" style="margin-top:var(--s-2)">
-          <figure class="card">
-            <blockquote>“After our Reset Sprint, the studio finally breathes. Fewer tabs, fewer meetings, more momentum.”</blockquote>
-            <figcaption class="muted">— Creative Director, design agency</figcaption>
-          </figure>
-          <figure class="card">
-            <blockquote>“The Audit paid for itself in a week. The team uses the templates because they look and feel right.”</blockquote>
-            <figcaption class="muted">— Founder, skincare brand</figcaption>
-          </figure>
-          <figure class="card">
-            <blockquote>“Onboarding time halved. The tone guide stopped messy emails. Calm is now the default.”</blockquote>
-            <figcaption class="muted">— Ops Lead, wellness startup</figcaption>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- Booking -->
-    <section id="book" aria-labelledby="book-title">
-      <div class="wrap">
-        <div class="card" style="text-align:center">
-          <h2 id="book-title">Ready to breathe again?</h2>
-          <p class="muted">Start with the 90-minute Audit — a precise diagnosis and a plan you can act on tomorrow.</p>
-          <div style="margin-top:var(--s-2);display:grid;gap:10px;justify-items:center">
-            <a class="btn accent" href="https://calendly.com/YOUR-SCHEDULER/unclenched-audit" target="_blank" rel="noopener">Book your audit</a>
-            <a class="btn" href="mailto:allan@unclenched.co.uk?subject=Audit%20enquiry">Email a question</a>
-          </div>
+      <div class="chart-wrap" id="chartWrap">
+        <div class="layers">
+          <div class="grid-bg" id="gridBg"></div>
+          <svg id="chart" width="2000" height="800" aria-label="Timeline"></svg>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Footer -->
-  <footer role="contentinfo">
-    <div class="wrap foot">
-      <div style="display:flex;gap:10px;align-items:center">
-        <span class="logo" aria-hidden="true">U</span>
-        <small>© <span id="year"></span> Unclenched Studio</small>
+  <!-- JSON Modal -->
+  <div class="modal" id="jsonModal" aria-hidden="true" role="dialog" aria-label="Import / Export JSON">
+    <div class="sheet">
+      <div class="row">
+        <strong>Task Data (JSON)</strong>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="closeJSON">Close</button>
       </div>
-      <small>
-        <a href="#playbook">Playbook</a> ·
-        <a href="#">Privacy</a> ·
-        <a href="#">Terms</a>
-      </small>
+      <p class="hint" style="margin:6px 0 10px">Paste JSON to import or copy out to export. Autosaves to your browser.</p>
+      <textarea id="jsonArea"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="btn good" id="applyJSON">Apply JSON</button>
+        <button class="btn" id="downloadJSON">Download .json</button>
+        <span class="spacer"></span>
+        <button class="btn warn" id="resetDemo">Reset to Demo</button>
+      </div>
     </div>
-  </footer>
+  </div>
 
-  <!-- Minimal JS: menu, year, smooth hash nav -->
-  <script>
-    // Year stamp
-    document.getElementById('year').textContent = new Date().getFullYear();
+<script>
+/* -----------------------------------------------------------
+   UNCLENCHED GANTT — single-file, no libraries
+   Features: zoom, pan, drag, resize, dependencies, critical path,
+             today line, CSV/PNG export, JSON import/export,
+             autosave to localStorage, search filter
+   ----------------------------------------------------------- */
 
-    // Mobile menu
-    const btn = document.querySelector('.menu-toggle');
-    const links = document.getElementById('primary-links');
-    btn?.addEventListener('click', ()=>{
-      const open = links.classList.toggle('open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
+const dayMS = 24*60*60*1000;
+let dayWidth = 80;               // px per day (zoomable)
+let rowHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--row-h')) || 40;
+let barHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-h')) || 14;
 
-    // Smooth hash links + close menu on select
-    document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener('click', e=>{
-        const id = a.getAttribute('href');
-        if(id && id.length>1){
-          e.preventDefault();
-          document.querySelector(id)?.scrollIntoView({behavior:'smooth', block:'start'});
-          history.pushState(null, '', id);
-          if (links.classList.contains('open')) {
-            links.classList.remove('open');
-            btn.setAttribute('aria-expanded','false');
-          }
-        }
-      });
-    });
-  </script>
+const state = {
+  tasks: [],
+  links: [],                     // {from, to}
+  viewport: {start: null, end: null},
+  dragging: null,                // {id, type: 'move'|'resizeL'|'resizeR', startX, orig}
+  critical: false,
+  filter: ""
+};
 
-  <!-- JSON-LD for basic SEO -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Unclenched Studio",
-    "url": "https://unclenched.co.uk/",
-    "description": "Operational design and calm systems for creative brands.",
-    "logo": "",
-    "sameAs": []
+// --- Demo data
+const demo = {
+  tasks: [
+    {id:'D1', name:'Discovery', start:addDays(today(), -3), end:addDays(today(), 4), status:'good', progress:60, assignee:'Allan', group:'Phase 1', deps:[]},
+    {id:'D2', name:'Stakeholder map', start:addDays(today(), 0), end:addDays(today(), 2), status:'warn', progress:20, assignee:'Jess', group:'Phase 1', deps:['D1']},
+    {id:'S1', name:'Schema & validation rules', start:addDays(today(), 3), end:addDays(today(), 9), status:'good', progress:0, assignee:'Lynne', group:'Phase 2', deps:['D2']},
+    {id:'S2', name:'Mobile capture PWA', start:addDays(today(), 5), end:addDays(today(), 12), status:'good', progress:0, assignee:'Paul', group:'Phase 2', deps:['D2']},
+    {id:'S3', name:'Power BI connector', start:addDays(today(), 10), end:addDays(today(), 14), status:'warn', progress:0, assignee:'Orla', group:'Phase 2', deps:['S1']},
+    {id:'R1', name:'Pilot & feedback', start:addDays(today(), 14), end:addDays(today(), 20), status:'good', progress:0, assignee:'Team', group:'Phase 3', deps:['S2','S3']},
+    {id:'M1', name:'Go/No-Go', start:addDays(today(), 21), end:addDays(today(), 21), status:'bad', progress:0, assignee:'Board', group:'Milestone', deps:['R1']}
+  ]
+};
+
+// --- Utilities
+function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+function addDays(d, n){ return new Date(d.getTime()+n*dayMS); }
+function fmt(d){ return new Date(d).toISOString().slice(0,10); }
+function parse(d){ return new Date(d+'T00:00:00'); }
+function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+function uid(){ return Math.random().toString(36).slice(2,8); }
+
+// --- Storage
+const LS_KEY = 'unclenched_gantt_v1';
+function loadState(){
+  const saved = localStorage.getItem(LS_KEY);
+  if(saved){
+    try{ const obj = JSON.parse(saved); state.tasks = obj.tasks.map(t=>({...t, start:new Date(t.start), end:new Date(t.end)})); return; }catch{}
   }
-  </script>
+  state.tasks = demo.tasks;
+}
+function saveState(){
+  localStorage.setItem(LS_KEY, JSON.stringify({tasks: state.tasks}));
+}
+
+// --- Derived
+function calcBounds(){
+  const min = new Date(Math.min(...state.tasks.map(t=>t.start)));
+  const max = new Date(Math.max(...state.tasks.map(t=>t.end)));
+  min.setDate(min.getDate()-5); max.setDate(max.getDate()+5);
+  state.viewport.start = min; state.viewport.end = max;
+}
+
+// --- DOM refs
+const chart = document.getElementById('chart');
+const chartWrap = document.getElementById('chartWrap');
+const gridBg = document.getElementById('gridBg');
+const taskList = document.getElementById('taskList');
+
+loadState(); calcBounds(); renderAll();
+
+// ============================================================
+// RENDERING
+// ============================================================
+function renderAll(){
+  renderTaskList();
+  renderChart();
+  saveState();
+}
+
+function renderTaskList(){
+  const q = state.filter.toLowerCase();
+  taskList.innerHTML = '';
+  const header = document.createElement('div');
+  header.className='task';
+  header.style.fontWeight='700';
+  header.innerHTML = `<div>Task</div><div>Start</div><div>End</div><div>%</div>`;
+  taskList.append(header);
+
+  state.tasks
+    .filter(t => t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q) || (t.assignee||'').toLowerCase().includes(q))
+    .sort((a,b)=> a.start-b.start || a.name.localeCompare(b.name))
+    .forEach(t=>{
+      const row = document.createElement('div');
+      row.className='task';
+      row.dataset.id = t.id;
+      row.innerHTML = `
+        <input type="text" value="${t.name}" aria-label="Task name">
+        <input type="text" value="${fmt(t.start)}" aria-label="Start date" />
+        <input type="text" value="${fmt(t.end)}" aria-label="End date" />
+        <input type="text" value="${t.progress||0}" aria-label="Progress percent" />
+      `;
+      // events
+      const [nameEl, startEl, endEl, progEl] = row.querySelectorAll('input');
+      nameEl.addEventListener('change', e=>{ t.name = e.target.value; renderAll(); });
+      [startEl, endEl].forEach((el,ix)=>{
+        el.addEventListener('dblclick', ()=> el.select());
+        el.addEventListener('change', ()=>{
+          const d = parse(el.value);
+          if(isNaN(d)) { el.value = fmt(ix? t.end : t.start); return; }
+          if(ix===0){ t.start=d; if(t.end<t.start) t.end=t.start; }
+          else{ t.end=d; if(t.end<t.start) t.start=t.end; }
+          calcBounds(); renderAll();
+        });
+      });
+      progEl.addEventListener('change', e=>{ let v=parseInt(e.target.value)||0; t.progress=clamp(v,0,100); renderAll(); });
+      taskList.append(row);
+    });
+}
+
+function dateToX(date){ return Math.round((date - state.viewport.start)/dayMS*dayWidth)+0.5; }
+function xToDate(x){ const d = new Date(state.viewport.start.getTime() + Math.round(x/dayWidth)*dayMS); d.setHours(0,0,0,0); return d; }
+
+function renderChart(){
+  // size
+  const rows = state.tasks.length;
+  const width = Math.ceil((state.viewport.end - state.viewport.start)/dayMS * dayWidth + 200);
+  const height = Math.max(rows*rowHeight+60, 320);
+
+  chart.setAttribute('width', width);
+  chart.setAttribute('height', height);
+
+  // clear
+  chart.innerHTML = '';
+
+  // backgrounds: day grid + week ticks
+  const gBg = chart.appendChild(el('g',{class:'grid'}));
+  for(let d=new Date(state.viewport.start); d<=state.viewport.end; d=addDays(d,1)){
+    const x = dateToX(d);
+    const isMon = d.getDay()===1;
+    const isSun = d.getDay()===0;
+    const line = el('line',{
+      x1:x, y1:40, x2:x, y2:height-10,
+      stroke: isMon ? 'rgba(100,100,100,.35)' : 'rgba(120,120,120,.15)',
+      'stroke-width': isMon?1.25:1
+    });
+    gBg.appendChild(line);
+    if(isMon){
+      const label = el('text',{x:x+4, y:30, 'font-size':'12', fill:'var(--muted)'}, fmt(d));
+      gBg.appendChild(label);
+    }
+    if(isSun){
+      const rect = el('rect',{x:x, y:40, width:dayWidth, height:height-50, fill:'rgba(125,55,55,.04)'});
+      gBg.appendChild(rect);
+    }
+  }
+
+  // Today line
+  const t = today(), tx = dateToX(t);
+  chart.appendChild(el('line',{x1:tx, y1:20, x2:tx, y2:height-10, stroke:'var(--bad)', 'stroke-dasharray':'4 4', 'stroke-width':1.5}));
+  chart.appendChild(el('text',{x:tx+6, y:16, 'font-size':'12', fill:'var(--bad)'}, 'Today'));
+
+  // rows
+  const gRows = chart.appendChild(el('g'));
+  state.tasks.forEach((task, i)=>{
+    const y = 50 + i*rowHeight;
+
+    // swimlane
+    const lane = el('rect',{x:0,y:y- rowHeight + (rowHeight - 24)/2, width:width, height:24, fill:'rgba(0,0,0,.03)'});
+    if(i%2===1) gRows.appendChild(lane);
+
+    // text label (sticky-ish look)
+    const label = el('text',{x:10, y:y, 'font-size':'12', fill:'var(--muted)'}, `${task.id} — ${task.assignee||''}`);
+    gRows.appendChild(label);
+  });
+
+  // dependencies first so bars overlay
+  const gLinks = chart.appendChild(el('g',{class:'links'}));
+  state.tasks.forEach((t)=>{
+    (t.deps||[]).forEach(dep=>{
+      const A = state.tasks.find(x=>x.id===dep); if(!A) return;
+      drawLink(gLinks, A, t);
+    });
+  });
+
+  // bars
+  const gBars = chart.appendChild(el('g',{class:'bars'}));
+  state.tasks.forEach((t, i)=>{
+    const y = 50 + i*rowHeight;
+    const x = dateToX(t.start);
+    const w = Math.max( Math.max(1, ((t.end - t.start)/dayMS))*dayWidth , 6);
+
+    const color = t.status==='bad'?'var(--bad)': t.status==='warn'?'var(--warn)':'var(--good)';
+
+    // milestone (start==end)
+    const isMilestone = t.start.getTime()===t.end.getTime();
+
+    if(isMilestone){
+      const m = el('polygon',{points:`${x},${y-2} ${x+10},${y-10} ${x+20},${y-2} ${x+10},${y+6}`,
+         fill:color, stroke:'var(--ink)', 'stroke-width':'1'
+      });
+      m.dataset.id=t.id;
+      m.style.cursor='grab';
+      attachDrag(m, t, 'move');
+      gBars.appendChild(m);
+      const name = el('text',{x:x+28, y:y+3, 'font-size':'13', fill:'var(--ink)'}, t.name);
+      gBars.appendChild(name);
+      return;
+    }
+
+    // bar container
+    const bar = el('rect',{x, y:y - barHeight/2, rx:8, ry:8, width:w, height:barHeight, fill:color, stroke:'var(--ink)','stroke-width':1, opacity: .95});
+    bar.dataset.id=t.id;
+    bar.style.cursor='grab';
+    gBars.appendChild(bar);
+
+    // progress overlay
+    if((t.progress||0)>0){
+      const pw = Math.max(0, Math.min(100, t.progress))/100 * w;
+      const prog = el('rect',{x, y:y - barHeight/2, rx:8, ry:8, width:pw, height:barHeight, fill:'rgba(255,255,255,.35)', stroke:'none'});
+      gBars.appendChild(prog);
+    }
+
+    // handles
+    const lh = el('rect',{x:x-5, y:y - barHeight/2 - 4, width:10, height:barHeight+8, fill:'transparent', cursor:'ew-resize'});
+    const rh = el('rect',{x:x+w-5, y:y - barHeight/2 - 4, width:10, height:barHeight+8, fill:'transparent', cursor:'ew-resize'});
+    gBars.appendChild(lh); gBars.appendChild(rh);
+
+    // name
+    const name = el('text',{x:x+6, y:y-8, 'font-size':'12', fill:'var(--ink)'}, t.name);
+    gBars.appendChild(name);
+
+    // events
+    attachDrag(bar, t, 'move');
+    attachDrag(lh, t, 'resizeL');
+    attachDrag(rh, t, 'resizeR');
+
+    // tooltip (title)
+    bar.appendChild(el('title',{}, `${t.name}\n${fmt(t.start)} → ${fmt(t.end)}\n${t.progress||0}% · ${t.assignee||''}`));
+  });
+
+  // critical path
+  if(state.critical){ highlightCritical(gBars); }
+
+  // update CSS background rows height
+  gridBg.style.height = chart.getAttribute('height')+'px';
+  gridBg.style.width  = chart.getAttribute('width')+'px';
+}
+
+function el(tag, attrs={}, text){
+  const n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(text!=null) n.textContent = text;
+  return n;
+}
+
+function drawLink(g, fromTask, toTask){
+  const i1 = state.tasks.indexOf(fromTask);
+  const i2 = state.tasks.indexOf(toTask);
+  const y1 = 50 + i1*rowHeight;
+  const y2 = 50 + i2*rowHeight;
+
+  const x1 = dateToX(fromTask.end);
+  const x2 = dateToX(toTask.start);
+  const midX = (x1 + x2)/2;
+
+  const path = `M ${x1} ${y1}
+                C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+  const p = el('path',{d:path, fill:'none', stroke:'color-mix(in srgb, var(--ink) 40%, transparent)', 'stroke-width':1.5});
+  g.appendChild(p);
+  // arrow
+  const arr = el('polygon',{points:`${x2},${y2} ${x2-6},${y2-4} ${x2-6},${y2+4}`, fill:'color-mix(in srgb, var(--ink) 40%, transparent)'});
+  g.appendChild(arr);
+}
+
+// ============================================================
+// DRAGGING / RESIZING
+// ============================================================
+function attachDrag(node, task, type){
+  node.addEventListener('pointerdown', (e)=>{
+    node.setPointerCapture(e.pointerId);
+    state.dragging = {id:task.id, type, startX:e.clientX, orig:{start:new Date(task.start), end:new Date(task.end)}};
+  });
+}
+
+window.addEventListener('pointermove', (e)=>{
+  if(!state.dragging) return;
+  const t = state.tasks.find(x=>x.id===state.dragging.id);
+  const dx = e.clientX - state.dragging.startX;
+  const dayDelta = Math.round(dx/dayWidth);
+  if(state.dragging.type==='move'){
+    const dur = Math.round((state.dragging.orig.end - state.dragging.orig.start)/dayMS);
+    t.start = addDays(state.dragging.orig.start, dayDelta);
+    t.end   = addDays(t.start, dur);
+  }else if(state.dragging.type==='resizeL'){
+    t.start = addDays(state.dragging.orig.start, dayDelta);
+    if(t.start>t.end) t.start=t.end;
+  }else if(state.dragging.type==='resizeR'){
+    t.end = addDays(state.dragging.orig.end, dayDelta);
+    if(t.end<t.start) t.end=t.start;
+  }
+  calcBounds();
+  renderChart();
+});
+
+window.addEventListener('pointerup', ()=>{
+  if(state.dragging){ state.dragging=null; saveState(); renderTaskList(); }
+});
+
+// ============================================================
+// CRITICAL PATH (longest path by duration over dependencies)
+function highlightCritical(gBars){
+  // build adjacency and duration
+  const map = new Map(state.tasks.map(t=>[t.id,t]));
+  const dur = t => Math.max(1, Math.round((t.end - t.start)/dayMS));
+  const memo = new Map();
+  const deps = t => (t.deps||[]).map(id=>map.get(id)).filter(Boolean);
+
+  function longest(t){
+    if(memo.has(t.id)) return memo.get(t.id);
+    const bestDep = deps(t).reduce((m, d)=>{
+      const val = longest(d);
+      return val>m ? val : m;
+    }, 0);
+    const val = bestDep + dur(t);
+    memo.set(t.id, val);
+    return val;
+  }
+  state.tasks.forEach(longest);
+  const maxLen = Math.max(...memo.values());
+  // highlight bars with distance contributing to max
+  state.tasks.forEach((t, i)=>{
+    const y = 50 + i*rowHeight;
+    const x = dateToX(t.start);
+    const w = Math.max( Math.max(1, ((t.end - t.start)/dayMS))*dayWidth , 6);
+    const val = memo.get(t.id);
+    if(val){
+      const glow = el('rect',{x, y:y - barHeight/2 - 4, rx:12, ry:12, width:w, height:barHeight+8,
+        fill:'none', stroke:'var(--accent)', 'stroke-width':2.2, 'stroke-dasharray':'4 3'});
+      chart.appendChild(glow);
+      if(val===maxLen){
+        const star = el('text',{x:x+w+6, y:y+4, 'font-size':'12', fill:'var(--accent)'}, '★ critical');
+        chart.appendChild(star);
+      }
+    }
+  });
+}
+
+// ============================================================
+// UI HANDLERS
+// ============================================================
+document.getElementById('zoomIn').onclick   = ()=>{ dayWidth = clamp(dayWidth+10, 40, 160); syncZoom(); };
+document.getElementById('zoomOut').onclick  = ()=>{ dayWidth = clamp(dayWidth-10, 40, 160); syncZoom(); };
+document.getElementById('zoomReset').onclick= ()=>{ dayWidth = 80; syncZoom(); };
+document.getElementById('zoomRange').oninput= (e)=>{ dayWidth = parseInt(e.target.value); syncZoom(false); };
+
+function syncZoom(updateSlider=true){
+  if(updateSlider){ document.getElementById('zoomRange').value = dayWidth; }
+  document.getElementById('zoomReset').textContent = Math.round(dayWidth/80*100)+'%';
+  renderChart();
+}
+
+document.getElementById('addTask').onclick = ()=>{
+  const s = xToDate(dateToX(today()) + dayWidth*2);
+  const e = addDays(s, 3);
+  state.tasks.push({id:uid().toUpperCase(), name:'New task', start:s, end:e, status:'good', progress:0, assignee:'', group:'', deps:[]});
+  calcBounds(); renderAll();
+};
+
+document.getElementById('toggleCritical').onclick = (e)=>{
+  state.critical = !state.critical;
+  e.currentTarget.classList.toggle('secondary', !state.critical);
+  renderChart();
+};
+
+document.getElementById('search').addEventListener('input', (e)=>{
+  state.filter = e.target.value || '';
+  renderTaskList();
+});
+
+// Pan with arrows
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='ArrowLeft'){ state.viewport.start = addDays(state.viewport.start, -1); state.viewport.end = addDays(state.viewport.end, -1); renderChart(); }
+  if(e.key==='ArrowRight'){ state.viewport.start = addDays(state.viewport.start,  1); state.viewport.end = addDays(state.viewport.end,  1); renderChart(); }
+  if(e.key==='+'){ dayWidth = clamp(dayWidth+10, 40, 160); syncZoom(); }
+  if(e.key==='-'){ dayWidth = clamp(dayWidth-10, 40, 160); syncZoom(); }
+  if(e.key==='0'){ dayWidth = 80; syncZoom(); }
+});
+
+// Export PNG (SVG → Canvas → PNG)
+document.getElementById('exportPNG').onclick = ()=>{
+  const svg = chart;
+  const xml = new XMLSerializer().serializeToString(svg);
+  const svg64 = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+  const img = new Image();
+  const w = svg.width.baseVal.value, h = svg.height.baseVal.value;
+  img.onload = ()=>{
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    // white bg for light, dark bg otherwise
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--panel') || '#fff';
+    ctx.fillRect(0,0,w,h);
+    ctx.drawImage(img,0,0);
+    const url = canvas.toDataURL('image/png');
+    dl(url, 'unclenched-gantt.png');
+  };
+  img.src = svg64;
+};
+
+// Export CSV
+document.getElementById('exportCSV').onclick = ()=>{
+  const rows = [['id','name','start','end','progress','status','assignee','deps']];
+  state.tasks.forEach(t=>{
+    rows.push([t.id, t.name.replace(/,/g,' '), fmt(t.start), fmt(t.end), t.progress||0, t.status||'', t.assignee||'', (t.deps||[]).join('|')]);
+  });
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  dl(URL.createObjectURL(blob), 'unclenched-gantt.csv');
+};
+
+// JSON modal
+const jsonModal = document.getElementById('jsonModal');
+document.getElementById('importJSON').onclick = ()=>{
+  document.getElementById('jsonArea').value = JSON.stringify({tasks:state.tasks}, (k,v)=> v instanceof Date ? v.toISOString() : v, 2);
+  jsonModal.classList.add('open'); jsonModal.setAttribute('aria-hidden','false');
+};
+document.getElementById('closeJSON').onclick = ()=>{ jsonModal.classList.remove('open'); jsonModal.setAttribute('aria-hidden','true'); };
+document.getElementById('applyJSON').onclick = ()=>{
+  try{
+    const obj = JSON.parse(document.getElementById('jsonArea').value);
+    state.tasks = (obj.tasks||[]).map(t=>({...t, start:new Date(t.start), end:new Date(t.end)}));
+    calcBounds(); renderAll(); saveState();
+    jsonModal.classList.remove('open');
+  }catch(err){ alert('Invalid JSON'); }
+};
+document.getElementById('downloadJSON').onclick = ()=>{
+  const txt = JSON.stringify({tasks:state.tasks}, (k,v)=> v instanceof Date ? v.toISOString() : v, 2);
+  const blob = new Blob([txt], {type:'application/json'});
+  dl(URL.createObjectURL(blob), 'unclenched-gantt.json');
+};
+document.getElementById('resetDemo').onclick = ()=>{
+  if(confirm('Reset tasks to the demo dataset?')){ state.tasks = demo.tasks.map(t=>({...t})); calcBounds(); renderAll(); }
+};
+
+// Helper: download
+function dl(url, name){
+  const a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+}
+
+// Resize observer: keep grid layer sized to SVG
+new ResizeObserver(()=>{ renderChart(); }).observe(chartWrap);
+
+// Initial render sizes
+syncZoom();
+</script>
 </body>
 </html>
