@@ -3,197 +3,158 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pixel Plaza — Guaranteed Fit</title>
+  <title>Isometric Room — From‑Scratch Minimal (Works Everywhere)</title>
   <style>
-    :root{ --bg:#0b0d12; --panel:#141826; --line:#20283a; --ink:#eef1ff; --muted:#9aa2b8; }
+    :root{ --bg:#0d1117; --ink:#e6edf3; --muted:#9da7b3; --line:#1f2632; --floor:#1d2540; --edge:#2a3654; }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    body{display:grid;grid-template-rows:auto 1fr auto}
-    header{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0f1220,#0b0f1a)}
-    .logo{font-weight:900;letter-spacing:.4px;background:linear-gradient(90deg,#ffd166,#fb8500,#ffb703);-webkit-background-clip:text;background-clip:text;color:transparent}
-    .toolbar{margin-left:auto;display:flex;gap:8px}
-    .btn{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:10px;font-weight:600;cursor:pointer}
-    .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-    .seg button{all:unset;padding:8px 10px;cursor:pointer}
-    .seg button.active{background:#1b2133}
-
-    .room-wrap{position:relative; margin:12px; border:1px solid var(--line); border-radius:16px; overflow:hidden; background:#0f1322; box-shadow:0 10px 30px #0008}
-    canvas{display:block;width:100%;height:100%; image-rendering:pixelated}
-    .hud{position:absolute; right:8px; bottom:8px; display:flex; gap:8px; z-index:2}
-    .pill{background:#111522;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
-
-    footer{display:flex;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:linear-gradient(180deg,#0b0f18,#090c13)}
-    footer input{flex:1}
+    header{padding:10px 14px;border-bottom:1px solid var(--line)}
+    header b{letter-spacing:.3px}
+    .wrap{padding:12px}
+    .stage{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0f1422}
+    canvas{display:block;width:100%;height:520px;image-rendering:pixelated}
+    .bar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:12px}
+    .btn{background:#121a2b;border:1px solid var(--line);color:var(--ink);padding:6px 10px;border-radius:8px;cursor:pointer}
+    .pill{padding:4px 8px;border:1px solid var(--line);border-radius:999px}
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo">PIXEL&nbsp;PLAZA</div>
-    <div class="pill">Habbo‑style isometric — guaranteed to fit</div>
-    <div class="toolbar">
-      <div class="seg" role="group" aria-label="Zoom">
-        <button id="zoomOut" title="Zoom out">−</button>
-        <button id="zoomReset" class="active" title="Reset / Fit">Fit</button>
-        <button id="zoomIn" title="Zoom in">+</button>
+  <header><b>Isometric Room</b> — ultra‑simple build to guarantee a visible room</header>
+  <div class="wrap">
+    <div class="stage"><canvas id="room" width="960" height="520"></canvas></div>
+    <div class="bar">
+      <div id="info" class="pill">—</div>
+      <div>
+        <button class="btn" id="fit">Fit</button>
+        <button class="btn" id="zoomOut">−</button>
+        <button class="btn" id="zoomIn">+</button>
       </div>
     </div>
-  </header>
-
-  <div class="room-wrap" id="wrap">
-    <canvas id="room" width="800" height="600" aria-label="Isometric room"></canvas>
-    <div class="hud">
-      <div class="pill" id="status">Ready</div>
-    </div>
-    <div id="bubble" class="pill" style="position:absolute;transform:translate(-50%,-160%);display:none">Hi</div>
   </div>
 
-  <footer>
-    <input id="chat" placeholder="Say something… (Enter to send)" />
-    <button class="btn" id="send">Send</button>
-  </footer>
-
   <script>
-  // ===== Constants =====
-  const TILE_W=64, TILE_H=32, TILE_Z=16;
-  const gridW=18, gridH=14;
+    // ====== Clean slate: no DPR tricks, no transforms, just draw ======
+    const canvas=document.getElementById('room');
+    const ctx=canvas.getContext('2d');
+    ctx.imageSmoothingEnabled=false;
 
-  // ===== Canvas & sizing =====
-  const wrap=document.getElementById('wrap');
-  const canvas=document.getElementById('room');
-  const ctx=canvas.getContext('2d',{alpha:false});
-  ctx.imageSmoothingEnabled=false;
+    // Grid + tile geometry
+    const GRID_W=14, GRID_H=10;      // smaller so it always fits
+    const TILE_W=64, TILE_H=32;      // isometric diamond base
+    let zoom=1.0;                    // simple zoom scalar
 
-  // world state
-  let map = Array.from({length:gridH},()=>Array.from({length:gridW},()=>({type:'floor',h:0})));
-  function seed(){
-    map.forEach(r=>r.forEach(t=>{t.type='floor';t.h=0;}));
-    for(let i=0;i<12;i++) map[rand(2,gridH-3)][rand(2,gridW-3)]={type:'plant',h:0};
-    for(let i=0;i<8;i++) map[rand(2,gridH-3)][rand(2,gridW-3)]={type:'sofa',h:0};
-    for(let x=1;x<gridW-1;x++){ map[2][x]={type:'wall',h:1}; map[gridH-3][x]={type:'wall',h:1}; }
-  }
-  seed();
+    // Basic palette
+    const FLOOR_COLS=['#1d2540','#212a4a'];
 
-  const avatar={ x:Math.floor(gridW/2), y:Math.floor(gridH/2)+2, waving:0, col:'blue', name:'Guest', path:[] };
+    // Compute world dimensions in screen px (at zoom=1)
+    function worldSize(){
+      const w = (GRID_W + GRID_H) * (TILE_W/2);
+      const h = (GRID_W + GRID_H) * (TILE_H/2);
+      return {w,h};
+    }
 
-  // camera transform
-  let zoom=1, offX=0, offY=0; // in device pixels
+    // Place world so the whole grid is centered and visible
+    let originX=0, originY=0; // top-left of the diamond bounds
+    function fit(){
+      const rect=canvas.getBoundingClientRect(); // CSS size
+      const {w,h}=worldSize();
+      // leave soft padding
+      const pad=24;
+      const availW=rect.width - pad*2;
+      const availH=rect.height - pad*2;
+      // calc zoom to fit both dimensions
+      zoom=Math.min(availW/w, availH/h);
+      // recompute origin so world is centered
+      originX = (rect.width  - w*zoom)/2;
+      originY = (rect.height - h*zoom)/2 + 24; // nudge down for headroom
+      draw();
+    }
 
-  // helpers
-  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-  const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-  const isoToScreen=(ix,iy,iz)=>({ x:(ix-iy)*TILE_W/2, y:(ix+iy)*TILE_H/2 - iz*TILE_Z });
-  const screenToIso=(px,py)=>({ x:(px/(TILE_W/2)+py/(TILE_H/2))/2, y:(py/(TILE_H/2)-px/(TILE_W/2))/2 });
+    // Iso <-> Screen (z ignored)
+    function isoToScreen(ix,iy){
+      const x=(ix - iy) * (TILE_W/2) * zoom + originX + (GRID_H*(TILE_W/2))*zoom; // shift to keep everything positive
+      const y=(ix + iy) * (TILE_H/2) * zoom + originY;
+      return {x,y};
+    }
 
-  function worldBounds(){
-    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-    for(let y=0;y<gridH;y++){
-      for(let x=0;x<gridW;x++){
-        const c0=isoToScreen(x,y,0);
-        const c1=isoToScreen(x+1,y+1,0);
-        if(c0.x<minX)minX=c0.x; if(c0.y<minY)minY=c0.y;
-        if(c1.x>maxX)maxX=c1.x; if(c1.y>maxY)maxY=c1.y;
+    // Draw a single diamond tile
+    function tile(x,y,fill){
+      const p=isoToScreen(x,y);
+      const hw=(TILE_W/2)*zoom, hh=(TILE_H/2)*zoom;
+      ctx.fillStyle=fill; ctx.strokeStyle='#2b375a';
+      ctx.beginPath();
+      ctx.moveTo(p.x,       p.y);
+      ctx.lineTo(p.x+hw,    p.y+hh);
+      ctx.lineTo(p.x,       p.y+2*hh);
+      ctx.lineTo(p.x-hw,    p.y+hh);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+    }
+
+    // Simple checkerboard floor so you can SEE it immediately
+    function drawFloor(){
+      for(let y=0;y<GRID_H;y++){
+        for(let x=0;x<GRID_W;x++){
+          const c = FLOOR_COLS[(x+y)%2];
+          tile(x,y,c);
+        }
       }
     }
-    minY-=140; maxY+=40; minX-=60; maxX+=60; // padding & headroom
-    return {minX,minY,maxX,maxY,width:maxX-minX,height:maxY-minY};
-  }
 
-  function fit(){
-    // size wrapper to viewport first
-    const headerH=document.querySelector('header').offsetHeight;
-    const footerH=document.querySelector('footer').offsetHeight;
-    const h = Math.max(420, window.innerHeight - headerH - footerH - 24);
-    wrap.style.height = h + 'px';
-
-    const dpr=window.devicePixelRatio||1;
-    const rect=wrap.getBoundingClientRect();
-    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-    canvas.height= Math.max(1, Math.floor(rect.height* dpr));
-
-    const b=worldBounds();
-    const pad=16*dpr;
-    const viewW=canvas.width - pad*2;
-    const viewH=canvas.height - pad*2;
-    zoom = clamp(Math.min(viewW/b.width, viewH/b.height), 0.5, 3);
-
-    offX = (canvas.width/2) - ((b.minX + b.width/2) * zoom);
-    offY = (canvas.height/2) - ((b.minY + b.height/2) * zoom);
-
-    document.getElementById('zoomReset').textContent='Fit';
-    draw();
-  }
-
-  function toScreen(p){ return { x: p.x*zoom + offX, y: p.y*zoom + offY }; }
-
-  // drawing
-  function drawTile(gx,gy,t){
-    const base=isoToScreen(gx,gy,t.h); const s=toScreen(base);
-    const TW=TILE_W*zoom, TH=TILE_H*zoom;
-    // floor
-    ctx.fillStyle='#1d2540';
-    ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x+TW/2, s.y+TH/2); ctx.lineTo(s.x, s.y+TH); ctx.lineTo(s.x-TW/2, s.y+TH/2); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle='#263054'; ctx.stroke();
-    // decor
-    if(t.type==='wall'){
-      const h=32*zoom;
-      ctx.fillStyle='#0f1424'; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x+TW/2, s.y+TH/2); ctx.lineTo(s.x+TW/2, s.y+TH/2-h); ctx.lineTo(s.x, s.y-h); ctx.closePath(); ctx.fill();
-      ctx.fillStyle='#131a2e'; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x-TW/2, s.y+TH/2); ctx.lineTo(s.x-TW/2, s.y+TH/2-h); ctx.lineTo(s.x, s.y-h); ctx.closePath(); ctx.fill();
-    }else if(t.type==='sofa'){
-      rounded(s.x, s.y-10*zoom, TW*0.6, 24*zoom, '#7d3aa1');
-    }else if(t.type==='plant'){
-      dot(s.x, s.y-10*zoom, 5*zoom, '#2f7d32');
+    // A tiny avatar block so it feels alive
+    const avatar={x:Math.floor(GRID_W/2), y:Math.floor(GRID_H/2)};
+    function drawAvatar(){
+      const p=isoToScreen(avatar.x, avatar.y);
+      const hh=(TILE_H/2)*zoom;
+      ctx.fillStyle='#5a79e6';
+      ctx.fillRect(p.x-6*zoom, p.y+hh-14*zoom, 12*zoom, 12*zoom);
+      ctx.fillStyle='#f0d9c2';
+      ctx.fillRect(p.x-5*zoom, p.y+hh-22*zoom, 10*zoom, 8*zoom);
     }
-  }
-  function dot(x,y,r,c){ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
-  function rounded(cx,cy,w,h,color){ ctx.fillStyle=color; const r=6; ctx.beginPath(); ctx.moveTo(cx-w/2+r, cy-h/2); ctx.arcTo(cx+w/2, cy-h/2, cx+w/2, cy-h/2+r, r); ctx.arcTo(cx+w/2, cy+h/2, cx+w/2-r, cy+h/2, r); ctx.arcTo(cx-w/2, cy+h/2, cx-w/2, cy+h/2-r, r); ctx.arcTo(cx-w/2, cy-h/2, cx-w/2+r, cy-h/2, r); ctx.closePath(); ctx.fill(); }
 
-  function drawAvatar(){
-    const t=map[avatar.y]?.[avatar.x]||{h:0}; const base=isoToScreen(avatar.x,avatar.y,t.h); const s=toScreen({x:base.x,y:base.y-8});
-    // shadow
-    ctx.fillStyle='#00000066'; ctx.beginPath(); ctx.ellipse(s.x, s.y+18*zoom, 10*zoom, 4*zoom, 0, 0, Math.PI*2); ctx.fill();
-    // body
-    rounded(s.x, s.y-2*zoom, 22*zoom,24*zoom, '#5a79e6');
-    rounded(s.x, s.y-8*zoom, 18*zoom,10*zoom, '#86a7ff');
-    rounded(s.x, s.y-18*zoom,14*zoom,12*zoom,'#f0d9c2');
-  }
+    // Full draw
+    function draw(){
+      // clear
+      ctx.fillStyle='#0f1422';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      drawFloor();
+      drawAvatar();
+      // debug info
+      const info=`Canvas ${canvas.width}×${canvas.height} | Zoom ${(zoom*100).toFixed(0)}% | Grid ${GRID_W}×${GRID_H}`;
+      document.getElementById('info').textContent=info;
+    }
 
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    for(let y=0;y<gridH;y++) for(let x=0;x<gridW;x++) drawTile(x,y,map[y][x]);
-    drawAvatar();
-  }
+    // Resize canvas pixels to its CSS size so it never looks blank
+    function resizeCanvasToCSS(){
+      const rect=canvas.getBoundingClientRect();
+      // Make the drawing buffer match CSS size exactly (no DPR scaling to keep it bulletproof)
+      const w=Math.max(300, Math.floor(rect.width));
+      const h=Math.max(260, Math.floor(rect.height));
+      if(canvas.width!==w || canvas.height!==h){ canvas.width=w; canvas.height=h; }
+    }
 
-  // movement (simple click)
-  canvas.addEventListener('click', (e)=>{
-    const rect=canvas.getBoundingClientRect();
-    const dpr=window.devicePixelRatio||1;
-    const px=(e.clientX-rect.left)*dpr, py=(e.clientY-rect.top)*dpr;
-    const wx=(px - offX)/zoom; const wy=(py - offY)/zoom;
-    const iso=screenToIso(wx,wy); avatar.x=clamp(Math.round(iso.x),0,gridW-1); avatar.y=clamp(Math.round(iso.y),0,gridH-1); draw();
-    const b=document.getElementById('bubble'); b.style.left=(px)+'px'; b.style.top=(py)+'px'; b.textContent='👋'; b.style.display='block'; setTimeout(()=>b.style.display='none',900);
-  });
+    // Controls
+    document.getElementById('zoomIn').onclick=()=>{ zoom=Math.min(2.5, zoom+0.1); draw(); };
+    document.getElementById('zoomOut').onclick=()=>{ zoom=Math.max(0.4, zoom-0.1); draw(); };
+    document.getElementById('fit').onclick=()=>{ fit(); };
 
-  // zoom
-  document.getElementById('zoomIn').onclick=()=>{ const c={x:canvas.width/2,y:canvas.height/2}; zoomAt(c, 1.1); };
-  document.getElementById('zoomOut').onclick=()=>{ const c={x:canvas.width/2,y:canvas.height/2}; zoomAt(c, 1/1.1); };
-  document.getElementById('zoomReset').onclick=fit;
+    canvas.addEventListener('click',(e)=>{
+      const rect=canvas.getBoundingClientRect();
+      const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+      // super simple: move avatar toward click by one step
+      if(mx>canvas.width/2) avatar.x=Math.min(GRID_W-1, avatar.x+1); else avatar.x=Math.max(0, avatar.x-1);
+      if(my>canvas.height/2) avatar.y=Math.min(GRID_H-1, avatar.y+1); else avatar.y=Math.max(0, avatar.y-1);
+      draw();
+    });
 
-  function zoomAt(center, factor){
-    const prev=zoom; zoom=clamp(zoom*factor, 0.5, 3);
-    const scale=zoom/prev;
-    offX = center.x - (center.x - offX)*scale;
-    offY = center.y - (center.y - offY)*scale;
-    draw();
-  }
-
-  // chat
-  const chat=document.getElementById('chat');
-  document.getElementById('send').onclick=()=>{ if(!chat.value.trim()) return; const b=document.getElementById('bubble'); b.textContent=chat.value; b.style.left=(canvas.width/2)+'px'; b.style.top=(canvas.height/2 - 80)+'px'; b.style.display='block'; setTimeout(()=>b.style.display='none',2000); chat.value=''; };
-  chat.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('send').click(); }});
-
-  // init + resize
-  window.addEventListener('resize', fit);
-  fit();
+    // Init
+    function init(){
+      resizeCanvasToCSS();
+      fit();
+      draw();
+    }
+    window.addEventListener('resize',()=>{ resizeCanvasToCSS(); fit(); });
+    init();
   </script>
 </body>
 </html>
