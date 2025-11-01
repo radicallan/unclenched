@@ -1,1 +1,608 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Aether Gantt — minimal, elegant, fast</title>
+<meta name="color-scheme" content="light dark"/>
+
+<style>
+  /* ===== Design tokens ===== */
+  :root{
+    --bg: #f6f6f4;
+    --ink:#131416;
+    --muted:#72727a;
+    --panel:#ffffff;
+    --line:#e7e3db;
+    --accent:#9aa6ff;        /* soft indigo */
+    --accent-ink:#171821;
+
+    --good:#2fb37c;
+    --warn:#d6a23a;
+    --bad:#db5b5b;
+    --info:#6aa4ea;
+
+    --radius:14px;
+    --tap:44px;
+    --shadow: 0 2px 6px rgba(0,0,0,.06), 0 14px 30px rgba(0,0,0,.07);
+
+    --row-h:42px;
+    --bar-h:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1114;
+      --ink:#eef0f2;
+      --muted:#a5a8b0;
+      --panel:#15181d;
+      --line:#252a31;
+      --accent:#93a1ff;
+      --shadow: 0 1px 0 rgba(255,255,255,.04), 0 18px 36px rgba(0,0,0,.55);
+    }
+  }
+
+  /* ===== Base ===== */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    color:var(--ink);
+    background:
+      radial-gradient(1100px 700px at 120% -10%, color-mix(in srgb, var(--accent) 9%, transparent), transparent),
+      radial-gradient(1000px 800px at -10% 120%, color-mix(in srgb, var(--accent) 7%, transparent), transparent),
+      var(--bg);
+    -webkit-text-size-adjust:100%;
+    text-rendering:optimizeLegibility;
+  }
+  a{color:inherit;text-decoration:none}
+  img,svg{display:block;max-width:100%}
+  .wrap{max-width:1400px;margin:0 auto;padding:0 16px}
+
+  /* ===== Header / Toolbar ===== */
+  header{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:saturate(120%) blur(8px);
+    background:color-mix(in srgb, var(--bg) 92%, white);
+    border-bottom:1px solid var(--line);
+  }
+  .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0}
+  .brand{display:flex;align-items:center;gap:10px}
+  .dot{width:22px;height:22px;border-radius:6px;background:var(--accent);
+       box-shadow:0 0 0 1px color-mix(in srgb, var(--accent-ink) 80%, transparent) inset}
+  .title{font-weight:700;letter-spacing:.02em}
+  .sub{font-size:12px;color:var(--muted)}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;justify-content:center;
+    min-height:var(--tap);padding:0 12px;border-radius:12px;
+    border:1px solid var(--line);background:var(--panel);cursor:pointer;
+    box-shadow:var(--shadow);font-weight:600
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn:active{transform:translateY(0)}
+  .btn.primary{border-color:color-mix(in srgb,var(--accent-ink) 30%, transparent)}
+  .btn.ghost{background:transparent}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .seg button{border:0;background:transparent;padding:10px 12px;min-height:var(--tap);cursor:pointer}
+  .seg button.active{background:var(--panel)}
+  .field{display:flex;align-items:center;gap:8px;padding:0 10px;min-height:var(--tap);
+         border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  .field input{border:0;background:transparent;outline:0;min-width:140px;color:inherit}
+
+  /* ===== Layout ===== */
+  main{display:grid;grid-template-columns:320px 1fr;gap:14px;max-width:1400px;margin:14px auto;padding:0 16px}
+  @media (max-width:1000px){ main{grid-template-columns:1fr} }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+  }
+
+  /* LEFT: Task table */
+  .left{overflow:auto;max-height:calc(100dvh - 160px)}
+  .left header{position:sticky;top:0;background:var(--panel);padding:10px;border-bottom:1px solid var(--line)}
+  .tasklist{padding:10px}
+  .row{display:grid;grid-template-columns: 1fr 90px 90px 60px;gap:8px;align-items:center;border-bottom:1px dashed var(--line);padding:8px 2px}
+  .row.head{font-weight:700}
+  .row input[type="text"]{border:1px solid var(--line);border-radius:10px;padding:8px;background:transparent}
+  .tag{display:inline-flex;align-items:center;justify-content:center;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted)}
+
+  /* RIGHT: Chart */
+  .right{position:relative;overflow:hidden}
+  .r-head{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid var(--line)}
+  .chart-wrap{position:relative;overflow:auto;max-height:calc(100dvh - 160px)}
+  .layers{position:relative;min-width:900px}
+  .grid-bg{position:absolute;inset:0;background:
+    repeating-linear-gradient(to bottom, transparent, transparent var(--row-h), color-mix(in srgb, var(--ink) 6%, transparent) var(--row-h), color-mix(in srgb, var(--ink) 6%, transparent) calc(var(--row-h) + 1px));
+  }
+
+  .hint{color:var(--muted);font-size:12px}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .dot-sm{width:10px;height:10px;border-radius:50%}
+
+  .range{appearance:none;height:6px;border-radius:6px;background:linear-gradient(90deg, var(--accent), color-mix(in srgb,var(--accent) 25%, transparent))}
+  .range::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);cursor:pointer}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;padding:20px;z-index:99}
+  .modal.open{display:flex}
+  .sheet{max-width:900px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+  textarea{width:100%;min-height:300px;border:1px solid var(--line);border-radius:12px;background:transparent;padding:10px;color:inherit}
+
+  /* Keyboard hint badge */
+  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;background:color-mix(in srgb, var(--ink) 10%, transparent);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="wrap toolbar">
+      <div class="brand">
+        <div class="dot" aria-hidden="true"></div>
+        <div>
+          <div class="title">Aether Gantt</div>
+          <div class="sub">Elegant timeline planning — no libraries</div>
+        </div>
+      </div>
+
+      <div class="tools">
+        <div class="seg" aria-label="Zoom">
+          <button id="zoomOut" title="Zoom out ( - )">–</button>
+          <button id="zoomReset" class="active" title="Reset zoom ( 0 )">100%</button>
+          <button id="zoomIn" title="Zoom in ( + )">+</button>
+        </div>
+        <button class="btn" id="addTask" title="Add task">＋ Task</button>
+        <button class="btn" id="toggleCritical" title="Highlight critical path">Critical Path</button>
+        <button class="btn" id="exportPNG" title="Export chart as PNG">PNG</button>
+        <button class="btn" id="exportCSV" title="Export tasks as CSV">CSV</button>
+        <button class="btn" id="importJSON" title="Import/Export JSON">JSON</button>
+        <label class="field" title="Filter tasks">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.3-4.3m1.3-5.2A7 7 0 1 1 7 4a7 7 0 0 1 11 7.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input id="search" placeholder="Search…"/>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <!-- Layout -->
+  <main>
+    <!-- Task table -->
+    <section class="panel left" aria-label="Task list">
+      <header>
+        <div style="display:flex;align-items:center;gap:12px">
+          <strong>Tasks</strong>
+          <span class="tag">Tip</span>
+          <span class="hint">Double-click dates to edit. Drag bars to move/resize.</span>
+        </div>
+      </header>
+      <div class="tasklist" id="taskList"></div>
+    </section>
+
+    <!-- Chart -->
+    <section class="panel right" aria-label="Gantt chart">
+      <div class="r-head">
+        <div class="legend">
+          <span class="dot-sm" style="background:var(--good)"></span><span class="hint">On track</span>
+          <span class="dot-sm" style="background:var(--warn)"></span><span class="hint">At risk</span>
+          <span class="dot-sm" style="background:var(--bad)"></span><span class="hint">Blocked</span>
+          <span class="hint">| Today line • <span class="kbd">← →</span> pan • <span class="kbd">+</span>/<span class="kbd">-</span> zoom</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="hint">Zoom</span>
+          <input type="range" id="zoomRange" class="range" min="40" max="160" value="80"/>
+        </div>
+      </div>
+
+      <div class="chart-wrap" id="chartWrap">
+        <div class="layers">
+          <div id="gridBg" class="grid-bg"></div>
+          <svg id="chart" width="2000" height="800" aria-label="Timeline"></svg>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- JSON Modal -->
+  <div class="modal" id="jsonModal" aria-hidden="true" role="dialog" aria-label="Import / Export JSON">
+    <div class="sheet">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+        <strong>Task Data (JSON)</strong>
+        <span style="flex:1"></span>
+        <button class="btn ghost" id="closeJSON">Close</button>
+      </div>
+      <p class="hint" style="margin:6px 0 10px">Paste JSON to import or copy to export. Autosaves in your browser.</p>
+      <textarea id="jsonArea"></textarea>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
+        <button class="btn primary" id="applyJSON">Apply JSON</button>
+        <button class="btn" id="downloadJSON">Download .json</button>
+        <span style="flex:1"></span>
+        <button class="btn" id="resetDemo">Reset demo</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Aether Gantt — minimal, elegant, no libraries
+   Features: zoom/pan, drag/resize, milestones, dependencies,
+   critical path, today line, progress, search, JSON/CSV/PNG, autosave */
+
+const dayMS = 86400000;
+let dayWidth = 80;                               // px per day
+const rowH = parseInt(getCSS('--row-h')) || 42;
+const barH = parseInt(getCSS('--bar-h')) || 14;
+
+const state = {
+  tasks: [],
+  viewport: {start: null, end: null},
+  dragging: null,                                // {id,type,startX,orig}
+  critical: false,
+  filter: ""
+};
+
+const demo = {
+  tasks: [
+    {id:'D1', name:'Discovery', start:addDays(today(),-2), end:addDays(today(),4), status:'good', progress:60, assignee:'Owner', deps:[]},
+    {id:'D2', name:'Requirements', start:addDays(today(),1), end:addDays(today(),5), status:'warn', progress:25, assignee:'BA', deps:['D1']},
+    {id:'U1', name:'Data model', start:addDays(today(),4), end:addDays(today(),10), status:'good', progress:0, assignee:'Dev', deps:['D2']},
+    {id:'U2', name:'Validation engine', start:addDays(today(),6), end:addDays(today(),12), status:'good', progress:0, assignee:'Dev', deps:['D2']},
+    {id:'R1', name:'Reporting layer', start:addDays(today(),10), end:addDays(today(),14), status:'warn', progress:0, assignee:'BI', deps:['U1']},
+    {id:'P1', name:'Pilot & QA', start:addDays(today(),14), end:addDays(today(),19), status:'good', progress:0, assignee:'Team', deps:['U2','R1']},
+    {id:'M1', name:'Go / No-Go', start:addDays(today(),20), end:addDays(today(),20), status:'bad', progress:0, assignee:'Board', deps:['P1']}
+  ]
+};
+
+/* ---------- Utils ---------- */
+function getCSS(name){ return getComputedStyle(document.documentElement).getPropertyValue(name); }
+function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+function addDays(d, n){ return new Date(d.getTime()+n*dayMS); }
+function fmt(d){ return new Date(d).toISOString().slice(0,10); }
+function parse(d){ return new Date(d+'T00:00:00'); }
+function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+function uid(){ return Math.random().toString(36).slice(2,7).toUpperCase(); }
+
+/* ---------- Storage ---------- */
+const LS = 'aether_gantt_v1';
+function load(){ const s=localStorage.getItem(LS); if(!s){ state.tasks=demo.tasks; return; }
+  try{ const obj=JSON.parse(s); state.tasks=(obj.tasks||[]).map(t=>({...t,start:new Date(t.start),end:new Date(t.end)})); }catch{ state.tasks=demo.tasks; }
+}
+function save(){ localStorage.setItem(LS, JSON.stringify({tasks:state.tasks})); }
+
+/* ---------- Derived ---------- */
+function computeBounds(){
+  if(!state.tasks.length){ const t=today(); state.viewport.start=addDays(t,-7); state.viewport.end=addDays(t,21); return; }
+  const min = new Date(Math.min(...state.tasks.map(t=>t.start)));
+  const max = new Date(Math.max(...state.tasks.map(t=>t.end)));
+  min.setDate(min.getDate()-4); max.setDate(max.getDate()+6);
+  state.viewport.start=min; state.viewport.end=max;
+}
+
+/* ---------- DOM refs ---------- */
+const chart = document.getElementById('chart');
+const chartWrap = document.getElementById('chartWrap');
+const gridBg = document.getElementById('gridBg');
+const taskList = document.getElementById('taskList');
+
+/* ---------- Init ---------- */
+load(); computeBounds(); renderAll();
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function renderAll(){ renderTable(); renderChart(); save(); }
+
+function renderTable(){
+  const q = state.filter.toLowerCase();
+  taskList.innerHTML = '';
+  const head = elRow('head', ['Task','Start','End','%']);
+  taskList.append(head);
+
+  state.tasks
+    .filter(t=> t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q) || (t.assignee||'').toLowerCase().includes(q))
+    .sort((a,b)=> a.start-b.start || a.name.localeCompare(b.name))
+    .forEach(t=>{
+      const r = elRow('', [
+        `<input type="text" value="${escapeHtml(t.name)}" aria-label="Task name">`,
+        `<input type="text" value="${fmt(t.start)}" aria-label="Start date">`,
+        `<input type="text" value="${fmt(t.end)}" aria-label="End date">`,
+        `<input type="text" value="${t.progress||0}" aria-label="Progress percent">`
+      ]);
+      r.dataset.id=t.id;
+      const [nameEl, startEl, endEl, progEl] = r.querySelectorAll('input');
+      nameEl.addEventListener('change', e=>{ t.name=e.target.value; renderAll(); });
+      [startEl,endEl].forEach((el,ix)=>{
+        el.addEventListener('dblclick',()=>el.select());
+        el.addEventListener('change', ()=>{
+          const d = parse(el.value);
+          if(isNaN(d)){ el.value = ix?fmt(t.end):fmt(t.start); return; }
+          if(ix===0){ t.start=d; if(t.end<t.start) t.end=t.start; }
+          else{ t.end=d; if(t.end<t.start) t.start=t.end; }
+          computeBounds(); renderAll();
+        });
+      });
+      progEl.addEventListener('change', e=>{ let v=parseInt(e.target.value)||0; t.progress=clamp(v,0,100); renderChart(); });
+      taskList.append(r);
+    });
+}
+
+function elRow(cls, cells){
+  const d = document.createElement('div'); d.className='row '+cls;
+  d.innerHTML = `<div>${cells[0]}</div><div>${cells[1]}</div><div>${cells[2]}</div><div>${cells[3]}</div>`;
+  return d;
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+function dateToX(date){ return Math.round((date - state.viewport.start)/dayMS*dayWidth)+0.5; }
+function xToDate(x){ const d = new Date(state.viewport.start.getTime() + Math.round(x/dayWidth)*dayMS); d.setHours(0,0,0,0); return d; }
+
+function renderChart(){
+  const rows = state.tasks.length;
+  const width = Math.ceil((state.viewport.end - state.viewport.start)/dayMS * dayWidth + 220);
+  const height = Math.max(rows*rowH + 70, 320);
+
+  chart.setAttribute('width', width);
+  chart.setAttribute('height', height);
+  chart.innerHTML='';
+
+  // Week/day grid + labels
+  const gGrid = chart.appendChild(svgEl('g'));
+  for(let d=new Date(state.viewport.start); d<=state.viewport.end; d=addDays(d,1)){
+    const x = dateToX(d);
+    const mon = d.getDay()===1, sun=d.getDay()===0;
+    gGrid.appendChild(svgEl('line',{
+      x1:x, y1:44, x2:x, y2:height-14,
+      stroke: mon?'rgba(120,120,120,.35)':'rgba(130,130,130,.18)',
+      'stroke-width': mon?1.25:1
+    }));
+    if(mon){
+      gGrid.appendChild(svgEl('text',{x:x+6,y:28,'font-size':'12',fill:'var(--muted)'}, fmt(d)));
+    }
+    if(sun){
+      gGrid.appendChild(svgEl('rect',{x:x,y:44,width:dayWidth,height:height-58,fill:'rgba(200,120,120,.05)'}));
+    }
+  }
+
+  // Today
+  const tx = dateToX(today());
+  chart.appendChild(svgEl('line',{x1:tx,y1:24,x2:tx,y2:height-14,stroke:'var(--bad)','stroke-dasharray':'4 4','stroke-width':1.5}));
+  chart.appendChild(svgEl('text',{x:tx+6,y:18,'font-size':'12',fill:'var(--bad)'},'Today'));
+
+  // Row stripes + side info
+  const gRows = chart.appendChild(svgEl('g'));
+  state.tasks.forEach((t,i)=>{
+    const y = 56 + i*rowH;
+    if(i%2===1) gRows.appendChild(svgEl('rect',{x:0,y:y-rowH+ (rowH-24)/2, width:width, height:24, fill:'rgba(0,0,0,.03)'}));
+    const label = svgEl('text',{x:10,y:y,'font-size':'12',fill:'var(--muted)'}, `${t.id}${t.assignee? ' — '+t.assignee:''}`);
+    gRows.appendChild(label);
+  });
+
+  // Dependencies behind bars
+  const gLinks = chart.appendChild(svgEl('g'));
+  state.tasks.forEach(t=>{
+    (t.deps||[]).forEach(dep=>{
+      const a = state.tasks.find(x=>x.id===dep); if(a) link(gLinks,a,t);
+    });
+  });
+
+  // Bars
+  const gBars = chart.appendChild(svgEl('g'));
+  state.tasks.forEach((t,i)=>{
+    const y = 56 + i*rowH;
+    const isMilestone = t.start.getTime()===t.end.getTime();
+    const x = dateToX(t.start);
+    const w = Math.max( ((t.end - t.start)/dayMS)*dayWidth , 0 );
+
+    const color = t.status==='bad'?'var(--bad)': t.status==='warn'?'var(--warn)':'var(--good)';
+
+    if(isMilestone){
+      const m = svgEl('polygon',{points:`${x},${y-2} ${x+10},${y-10} ${x+20},${y-2} ${x+10},${y+6}`, fill:color, stroke:'var(--line)','stroke-width':'1'});
+      m.style.cursor='grab'; m.dataset.id=t.id;
+      dragAttach(m,t,'move'); gBars.appendChild(m);
+      gBars.appendChild(svgEl('text',{x:x+28,y:y+3,'font-size':'13',fill:'var(--ink)'}, t.name));
+      return;
+    }
+
+    const bar = svgEl('rect',{x, y:y-barH/2, rx:8, ry:8, width:w||6, height:barH, fill:color, stroke:'var(--line)','stroke-width':1, opacity:.96});
+    bar.style.cursor='grab'; bar.dataset.id=t.id; gBars.appendChild(bar);
+
+    // progress overlay
+    if((t.progress||0)>0){
+      const pw = clamp(t.progress,0,100)/100 * (w||6);
+      gBars.appendChild(svgEl('rect',{x, y:y-barH/2, rx:8, ry:8, width:pw, height:barH, fill:'rgba(255,255,255,.35)', stroke:'none'}));
+    }
+
+    // handles
+    const lh = svgEl('rect',{x:x-5, y:y-barH/2-4, width:10, height:barH+8, fill:'transparent', cursor:'ew-resize'});
+    const rh = svgEl('rect',{x:x+(w||6)-5, y:y-barH/2-4, width:10, height:barH+8, fill:'transparent', cursor:'ew-resize'});
+    gBars.appendChild(lh); gBars.appendChild(rh);
+
+    gBars.appendChild(svgEl('text',{x:x+6, y:y-8, 'font-size':'12', fill:'var(--ink)'}, t.name));
+
+    dragAttach(bar,t,'move');
+    dragAttach(lh,t,'resizeL');
+    dragAttach(rh,t,'resizeR');
+
+    bar.appendChild(svgEl('title',{}, `${t.name}\n${fmt(t.start)} → ${fmt(t.end)}\n${t.progress||0}%${t.assignee? ' · '+t.assignee:''}`));
+  });
+
+  // Critical path overlay
+  if(state.critical){ drawCritical(gBars); }
+
+  gridBg.style.width = width+'px';
+  gridBg.style.height = height+'px';
+}
+
+function svgEl(tag, attrs={}, text){
+  const n=document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(text!=null) n.textContent=text;
+  return n;
+}
+function link(g, A, B){
+  const i1 = state.tasks.indexOf(A), i2 = state.tasks.indexOf(B);
+  const y1 = 56 + i1*rowH, y2 = 56 + i2*rowH;
+  const x1 = dateToX(A.end), x2 = dateToX(B.start), mid = (x1+x2)/2;
+  g.appendChild(svgEl('path',{d:`M ${x1} ${y1} C ${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`, fill:'none', stroke:'color-mix(in srgb, var(--ink) 40%, transparent)','stroke-width':1.5}));
+  g.appendChild(svgEl('polygon',{points:`${x2},${y2} ${x2-6},${y2-4} ${x2-6},${y2+4}`, fill:'color-mix(in srgb, var(--ink) 40%, transparent)'}));
+}
+
+/* ---------- Drag & Resize ---------- */
+function dragAttach(node, task, type){
+  node.addEventListener('pointerdown', (e)=>{
+    node.setPointerCapture(e.pointerId);
+    state.dragging={id:task.id,type,startX:e.clientX,orig:{start:new Date(task.start), end:new Date(task.end)}};
+  });
+}
+addEventListener('pointermove', (e)=>{
+  if(!state.dragging) return;
+  const t = state.tasks.find(x=>x.id===state.dragging.id);
+  const dx = e.clientX - state.dragging.startX;
+  const dd = Math.round(dx/dayWidth);
+
+  if(state.dragging.type==='move'){
+    const dur = Math.round((state.dragging.orig.end - state.dragging.orig.start)/dayMS);
+    t.start = addDays(state.dragging.orig.start, dd);
+    t.end   = addDays(t.start, dur);
+  }else if(state.dragging.type==='resizeL'){
+    t.start = addDays(state.dragging.orig.start, dd);
+    if(t.start>t.end) t.start=t.end;
+  }else if(state.dragging.type==='resizeR'){
+    t.end = addDays(state.dragging.orig.end, dd);
+    if(t.end<t.start) t.end=t.start;
+  }
+  computeBounds(); renderChart();
+});
+addEventListener('pointerup', ()=>{ if(state.dragging){ state.dragging=null; save(); renderTable(); }});
+
+/* ---------- Critical Path (longest chain) ---------- */
+function drawCritical(gBars){
+  const map = new Map(state.tasks.map(t=>[t.id,t]));
+  const dur = t => Math.max(1, Math.round((t.end - t.start)/dayMS));
+  const memo = new Map();
+  const deps = t => (t.deps||[]).map(id=>map.get(id)).filter(Boolean);
+
+  function longest(t){
+    if(memo.has(t.id)) return memo.get(t.id);
+    const best = deps(t).reduce((m,d)=>Math.max(m, longest(d)),0);
+    const v = best + dur(t); memo.set(t.id,v); return v;
+  }
+  state.tasks.forEach(longest);
+  const max = Math.max(...memo.values());
+
+  state.tasks.forEach((t,i)=>{
+    const y = 56 + i*rowH;
+    const x = dateToX(t.start);
+    const w = Math.max( ((t.end - t.start)/dayMS)*dayWidth , 6);
+    const v = memo.get(t.id);
+    if(v){
+      const glow = svgEl('rect',{x, y:y-barH/2-4, rx:12, ry:12, width:w, height:barH+8, fill:'none', stroke:'var(--accent)', 'stroke-width':2.2, 'stroke-dasharray':'4 3'});
+      gBars.appendChild(glow);
+      if(v===max) gBars.appendChild(svgEl('text',{x:x+w+6,y:y+4,'font-size':'12',fill:'var(--accent)'},'★ critical'));
+    }
+  });
+}
+
+/* ============================================================
+   UI
+   ============================================================ */
+document.getElementById('zoomIn').onclick   = ()=>{ dayWidth=clamp(dayWidth+10,40,160); syncZoom(); };
+document.getElementById('zoomOut').onclick  = ()=>{ dayWidth=clamp(dayWidth-10,40,160); syncZoom(); };
+document.getElementById('zoomReset').onclick= ()=>{ dayWidth=80; syncZoom(); };
+document.getElementById('zoomRange').oninput= e=>{ dayWidth=parseInt(e.target.value); syncZoom(false); };
+function syncZoom(update=true){
+  if(update) document.getElementById('zoomRange').value=dayWidth;
+  document.getElementById('zoomReset').textContent=Math.round(dayWidth/80*100)+'%';
+  renderChart();
+}
+
+document.getElementById('addTask').onclick=()=>{
+  const s = xToDate(dateToX(today())+dayWidth*2);
+  const e = addDays(s,3);
+  state.tasks.push({id:uid(), name:'New task', start:s, end:e, status:'good', progress:0, assignee:'', deps:[]});
+  computeBounds(); renderAll();
+};
+
+document.getElementById('toggleCritical').onclick=(e)=>{
+  state.critical=!state.critical;
+  e.currentTarget.classList.toggle('primary', state.critical);
+  renderChart();
+};
+
+document.getElementById('search').addEventListener('input', e=>{
+  state.filter=e.target.value||''; renderTable();
+});
+
+addEventListener('keydown', e=>{
+  if(e.key==='ArrowLeft'){ state.viewport.start=addDays(state.viewport.start,-1); state.viewport.end=addDays(state.viewport.end,-1); renderChart(); }
+  if(e.key==='ArrowRight'){ state.viewport.start=addDays(state.viewport.start, 1); state.viewport.end=addDays(state.viewport.end, 1); renderChart(); }
+  if(e.key==='+'){ dayWidth=clamp(dayWidth+10,40,160); syncZoom(); }
+  if(e.key==='-'){ dayWidth=clamp(dayWidth-10,40,160); syncZoom(); }
+  if(e.key==='0'){ dayWidth=80; syncZoom(); }
+});
+
+/* ----- Export PNG ----- */
+document.getElementById('exportPNG').onclick=()=>{
+  const xml = new XMLSerializer().serializeToString(chart);
+  const img = new Image();
+  img.onload = ()=>{
+    const w = chart.width.baseVal.value, h = chart.height.baseVal.value;
+    const c = document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = getCSS('--panel') || '#fff';
+    ctx.fillRect(0,0,w,h);
+    ctx.drawImage(img,0,0);
+    const url = c.toDataURL('image/png');
+    download(url,'aether-gantt.png');
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+};
+
+/* ----- Export CSV ----- */
+document.getElementById('exportCSV').onclick=()=>{
+  const rows=[['id','name','start','end','progress','status','assignee','deps']];
+  state.tasks.forEach(t=>{
+    rows.push([t.id, (t.name||'').replace(/,/g,' '), fmt(t.start), fmt(t.end), t.progress||0, t.status||'', t.assignee||'', (t.deps||[]).join('|')]);
+  });
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  download(URL.createObjectURL(blob),'aether-gantt.csv');
+};
+
+/* ----- JSON modal ----- */
+const modal = document.getElementById('jsonModal');
+document.getElementById('importJSON').onclick=()=>{
+  document.getElementById('jsonArea').value = JSON.stringify({tasks:state.tasks}, (k,v)=> v instanceof Date ? v.toISOString() : v, 2);
+  modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+};
+document.getElementById('closeJSON').onclick=()=>{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); };
+document.getElementById('applyJSON').onclick=()=>{
+  try{
+    const obj = JSON.parse(document.getElementById('jsonArea').value);
+    state.tasks = (obj.tasks||[]).map(t=>({...t,start:new Date(t.start), end:new Date(t.end)}));
+    computeBounds(); renderAll(); save(); modal.classList.remove('open');
+  }catch{ alert('Invalid JSON'); }
+};
+document.getElementById('downloadJSON').onclick=()=>{
+  const txt = JSON.stringify({tasks:state.tasks}, (k,v)=> v instanceof Date ? v.toISOString() : v, 2);
+  const blob = new Blob([txt], {type:'application/json'});
+  download(URL.createObjectURL(blob),'aether-gantt.json');
+};
+document.getElementById('resetDemo').onclick=()=>{
+  if(confirm('Reset to demo data?')){ state.tasks=demo.tasks.map(t=>({...t})); computeBounds(); renderAll(); }
+};
+
+function download(url,name){ const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+
+/* ----- Helpers ----- */
+function xToDate(x){ const d = new Date(state.viewport.start.getTime() + Math.round((x)/dayWidth)*dayMS); d.setHours(0,0,0,0); return d; }
+
+/* Resize: keep grid in sync with SVG size  */
+new ResizeObserver(()=>renderChart()).observe(chartWrap);
+
+/* First zoom sync */
+syncZoom();
+</script>
+</body>
+</html>
