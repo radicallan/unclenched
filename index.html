@@ -6,218 +6,256 @@
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
 />
-  <title>The Eclectic Apothecary — Structure with soul</title>
-  <meta name="description" content="Remedies for disordered businesses. Calm systems, brand clarity, and efficient processes for small teams." />
-  <meta name="theme-color" content="#f7f4ef" />
+  <title>Unclenched Studio — Where structure meets relief</title>
+  <meta name="description" content="Unclenched Studio blends operational excellence, design and psychology to help small teams breathe again. Systems, rituals and brand clarity that feel good to use." />
+  <meta name="theme-color" content="#0f0f10" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="light dark">
 
-  <!-- Performance hints (optional) -->
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Use system fonts for speed; add a serif if you want later -->
+  <!-- Open Graph -->
+  <meta property="og:title" content="Unclenched Studio — Where structure meets relief">
+  <meta property="og:description" content="Systems that help you exhale. Calm operational design for creative brands.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://unclenched.co.uk/">
+  <meta property="og:image" content="">
+
+  <!-- Favicon placeholders (swap when ready) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2212%22 fill=%22%23000000%22/><text x=%2232%22 y=%2238%22 font-size=%2230%22 text-anchor=%22middle%22 fill=%22%23fff%22>U</text></svg>">
 
   <style>
-    /* ---------- Design tokens ---------- */
-    :root {
-      --bg: #f7f4ef;          /* ivory */
-      --ink: #121212;         /* charcoal */
-      --muted: #666666;
-      --line: #e5dfd6;
-      --accent: #a8a18f;      /* sage-amber */
-      --accent-ink: #22211e;
+    /* ------------------ Tokens ------------------ */
+    :root{
+      /* Light */
+      --bg: #f6f4f1;
+      --ink: #141414;
+      --muted:#6a6a6a;
+      --line:#e7e1d8;
+      --panel:#ffffff;
+      --accent:#c9c3b2;          /* warm sage-amber */
+      --accent-ink:#22211e;
 
-      --radius: 14px;
-      --container: 1120px;
+      /* Dark */
+      --bg-d:#0f0f10;
+      --ink-d:#f3f3f3;
+      --muted-d:#a0a0a0;
+      --line-d:#2a2a2c;
+      --panel-d:#141416;
+      --accent-d:#9a9483;
 
-      /* Type scale + spacing (mobile-first) */
-      --fs-1: clamp(2rem, 6vw, 3.6rem);  /* h1 */
-      --fs-2: clamp(1.5rem, 4.5vw, 2.2rem);
-      --fs-3: clamp(1.125rem, 3.2vw, 1.375rem);
+      --radius:16px;
+      --tap:48px;
+      --wrap:1120px;
+
+      /* Type + spacing */
+      --fs-1: clamp(2.1rem, 6.2vw, 3.8rem);
+      --fs-2: clamp(1.35rem, 4.2vw, 2.2rem);
+      --fs-3: clamp(1.05rem, 3.2vw, 1.35rem);
       --fs-body: clamp(1rem, 2.8vw, 1.125rem);
-      --lh: 1.55;
+      --lh:1.55;
 
-      --space-1: clamp(10px, 2.6vw, 14px);
-      --space-2: clamp(16px, 3.2vw, 20px);
-      --space-3: clamp(24px, 4vw, 28px);
-      --space-4: clamp(36px, 6vw, 48px);
-      --space-5: clamp(56px, 9vw, 72px);
+      --s-1: clamp(10px, 2.6vw, 14px);
+      --s-2: clamp(16px, 3.2vw, 20px);
+      --s-3: clamp(24px, 4.5vw, 32px);
+      --s-4: clamp(38px, 6.5vw, 56px);
+      --s-5: clamp(56px, 9vw, 80px);
 
-      --tap: 48px; /* min tap target */
-      --shadow: 0 1px 0 rgba(0,0,0,.05), 0 6px 24px rgba(0,0,0,.05);
       --safe-top: env(safe-area-inset-top);
       --safe-bottom: env(safe-area-inset-bottom);
       --safe-left: env(safe-area-inset-left);
       --safe-right: env(safe-area-inset-right);
+
+      --shadow-l: 0 1px 0 rgba(0,0,0,.04), 0 12px 32px rgba(0,0,0,.06);
+      --shadow-d: 0 1px 0 rgba(255,255,255,.04), 0 12px 32px rgba(0,0,0,.4);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg: var(--bg-d);
+        --ink: var(--ink-d);
+        --muted: var(--muted-d);
+        --line: var(--line-d);
+        --panel: var(--panel-d);
+        --accent: var(--accent-d);
+        --accent-ink:#0d0d0d;
+      }
     }
 
-    /* ---------- Base + reset ---------- */
+    /* ------------------ Base ------------------ */
     *,*::before,*::after{box-sizing:border-box}
-    html,body{height:100%}
     html{scroll-behavior:smooth}
-    @media (prefers-reduced-motion: reduce){
-      html{scroll-behavior:auto}
-    }
+    @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} }
     body{
-      margin:0;
+      margin:0;background:
+        radial-gradient(1200px 800px at 80% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
+        radial-gradient(1400px 900px at -10% 100%, color-mix(in srgb, var(--accent) 12%, transparent), transparent),
+        var(--bg);
+      color:var(--ink);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, ui-sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      line-height: var(--lh);
-      -webkit-text-size-adjust: 100%;
-      text-rendering: optimizeLegibility;
+      line-height:var(--lh);
+      -webkit-text-size-adjust:100%;
+      text-rendering:optimizeLegibility;
     }
     img{max-width:100%;display:block;height:auto}
-    a{color:inherit;text-decoration:none}
-    p{font-size:var(--fs-body);margin:0 0 var(--space-1)}
-    h1,h2,h3{margin:0 0 .4em}
+    a{text-decoration:none;color:inherit}
+    p{font-size:var(--fs-body);margin:0 0 var(--s-1)}
+    h1,h2,h3{margin:0 0 .45em}
     h1{font-size:var(--fs-1);letter-spacing:-.02em}
     h2{font-size:var(--fs-2);letter-spacing:-.01em}
     h3{font-size:var(--fs-3)}
-    small{color:var(--muted)}
+    .wrap{max-width:var(--wrap);margin:0 auto;padding:0 calc(18px + var(--safe-left))}
 
-    .wrap{max-width:var(--container);margin:0 auto;padding:0 calc(16px + var(--safe-left)) 0 calc(16px + var(--safe-right))}
+    /* Utilities */
     .muted{color:var(--muted)}
-    .grid{display:grid;gap:var(--space-2)}
+    .grid{display:grid;gap:var(--s-2)}
+    .list-2{grid-template-columns:1fr}
+    .list-3{grid-template-columns:1fr}
+    @media (min-width:880px){ .list-2{grid-template-columns:repeat(2,1fr)} }
+    @media (min-width:1040px){ .list-3{grid-template-columns:repeat(3,1fr)} }
+    .pill{display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 
-    /* ---------- Header / Nav ---------- */
+    /* ------------------ Header ------------------ */
+    .skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+    .skip:focus{left:12px;top:12px;width:auto;height:auto;z-index:999;background:var(--panel);padding:8px 12px;border-radius:10px;border:1px solid var(--line)}
+
     header{
-      position: sticky; top:0; z-index:50;
+      position:sticky;top:0;z-index:50;
       background: color-mix(in srgb, var(--bg) 92%, white);
       border-bottom:1px solid var(--line);
       padding-top: calc(6px + var(--safe-top));
+      backdrop-filter: saturate(115%) blur(6px);
     }
     .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
     .brand{display:flex;gap:10px;align-items:center}
-    .logo{width:28px;height:28px;border:1px solid var(--ink);border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px}
-    .brand-title{font-weight:600;letter-spacing:.02em;white-space:nowrap}
+    .logo{width:28px;height:28px;border:1px solid var(--ink);border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:14px}
+    .brand-title{font-weight:650;letter-spacing:.02em;white-space:nowrap}
 
-    /* Mobile menu */
     .menu-toggle{
       display:inline-flex;align-items:center;justify-content:center;
       width:var(--tap);height:var(--tap);
-      border:1px solid var(--ink);border-radius:10px;background:transparent;cursor:pointer
+      border:1px solid var(--ink);border-radius:12px;background:transparent;cursor:pointer
     }
-    .links{
-      display:none;flex-direction:column;gap:8px;padding:12px;border-top:1px solid var(--line)
-    }
-    .links a{padding:10px;border-radius:8px}
-    .links a:active{background:#0000000e}
+    .links{display:none;flex-direction:column;gap:8px;padding:12px;border-top:1px solid var(--line)}
+    .links a{padding:12px;border-radius:10px}
+    .links a:active{background:#00000012}
     .links.open{display:flex}
 
-    /* Desktop nav */
-    @media (min-width: 920px){
+    @media (min-width:940px){
       .menu-toggle{display:none}
       .links{display:flex !important;border-top:none;flex-direction:row;gap:16px;padding:0}
       .links a{padding:8px 10px}
       .links a:hover{background:#0000000a}
     }
 
-    /* ---------- Buttons & Inputs ---------- */
+    /* ------------------ Buttons & Inputs ------------------ */
     .btn{
       display:inline-flex;align-items:center;justify-content:center;
-      min-height:var(--tap);padding:0 16px;
-      border:1px solid var(--ink);border-radius:12px;background:#fff;
-      font-weight:600;cursor:pointer;transition:.18s ease;
-      box-shadow: 0 0 0 rgba(0,0,0,0)
+      min-height:var(--tap);padding:0 18px;
+      border:1px solid var(--ink);border-radius:14px;background:var(--panel);
+      font-weight:650;cursor:pointer;transition:.18s ease; box-shadow:0 0 0 rgba(0,0,0,0)
     }
     .btn:hover{transform:translateY(-1px)}
     .btn:active{transform:translateY(0)}
     .btn.accent{background:var(--accent);border-color:var(--accent-ink)}
     .btn.block{width:100%}
-
     input[type="email"]{
       width:100%;min-height:var(--tap);
-      padding:0 12px;border:1px solid var(--ink);border-radius:12px;background:#fff;font-size:var(--fs-body)
+      padding:0 14px;border:1px solid var(--ink);border-radius:14px;background:var(--panel);font-size:var(--fs-body)
     }
 
-    /* ---------- Sections ---------- */
-    section{padding: var(--space-4) 0}
-    .hero{padding: var(--space-5) 0 var(--space-4)}
-    .lede{font-size:clamp(1.05rem, 3.4vw, 1.25rem);color:var(--ink);max-width:70ch}
-    .hero-cta{display:grid;gap:10px;margin-top:var(--space-2)}
-    @media (min-width:700px){
-      .hero-cta{grid-auto-flow:column;justify-content:start}
-    }
+    /* ------------------ Sections ------------------ */
+    section{padding:var(--s-4) 0}
+    .hero{padding:var(--s-5) 0 var(--s-4)}
+    .lede{font-size:clamp(1.05rem,3.4vw,1.25rem);max-width:70ch}
+    .hero-cta{display:grid;gap:10px;margin-top:var(--s-2)}
+    @media (min-width:720px){ .hero-cta{grid-auto-flow:column;justify-content:start} }
 
     .card{
       border:1px solid var(--line);border-radius:var(--radius);
-      background:#fff; box-shadow: var(--shadow); padding: var(--space-2)
+      background:var(--panel); box-shadow: var(--shadow-l); padding: var(--s-2)
     }
-    .pill{display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-    .list-2{grid-template-columns:1fr}
-    .list-3{grid-template-columns:1fr}
-    @media (min-width: 860px){ .list-2{grid-template-columns:repeat(2,1fr)} }
-    @media (min-width: 1020px){ .list-3{grid-template-columns:repeat(3,1fr)} }
+    @media (prefers-color-scheme: dark){
+      .card{ box-shadow: var(--shadow-d) }
+    }
 
-    /* Lead magnet form layout */
+    .process{counter-reset:step}
+    .process li{list-style:none;margin:0 0 var(--s-2);padding-left:54px;position:relative}
+    .process li::before{
+      counter-increment:step;content:counter(step);
+      position:absolute;left:0;top:0;width:40px;height:40px;border-radius:50%;
+      border:1px solid var(--ink);display:grid;place-items:center;font-weight:700;
+      background:var(--panel)
+    }
+
+    /* Lead magnet form */
     .form-grid{display:grid;gap:10px;grid-template-columns:1fr}
     @media (min-width:640px){ .form-grid{grid-template-columns:1fr auto} }
 
     /* Footer */
-    footer{padding: calc(var(--space-3) + var(--safe-bottom)) 0 var(--space-3);border-top:1px solid var(--line);color:var(--muted)}
+    footer{padding: calc(var(--s-3) + var(--safe-bottom)) 0 var(--s-3);border-top:1px solid var(--line);color:var(--muted)}
     .foot{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 
-    /* Accessibility helpers */
-    .visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)}
+    /* Visually hidden */
+    .vh{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)}
   </style>
 </head>
 <body>
+  <a href="#main" class="skip">Skip to content</a>
+
   <!-- Header -->
   <header>
     <div class="wrap nav">
       <a class="brand" href="#top" aria-label="Home">
-        <span class="logo" aria-hidden="true">EA</span>
-        <span class="brand-title">The Eclectic Apothecary</span>
+        <span class="logo" aria-hidden="true">U</span>
+        <span class="brand-title">Unclenched Studio</span>
       </a>
-      <button class="menu-toggle" aria-expanded="false" aria-controls="primary-links" aria-label="Toggle menu">
-        ☰
-      </button>
+      <button class="menu-toggle" aria-expanded="false" aria-controls="primary-links" aria-label="Toggle menu">☰</button>
     </div>
     <nav id="primary-links" class="wrap links" aria-label="Primary">
-      <a href="#remedies">Remedies</a>
+      <a href="#remedies">Services</a>
       <a href="#about">About</a>
-      <a href="#formula">Balance Formula</a>
-      <a href="#book" class="btn" style="margin-top:6px">Book an audit</a>
+      <a href="#playbook">Playbook</a>
+      <a class="btn" href="#book" style="margin-top:6px">Book an audit</a>
     </nav>
   </header>
 
-  <main id="top">
+  <main id="main">
     <!-- Hero -->
-    <section class="hero">
+    <section class="hero" id="top">
       <div class="wrap">
-        <h1>Structure with soul.</h1>
-        <p class="lede">We design calm systems for creative brands — blending operational excellence, design craft, and human psychology. Remedies for disordered businesses.</p>
+        <h1>Where structure meets relief.</h1>
+        <p class="lede">We design calm systems for creative brands — blending operational excellence, design craft, and human psychology. When teams unclench, work flows.</p>
         <div class="hero-cta">
-          <a class="btn accent" href="#formula">Get the free Balance Formula</a>
-          <a class="btn" href="#remedies">Explore remedies</a>
+          <a class="btn accent" href="#playbook">Get the free Unclench Playbook</a>
+          <a class="btn" href="#remedies">Explore services</a>
         </div>
       </div>
     </section>
 
-    <!-- Remedies -->
-    <section id="remedies" aria-labelledby="remedies-title">
+    <!-- Services -->
+    <section id="remedies" aria-labelledby="services-title">
       <div class="wrap">
-        <h2 id="remedies-title">Remedies</h2>
-        <p class="muted">Fixed-scope services crafted like formulations — clear ingredients, measured doses, predictable outcomes.</p>
+        <h2 id="services-title">Services that help you exhale</h2>
+        <p class="muted">Fixed-scope, beautifully made. Clear ingredients, measured doses, predictable outcomes.</p>
 
-        <div class="grid list-3" style="margin-top: var(--space-2)">
-          <article class="card" aria-labelledby="clarity-tonic">
+        <div class="grid list-3" style="margin-top:var(--s-2)">
+          <article class="card" aria-labelledby="audit">
             <span class="pill">90 min · diagnosis</span>
-            <h3 id="clarity-tonic">The Clarity Tonic</h3>
-            <p>A precise audit of tools, workflows, and brand coherence. You leave with a 3-page plan and three quick wins.</p>
+            <h3 id="audit">The Audit</h3>
+            <p>A precise read on your tools, workflows and tone. You leave with a 3-page plan and three quick wins.</p>
             <p><strong>Launch price:</strong> £300</p>
             <a class="btn block" href="#book">Book your session</a>
           </article>
 
-          <article class="card" aria-labelledby="systems-elixir">
+          <article class="card" aria-labelledby="reset">
             <span class="pill">2 weeks · implementation</span>
-            <h3 id="systems-elixir">The Systems Elixir</h3>
+            <h3 id="reset">The Reset Sprint</h3>
             <p>We rebuild your internal flow in Notion/Sheets, set naming conventions, and craft branded templates people love to use.</p>
             <p><strong>From:</strong> £1,200</p>
             <a class="btn block" href="#book">Start a sprint</a>
           </article>
 
-          <article class="card" aria-labelledby="ritual-refill">
+          <article class="card" aria-labelledby="ritual">
             <span class="pill">Monthly · stewardship</span>
-            <h3 id="ritual-refill">The Ritual Refill</h3>
+            <h3 id="ritual">The Ritual Retainer</h3>
             <p>Ongoing operational well-being — we maintain dashboards, refine templates, and coach your team’s rituals.</p>
             <p><strong>£400</strong> / month</p>
             <a class="btn block" href="#book">Join the roster</a>
@@ -226,12 +264,12 @@
       </div>
     </section>
 
-    <!-- About -->
+    <!-- About / Principles -->
     <section id="about" aria-labelledby="about-title">
       <div class="wrap grid list-2">
         <div>
-          <h2 id="about-title">A modern apothecary for business.</h2>
-          <p>Traditional ops can feel rigid. We use a calmer approach — part systems design, part aesthetic craft, part behavioural insight — so structure becomes a culture, not a chore.</p>
+          <h2 id="about-title">Operational excellence with heart.</h2>
+          <p>Traditional ops can feel rigid. Unclenched takes a calmer route — part systems design, part aesthetic craft, part behavioural insight — so structure becomes culture, not a chore.</p>
           <p class="muted">Belief: when systems feel beautiful, people treat them with care. When people feel cared for, businesses thrive naturally.</p>
         </div>
         <div class="card">
@@ -246,27 +284,40 @@
       </div>
     </section>
 
+    <!-- Process -->
+    <section aria-labelledby="process-title">
+      <div class="wrap">
+        <h2 id="process-title">How we unclench</h2>
+        <ol class="process">
+          <li><strong>Diagnosis</strong> — a 90-min audit to surface friction, duplication and tone drift.</li>
+          <li><strong>Design</strong> — a clean, branded system (dashboards, naming, templates) that people enjoy using.</li>
+          <li><strong>Rituals</strong> — simple cadences and checklists that keep clarity alive.</li>
+          <li><strong>Stewardship</strong> — monthly refinements as your team evolves.</li>
+        </ol>
+      </div>
+    </section>
+
     <!-- Lead magnet -->
-    <section id="formula" aria-labelledby="formula-title">
+    <section id="playbook" aria-labelledby="playbook-title">
       <div class="wrap">
         <div class="card">
           <div class="grid list-2">
             <div>
-              <h2 id="formula-title">The Balance Formula (free roadmap)</h2>
-              <p class="muted">Our 2-page guide to restoring operational calm: <em>Clarity → Consistency → Calm → Growth</em>. Download it, share it with your team, start small.</p>
+              <h2 id="playbook-title">The Unclench Playbook (free)</h2>
+              <p class="muted">A 2-page roadmap to restore operational calm: <em>Clarity → Consistency → Calm → Growth</em>. Share it with your team. Start small.</p>
               <ul>
-                <li>Diagnose the three most common chaos traps</li>
-                <li>Adopt a daily “ritual of clarity” (5 minutes)</li>
-                <li>Before/after of a clean, branded workflow</li>
+                <li>Spot the three most common chaos traps</li>
+                <li>Adopt a 5-minute daily ritual of clarity</li>
+                <li>See a before/after of a clean, branded workflow</li>
               </ul>
             </div>
             <div>
               <!-- Replace action with your email platform endpoint -->
-              <form class="form-grid" action="YOUR_MAILERLITE_FORM_ACTION" method="post" aria-label="Download the Balance Formula">
-                <label class="visually-hidden" for="email">Email</label>
-                <input id="email" type="email" name="email" placeholder="you@company.com" required inputmode="email" autocomplete="email" />
+              <form class="form-grid" action="YOUR_MAILERLITE_FORM_ACTION" method="post" aria-label="Download the Unclench Playbook">
+                <label class="vh" for="email">Email</label>
+                <input id="email" name="email" type="email" placeholder="you@company.com" required inputmode="email" autocomplete="email" />
                 <button class="btn accent" type="submit">Email me the PDF</button>
-                <small>No spam. One helpful email a week.</small>
+                <small class="muted">No spam. One helpful email a week.</small>
               </form>
             </div>
           </div>
@@ -274,21 +325,21 @@
       </div>
     </section>
 
-    <!-- Testimonials (placeholder) -->
-    <section aria-labelledby="testimonials-title">
+    <!-- Testimonials (placeholders) -->
+    <section aria-labelledby="proof-title">
       <div class="wrap">
-        <h2 id="testimonials-title">Quiet results</h2>
-        <div class="grid list-3" style="margin-top: var(--space-2)">
+        <h2 id="proof-title">Quiet results</h2>
+        <div class="grid list-3" style="margin-top:var(--s-2)">
           <figure class="card">
-            <blockquote>“After the Systems Elixir, our studio finally breathes. Fewer tabs, fewer meetings, more momentum.”</blockquote>
+            <blockquote>“After our Reset Sprint, the studio finally breathes. Fewer tabs, fewer meetings, more momentum.”</blockquote>
             <figcaption class="muted">— Creative Director, design agency</figcaption>
           </figure>
           <figure class="card">
-            <blockquote>“The Clarity Tonic paid for itself in a week. The team actually uses the templates because they look and feel right.”</blockquote>
+            <blockquote>“The Audit paid for itself in a week. The team uses the templates because they look and feel right.”</blockquote>
             <figcaption class="muted">— Founder, skincare brand</figcaption>
           </figure>
           <figure class="card">
-            <blockquote>“We cut our onboarding time in half and the tone-of-voice guide stopped the messy emails.”</blockquote>
+            <blockquote>“Onboarding time halved. The tone guide stopped messy emails. Calm is now the default.”</blockquote>
             <figcaption class="muted">— Ops Lead, wellness startup</figcaption>
           </figure>
         </div>
@@ -299,11 +350,11 @@
     <section id="book" aria-labelledby="book-title">
       <div class="wrap">
         <div class="card" style="text-align:center">
-          <h2 id="book-title">Ready to restore balance?</h2>
-          <p class="muted">Start with the 90-minute Clarity Tonic — a precise diagnosis and a plan you can act on tomorrow.</p>
-          <div style="margin-top:var(--space-2);display:grid;gap:10px;grid-auto-flow:row;justify-items:center">
-            <a class="btn accent" href="https://calendly.com/YOUR-SCHEDULER/clarity-tonic" target="_blank" rel="noopener">Book your audit</a>
-            <a class="btn" href="mailto:allan@yourexample.co?subject=Clarity%20Tonic%20enquiry">Email a question</a>
+          <h2 id="book-title">Ready to breathe again?</h2>
+          <p class="muted">Start with the 90-minute Audit — a precise diagnosis and a plan you can act on tomorrow.</p>
+          <div style="margin-top:var(--s-2);display:grid;gap:10px;justify-items:center">
+            <a class="btn accent" href="https://calendly.com/YOUR-SCHEDULER/unclenched-audit" target="_blank" rel="noopener">Book your audit</a>
+            <a class="btn" href="mailto:allan@unclenched.co.uk?subject=Audit%20enquiry">Email a question</a>
           </div>
         </div>
       </div>
@@ -314,17 +365,18 @@
   <footer role="contentinfo">
     <div class="wrap foot">
       <div style="display:flex;gap:10px;align-items:center">
-        <span class="logo" aria-hidden="true">EA</span>
-        <small>© <span id="year"></span> The Eclectic Apothecary</small>
+        <span class="logo" aria-hidden="true">U</span>
+        <small>© <span id="year"></span> Unclenched Studio</small>
       </div>
       <small>
-        <a href="#formula">Balance Formula</a> ·
+        <a href="#playbook">Playbook</a> ·
         <a href="#">Privacy</a> ·
         <a href="#">Terms</a>
       </small>
     </div>
   </footer>
 
+  <!-- Minimal JS: menu, year, smooth hash nav -->
   <script>
     // Year stamp
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -337,22 +389,34 @@
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
 
-    // Respect reduced motion for anchor scroll (guard in CSS already)
+    // Smooth hash links + close menu on select
     document.querySelectorAll('a[href^="#"]').forEach(a=>{
       a.addEventListener('click', e=>{
         const id = a.getAttribute('href');
         if(id && id.length>1){
-          // let CSS handle smooth scroll; avoid default jump for better UX
           e.preventDefault();
           document.querySelector(id)?.scrollIntoView({behavior:'smooth', block:'start'});
           history.pushState(null, '', id);
-          if (links.classList.contains('open')) { // close menu on nav
+          if (links.classList.contains('open')) {
             links.classList.remove('open');
             btn.setAttribute('aria-expanded','false');
           }
         }
       });
     });
+  </script>
+
+  <!-- JSON-LD for basic SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Unclenched Studio",
+    "url": "https://unclenched.co.uk/",
+    "description": "Operational design and calm systems for creative brands.",
+    "logo": "",
+    "sameAs": []
+  }
   </script>
 </body>
 </html>
