@@ -3,93 +3,49 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pixel Plaza — Isometric Room (Perfect Fit)</title>
+  <title>Pixel Plaza — Guaranteed Fit</title>
   <style>
-    :root{
-      --bg:#0b0d12; --panel:#141826; --panel-2:#101421; --ink:#eef1ff; --muted:#9aa2b8;
-      --line:#21283b; --accent:#ffb703; --accent2:#fb8500;
-    }
+    :root{ --bg:#0b0d12; --panel:#141826; --line:#20283a; --ink:#eef1ff; --muted:#9aa2b8; }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    body{display:grid;grid-template-rows:auto 1fr auto;}
-
-    header{display:flex;align-items:center;gap:12px;padding:12px 14px;background:linear-gradient(180deg,#0f1220,#0b0f1a);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:2}
-    .logo{font-weight:900;font-size:18px;letter-spacing:.4px;background:linear-gradient(90deg,#ffd166,#fb8500,#ffb703);-webkit-background-clip:text;background-clip:text;color:transparent}
+    body{display:grid;grid-template-rows:auto 1fr auto}
+    header{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0f1220,#0b0f1a)}
+    .logo{font-weight:900;letter-spacing:.4px;background:linear-gradient(90deg,#ffd166,#fb8500,#ffb703);-webkit-background-clip:text;background-clip:text;color:transparent}
     .toolbar{margin-left:auto;display:flex;gap:8px}
-    .btn{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:10px;font-weight:600;cursor:pointer;box-shadow:inset 0 0 0 1px #0006,0 6px 16px #0006}
+    .btn{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:8px 10px;border-radius:10px;font-weight:600;cursor:pointer}
     .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
     .seg button{all:unset;padding:8px 10px;cursor:pointer}
     .seg button.active{background:#1b2133}
 
-    main{display:grid;grid-template-columns:320px 1fr;gap:12px;padding:12px}
-    @media (max-width: 980px){ main{grid-template-columns:1fr} }
-
-    .card{background:var(--panel); border:1px solid var(--line); border-radius:16px; box-shadow:0 10px 30px #0008, inset 0 0 0 1px #0005; overflow:hidden}
-    .card h3{margin:0;padding:12px 14px;border-bottom:1px solid var(--line);font-size:14px;color:#e9ebff}
-    .card section{padding:12px}
-    .row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-    label{font-size:12px;color:var(--muted);min-width:84px}
-    input,select{background:#0f1322;border:1px solid var(--line);color:#e9eaf5;border-radius:10px;padding:8px 10px;flex:1}
-
-    .room-wrap{position:relative;background:var(--panel-2);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px #0009, inset 0 0 0 1px #0005;overflow:hidden;min-height:68vh}
-    canvas{display:block;width:100%;height:calc(100vh - 180px);image-rendering:pixelated}
-    @media (max-width:980px){ canvas{height:calc(100vh - 240px)} }
-
-    .hud{position:absolute;right:8px;bottom:8px;display:flex;gap:8px;z-index:2}
+    .room-wrap{position:relative; margin:12px; border:1px solid var(--line); border-radius:16px; overflow:hidden; background:#0f1322; box-shadow:0 10px 30px #0008}
+    canvas{display:block;width:100%;height:100%; image-rendering:pixelated}
+    .hud{position:absolute; right:8px; bottom:8px; display:flex; gap:8px; z-index:2}
     .pill{background:#111522;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
 
-    .bubble{position:absolute;transform:translate(-50%, -100%);background:#172036;border:1px solid #243255;color:#e9ecff;padding:6px 8px;border-radius:10px;box-shadow:0 8px 20px #0009;font-size:12px;max-width:220px;display:none}
-    .bubble:after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #243255}
-
-    .log{height:220px;overflow:auto;scrollbar-width:thin;background:#0f1322;border:1px solid var(--line);border-radius:12px;padding:8px}
-    .log p{margin:.35rem 0;font-size:12px;color:#c9cde2}
-
-    footer{display:flex;gap:10px;align-items:center;padding:12px;border-top:1px solid var(--line);background:linear-gradient(180deg,#0b0f18,#090c13)}
+    footer{display:flex;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:linear-gradient(180deg,#0b0f18,#090c13)}
     footer input{flex:1}
   </style>
 </head>
 <body>
   <header>
     <div class="logo">PIXEL&nbsp;PLAZA</div>
-    <div class="pill">Habbo‑style isometric demo — perfect-fit canvas</div>
+    <div class="pill">Habbo‑style isometric — guaranteed to fit</div>
     <div class="toolbar">
       <div class="seg" role="group" aria-label="Zoom">
         <button id="zoomOut" title="Zoom out">−</button>
-        <button id="zoomReset" class="active" title="Reset zoom">100%</button>
+        <button id="zoomReset" class="active" title="Reset / Fit">Fit</button>
         <button id="zoomIn" title="Zoom in">+</button>
       </div>
-      <button class="btn" id="fit">Fit</button>
-      <button class="btn" id="randomize">Shuffle</button>
     </div>
   </header>
 
-  <main>
-    <aside class="card">
-      <h3>Avatar</h3>
-      <section>
-        <div class="row"><label>Nickname</label><input id="nick" maxlength="16" placeholder="Your name" /></div>
-        <div class="row"><label>Style</label>
-          <select id="style">
-            <option value="blue">Blue Hoodie</option>
-            <option value="red">Red Hoodie</option>
-            <option value="green">Green Hoodie</option>
-            <option value="purple">Purple Hoodie</option>
-          </select>
-        </div>
-        <div class="row"><label>Speed</label><input id="speed" type="range" min="2" max="12" value="7"/></div>
-        <div class="row"><button class="btn" id="center">Center Me</button><button class="btn" id="wave">Wave</button></div>
-        <p class="pill">Tip: Click to walk. Shift‑click to paint. Wheel to zoom. Drag (middle/touch) to pan.</p>
-      </section>
-    </aside>
-
-    <div class="room-wrap">
-      <canvas id="room" width="1400" height="900" aria-label="Isometric room"></canvas>
-      <div class="hud">
-        <div class="pill" id="status">Ready</div>
-      </div>
-      <div id="bubble" class="bubble">Hi!</div>
+  <div class="room-wrap" id="wrap">
+    <canvas id="room" width="800" height="600" aria-label="Isometric room"></canvas>
+    <div class="hud">
+      <div class="pill" id="status">Ready</div>
     </div>
-  </main>
+    <div id="bubble" class="pill" style="position:absolute;transform:translate(-50%,-160%);display:none">Hi</div>
+  </div>
 
   <footer>
     <input id="chat" placeholder="Say something… (Enter to send)" />
@@ -97,265 +53,147 @@
   </footer>
 
   <script>
-    // ====== CORE STATE ======
-    const canvas=document.getElementById('room');
-    const ctx=canvas.getContext('2d', { alpha: false });
-    ctx.imageSmoothingEnabled=false;
+  // ===== Constants =====
+  const TILE_W=64, TILE_H=32, TILE_Z=16;
+  const gridW=18, gridH=14;
 
-    // tile constants (iso diamond)
-    const TILE_W=64, TILE_H=32, TILE_Z=16; // px
+  // ===== Canvas & sizing =====
+  const wrap=document.getElementById('wrap');
+  const canvas=document.getElementById('room');
+  const ctx=canvas.getContext('2d',{alpha:false});
+  ctx.imageSmoothingEnabled=false;
 
-    const gridW=18, gridH=14; // logical grid
-    let map = Array.from({length:gridH},()=>Array.from({length:gridW},()=>({type:'floor',h:0})));
+  // world state
+  let map = Array.from({length:gridH},()=>Array.from({length:gridW},()=>({type:'floor',h:0})));
+  function seed(){
+    map.forEach(r=>r.forEach(t=>{t.type='floor';t.h=0;}));
+    for(let i=0;i<12;i++) map[rand(2,gridH-3)][rand(2,gridW-3)]={type:'plant',h:0};
+    for(let i=0;i<8;i++) map[rand(2,gridH-3)][rand(2,gridW-3)]={type:'sofa',h:0};
+    for(let x=1;x<gridW-1;x++){ map[2][x]={type:'wall',h:1}; map[gridH-3][x]={type:'wall',h:1}; }
+  }
+  seed();
 
-    // seed some variety
-    function seedRoom(){
-      map.forEach(r=>r.forEach(t=>{ t.type='floor'; t.h=0; }));
-      for(let i=0;i<14;i++){ map[rand(2,gridH-3)][rand(2,gridW-3)]={type:'plant',h:0}; }
-      for(let i=0;i<8;i++){ map[rand(2,gridH-3)][rand(2,gridW-3)]={type:'sofa',h:0}; }
-      for(let x=1;x<gridW-1;x++){ map[2][x]={type:'wall',h:1}; map[gridH-3][x]={type:'wall',h:1}; }
-    }
-    seedRoom();
+  const avatar={ x:Math.floor(gridW/2), y:Math.floor(gridH/2)+2, waving:0, col:'blue', name:'Guest', path:[] };
 
-    // avatar
-    const avatar={ x:Math.floor(gridW/2), y:Math.floor(gridH/2)+2, z:0, col:'blue', path:[], waving:0, name:localStorage.getItem('pp_nick')||'Guest' };
+  // camera transform
+  let zoom=1, offX=0, offY=0; // in device pixels
 
-    // camera and transform
-    let zoom=1; // screen scale
-    let offsetX=0, offsetY=0; // screen offset in pixels
-    let userHasPannedOrZoomed=false; // disable auto-fit after manual interaction
+  // helpers
+  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+  const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const isoToScreen=(ix,iy,iz)=>({ x:(ix-iy)*TILE_W/2, y:(ix+iy)*TILE_H/2 - iz*TILE_Z });
+  const screenToIso=(px,py)=>({ x:(px/(TILE_W/2)+py/(TILE_H/2))/2, y:(py/(TILE_H/2)-px/(TILE_W/2))/2 });
 
-    // ====== HELPERS ======
-    const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-    const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-
-    function isoToScreen(ix,iy,iz){
-      return {
-        x:(ix-iy)*TILE_W/2,
-        y:(ix+iy)*TILE_H/2 - iz*TILE_Z
-      };
-    }
-    function screenToIso(px,py){
-      // inverse of isoToScreen at z=0
-      const x=(px/(TILE_W/2) + py/(TILE_H/2))/2;
-      const y=(py/(TILE_H/2) - px/(TILE_W/2))/2;
-      return {x,y};
-    }
-
-    // ====== PERFECT FIT ======
-    function worldBounds(){
-      // compute min/max of tile diamond corners for all grid cells including a bit of padding
-      let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-      for(let y=0;y<gridH;y++){
-        for(let x=0;x<gridW;x++){
-          const corners=[
-            isoToScreen(x, y, 0),
-            isoToScreen(x+1, y, 0),
-            isoToScreen(x, y+1, 0),
-            isoToScreen(x+1, y+1, 0)
-          ];
-          for(const c of corners){
-            if(c.x<minX)minX=c.x; if(c.y<minY)minY=c.y;
-            if(c.x>maxX)maxX=c.x; if(c.y>maxY)maxY=c.y;
-          }
-        }
-      }
-      // add vertical headroom for bubbles and walls
-      minY -= 140; maxY += 40; minX -= 60; maxX += 60;
-      return { minX, minY, maxX, maxY, width:maxX-minX, height:maxY-minY };
-    }
-
-    function fitToView(){
-      const b=worldBounds();
-      const pad=16;
-      const viewW=canvas.clientWidth - pad*2;
-      const viewH=canvas.clientHeight - pad*2;
-      zoom=clamp(Math.min(viewW/b.width, viewH/b.height), 0.5, 2.5);
-      // center
-      offsetX = (canvas.width/2) - ((b.minX + b.width/2) * zoom);
-      offsetY = (canvas.height/2) - ((b.minY + b.height/2) * zoom);
-      updateZoomLabel();
-    }
-
-    function toScreen(p){ return { x: p.x*zoom + offsetX, y: p.y*zoom + offsetY }; }
-
-    // ====== DRAWING ======
-    function drawTile(gx,gy,t){
-      const base=isoToScreen(gx,gy,t.h);
-      const s=toScreen(base);
-      const TW=TILE_W*zoom, TH=TILE_H*zoom;
-
-      // shadow + floor diamond
-      ctx.fillStyle='#00000055';
-      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x+TW/2, s.y+TH/2); ctx.lineTo(s.x, s.y+TH); ctx.lineTo(s.x-TW/2, s.y+TH/2); ctx.closePath(); ctx.fill();
-
-      ctx.fillStyle='#1d2540';
-      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x+TW/2, s.y+TH/2); ctx.lineTo(s.x, s.y+TH); ctx.lineTo(s.x-TW/2, s.y+TH/2); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle='#263054'; ctx.stroke();
-
-      if(t.type==='wall'){
-        const h=32*zoom;
-        // right
-        ctx.fillStyle='#0f1424'; ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(s.x+TW/2, s.y+TH/2);
-        ctx.lineTo(s.x+TW/2, s.y+TH/2-h);
-        ctx.lineTo(s.x, s.y-h); ctx.closePath(); ctx.fill();
-        // left
-        ctx.fillStyle='#131a2e'; ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(s.x-TW/2, s.y+TH/2);
-        ctx.lineTo(s.x-TW/2, s.y+TH/2-h);
-        ctx.lineTo(s.x, s.y-h); ctx.closePath(); ctx.fill();
-        ctx.strokeStyle='#2e3b6a'; ctx.beginPath();
-        ctx.moveTo(s.x-TW/2, s.y+TH/2-h); ctx.lineTo(s.x, s.y-h); ctx.lineTo(s.x+TW/2, s.y+TH/2-h); ctx.stroke();
-      } else if(t.type==='sofa'){
-        roundedBlock(s.x, s.y-12*zoom, TW*0.6, 26*zoom, '#7d3aa1');
-        roundedBlock(s.x, s.y-6*zoom, 6*zoom, 6*zoom, '#caa7ff');
-      } else if(t.type==='plant'){
-        dot(s.x, s.y-10*zoom, 5*zoom, '#2f7d32');
-        dot(s.x-4*zoom, s.y-14*zoom, 3*zoom, '#3fab4a');
-        dot(s.x+4*zoom, s.y-14*zoom, 3*zoom, '#3fab4a');
+  function worldBounds(){
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    for(let y=0;y<gridH;y++){
+      for(let x=0;x<gridW;x++){
+        const c0=isoToScreen(x,y,0);
+        const c1=isoToScreen(x+1,y+1,0);
+        if(c0.x<minX)minX=c0.x; if(c0.y<minY)minY=c0.y;
+        if(c1.x>maxX)maxX=c1.x; if(c1.y>maxY)maxY=c1.y;
       }
     }
+    minY-=140; maxY+=40; minX-=60; maxX+=60; // padding & headroom
+    return {minX,minY,maxX,maxY,width:maxX-minX,height:maxY-minY};
+  }
 
-    function dot(x,y,r,color){ ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
-    function roundedBlock(cx,cy,w,h,color){ ctx.fillStyle=color; const r=6; ctx.beginPath(); ctx.moveTo(cx-w/2+r, cy-h/2); ctx.arcTo(cx+w/2, cy-h/2, cx+w/2, cy-h/2+r, r); ctx.arcTo(cx+w/2, cy+h/2, cx+w/2-r, cy+h/2, r); ctx.arcTo(cx-w/2, cy+h/2, cx-w/2, cy+h/2-r, r); ctx.arcTo(cx-w/2, cy-h/2, cx-w/2+r, cy-h/2, r); ctx.closePath(); ctx.fill(); }
+  function fit(){
+    // size wrapper to viewport first
+    const headerH=document.querySelector('header').offsetHeight;
+    const footerH=document.querySelector('footer').offsetHeight;
+    const h = Math.max(420, window.innerHeight - headerH - footerH - 24);
+    wrap.style.height = h + 'px';
 
-    function drawAvatar(){
-      const t=map[avatar.y]?.[avatar.x]||{h:0};
-      const base=isoToScreen(avatar.x,avatar.y,t.h);
-      const s=toScreen({x:base.x, y:base.y-8});
+    const dpr=window.devicePixelRatio||1;
+    const rect=wrap.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height= Math.max(1, Math.floor(rect.height* dpr));
 
-      // shadow
-      ctx.fillStyle='#00000066'; ctx.beginPath(); ctx.ellipse(s.x, s.y+18*zoom, 10*zoom, 4*zoom, 0, 0, Math.PI*2); ctx.fill();
+    const b=worldBounds();
+    const pad=16*dpr;
+    const viewW=canvas.width - pad*2;
+    const viewH=canvas.height - pad*2;
+    zoom = clamp(Math.min(viewW/b.width, viewH/b.height), 0.5, 3);
 
-      const colors={ blue:['#86a7ff','#5a79e6'], red:['#ff8b86','#e65a5a'], green:['#86ffb4','#46c87a'], purple:['#c59bff','#8a60e6'] }[avatar.col];
-      // legs
-      roundedBlock(s.x-6*zoom, s.y+8*zoom, 8*zoom,16*zoom,'#2a2f45');
-      roundedBlock(s.x+6*zoom, s.y+8*zoom, 8*zoom,16*zoom,'#2a2f45');
-      // body
-      roundedBlock(s.x, s.y-2*zoom, 22*zoom,24*zoom, colors[1]);
-      // hood shade
-      roundedBlock(s.x, s.y-8*zoom, 18*zoom,10*zoom, colors[0]);
-      // head
-      roundedBlock(s.x, s.y-18*zoom, 14*zoom,12*zoom, '#f0d9c2');
-      // arm wave
-      const armY = avatar.waving>0 ? -6*zoom - Math.sin(avatar.waving/4)*6*zoom : 0;
-      roundedBlock(s.x-14*zoom, s.y-2*zoom+armY, 8*zoom,18*zoom, colors[1]);
-      roundedBlock(s.x+14*zoom, s.y-2*zoom, 8*zoom,18*zoom, colors[1]);
+    offX = (canvas.width/2) - ((b.minX + b.width/2) * zoom);
+    offY = (canvas.height/2) - ((b.minY + b.height/2) * zoom);
 
-      // name tag
-      ctx.fillStyle='#00000066'; ctx.fillRect(s.x-26*zoom, s.y-34*zoom, 52*zoom, 14*zoom);
-      ctx.fillStyle='#ffffff'; ctx.font=`${10*zoom}px Inter,ui-sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(avatar.name, s.x, s.y-27*zoom);
+    document.getElementById('zoomReset').textContent='Fit';
+    draw();
+  }
 
-      // bubble placement
-      const bubble=document.getElementById('bubble');
-      if(bubble.style.display!=='none'){
-        bubble.style.left = s.x + 'px';
-        bubble.style.top  = (s.y-36*zoom) + 'px';
-      }
+  function toScreen(p){ return { x: p.x*zoom + offX, y: p.y*zoom + offY }; }
+
+  // drawing
+  function drawTile(gx,gy,t){
+    const base=isoToScreen(gx,gy,t.h); const s=toScreen(base);
+    const TW=TILE_W*zoom, TH=TILE_H*zoom;
+    // floor
+    ctx.fillStyle='#1d2540';
+    ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x+TW/2, s.y+TH/2); ctx.lineTo(s.x, s.y+TH); ctx.lineTo(s.x-TW/2, s.y+TH/2); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#263054'; ctx.stroke();
+    // decor
+    if(t.type==='wall'){
+      const h=32*zoom;
+      ctx.fillStyle='#0f1424'; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x+TW/2, s.y+TH/2); ctx.lineTo(s.x+TW/2, s.y+TH/2-h); ctx.lineTo(s.x, s.y-h); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#131a2e'; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x-TW/2, s.y+TH/2); ctx.lineTo(s.x-TW/2, s.y+TH/2-h); ctx.lineTo(s.x, s.y-h); ctx.closePath(); ctx.fill();
+    }else if(t.type==='sofa'){
+      rounded(s.x, s.y-10*zoom, TW*0.6, 24*zoom, '#7d3aa1');
+    }else if(t.type==='plant'){
+      dot(s.x, s.y-10*zoom, 5*zoom, '#2f7d32');
     }
+  }
+  function dot(x,y,r,c){ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+  function rounded(cx,cy,w,h,color){ ctx.fillStyle=color; const r=6; ctx.beginPath(); ctx.moveTo(cx-w/2+r, cy-h/2); ctx.arcTo(cx+w/2, cy-h/2, cx+w/2, cy-h/2+r, r); ctx.arcTo(cx+w/2, cy+h/2, cx+w/2-r, cy+h/2, r); ctx.arcTo(cx-w/2, cy+h/2, cx-w/2, cy+h/2-r, r); ctx.arcTo(cx-w/2, cy-h/2, cx-w/2+r, cy-h/2, r); ctx.closePath(); ctx.fill(); }
 
-    function draw(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      // painter's order
-      for(let y=0;y<gridH;y++) for(let x=0;x<gridW;x++) drawTile(x,y,map[y][x]);
-      drawAvatar();
-    }
+  function drawAvatar(){
+    const t=map[avatar.y]?.[avatar.x]||{h:0}; const base=isoToScreen(avatar.x,avatar.y,t.h); const s=toScreen({x:base.x,y:base.y-8});
+    // shadow
+    ctx.fillStyle='#00000066'; ctx.beginPath(); ctx.ellipse(s.x, s.y+18*zoom, 10*zoom, 4*zoom, 0, 0, Math.PI*2); ctx.fill();
+    // body
+    rounded(s.x, s.y-2*zoom, 22*zoom,24*zoom, '#5a79e6');
+    rounded(s.x, s.y-8*zoom, 18*zoom,10*zoom, '#86a7ff');
+    rounded(s.x, s.y-18*zoom,14*zoom,12*zoom,'#f0d9c2');
+  }
 
-    // ====== INPUT & UI ======
-    const nick=document.getElementById('nick');
-    const styleSel=document.getElementById('style');
-    const speedRange=document.getElementById('speed');
-    const chat=document.getElementById('chat');
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(let y=0;y<gridH;y++) for(let x=0;x<gridW;x++) drawTile(x,y,map[y][x]);
+    drawAvatar();
+  }
 
-    nick.value=avatar.name; nick.addEventListener('input',()=>{ avatar.name=nick.value||'Guest'; localStorage.setItem('pp_nick',avatar.name); });
-    styleSel.addEventListener('change',()=>{ avatar.col=styleSel.value; });
+  // movement (simple click)
+  canvas.addEventListener('click', (e)=>{
+    const rect=canvas.getBoundingClientRect();
+    const dpr=window.devicePixelRatio||1;
+    const px=(e.clientX-rect.left)*dpr, py=(e.clientY-rect.top)*dpr;
+    const wx=(px - offX)/zoom; const wy=(py - offY)/zoom;
+    const iso=screenToIso(wx,wy); avatar.x=clamp(Math.round(iso.x),0,gridW-1); avatar.y=clamp(Math.round(iso.y),0,gridH-1); draw();
+    const b=document.getElementById('bubble'); b.style.left=(px)+'px'; b.style.top=(py)+'px'; b.textContent='👋'; b.style.display='block'; setTimeout(()=>b.style.display='none',900);
+  });
 
-    let moveSpeed=+speedRange.value; speedRange.addEventListener('input',()=>moveSpeed=+speedRange.value);
+  // zoom
+  document.getElementById('zoomIn').onclick=()=>{ const c={x:canvas.width/2,y:canvas.height/2}; zoomAt(c, 1.1); };
+  document.getElementById('zoomOut').onclick=()=>{ const c={x:canvas.width/2,y:canvas.height/2}; zoomAt(c, 1/1.1); };
+  document.getElementById('zoomReset').onclick=fit;
 
-    document.getElementById('wave').onclick=()=>{ avatar.waving=40; };
-    document.getElementById('center').onclick=()=>{ userHasPannedOrZoomed=true; fitToView(); };
+  function zoomAt(center, factor){
+    const prev=zoom; zoom=clamp(zoom*factor, 0.5, 3);
+    const scale=zoom/prev;
+    offX = center.x - (center.x - offX)*scale;
+    offY = center.y - (center.y - offY)*scale;
+    draw();
+  }
 
-    document.getElementById('zoomIn').onclick=()=>{ zoom=clamp(zoom+0.1,0.5,3); userHasPannedOrZoomed=true; updateZoomLabel(); };
-    document.getElementById('zoomOut').onclick=()=>{ zoom=clamp(zoom-0.1,0.5,3); userHasPannedOrZoomed=true; updateZoomLabel(); };
-    document.getElementById('zoomReset').onclick=()=>{ userHasPannedOrZoomed=true; fitToView(); };
-    document.getElementById('fit').onclick=()=>{ userHasPannedOrZoomed=false; fitToView(); };
+  // chat
+  const chat=document.getElementById('chat');
+  document.getElementById('send').onclick=()=>{ if(!chat.value.trim()) return; const b=document.getElementById('bubble'); b.textContent=chat.value; b.style.left=(canvas.width/2)+'px'; b.style.top=(canvas.height/2 - 80)+'px'; b.style.display='block'; setTimeout(()=>b.style.display='none',2000); chat.value=''; };
+  chat.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('send').click(); }});
 
-    function updateZoomLabel(){ document.getElementById('zoomReset').textContent=Math.round(zoom*100)+'%'; draw(); }
-
-    document.getElementById('randomize').onclick=()=>{ seedRoom(); if(!userHasPannedOrZoomed) fitToView(); draw(); };
-
-    function say(msg){ if(!msg.trim()) return; const b=document.getElementById('bubble'); b.textContent=msg; b.style.display='block'; setTimeout(()=>b.style.display='none',3500); }
-    document.getElementById('send').onclick=()=>{ say(chat.value); chat.value=''; };
-    chat.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('send').click(); }});
-
-    // canvas events
-    let pan=null;
-    canvas.addEventListener('pointerdown',e=>{ if(e.button===1 || e.pointerType==='touch'){ pan={sx:e.clientX, sy:e.clientY, ox:offsetX, oy:offsetY}; canvas.setPointerCapture(e.pointerId);} });
-    canvas.addEventListener('pointermove',e=>{ if(pan){ userHasPannedOrZoomed=true; const dx=e.clientX-pan.sx, dy=e.clientY-pan.sy; offsetX=pan.ox+dx; offsetY=pan.oy+dy; draw(); }});
-    canvas.addEventListener('pointerup',()=>{ pan=null; });
-
-    canvas.addEventListener('wheel',e=>{ e.preventDefault(); const rect=canvas.getBoundingClientRect(); const mx=(e.clientX-rect.left)*devicePixelRatio; const my=(e.clientY-rect.top)*devicePixelRatio; // zoom around cursor
-      const prevZoom=zoom; const dir=Math.sign(e.deltaY); zoom=clamp(zoom - dir*0.1, 0.5, 3);
-      const scale=zoom/prevZoom; offsetX = mx - (mx - offsetX)*scale; offsetY = my - (my - offsetY)*scale; userHasPannedOrZoomed=true; updateZoomLabel(); }, {passive:false});
-
-    canvas.addEventListener('click', (e)=>{
-      if(pan) return; // ignore click ending a pan
-      const rect=canvas.getBoundingClientRect();
-      const px=(e.clientX-rect.left)*devicePixelRatio; const py=(e.clientY-rect.top)*devicePixelRatio;
-      const wx=(px - offsetX)/zoom; const wy=(py - offsetY)/zoom;
-      const iso=screenToIso(wx,wy); const gx=Math.round(iso.x), gy=Math.round(iso.y);
-      goTo(clamp(gx,0,gridW-1), clamp(gy,0,gridH-1));
-    });
-
-    // ====== PATHFINDING ======
-    function walkable(x,y){ if(x<0||y<0||x>=gridW||y>=gridH) return false; const t=map[y][x]; return t.type==='floor'||t.type==='plant'; }
-    function aStar(start,goal){
-      const key=(x,y)=>x+","+y; const open=new Set([key(start.x,start.y)]); const came=new Map(); const g=new Map([[key(start.x,start.y),0]]); const f=new Map([[key(start.x,start.y),heur(start,goal)]]);
-      const heur=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
-      const parse=k=>{const [x,y]=k.split(',').map(Number); return {x,y}};
-      const lowF=()=>{let best=null,bv=Infinity; for(const k of open){const v=f.get(k)??Infinity; if(v<bv){bv=v; best=k;}} return best;};
-      while(open.size){
-        const curK=lowF(); const cur=parse(curK);
-        if(cur.x===goal.x&&cur.y===goal.y){ const path=[cur]; let k=curK; while(came.has(k)){ k=came.get(k); path.unshift(parse(k)); } return path; }
-        open.delete(curK);
-        for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
-          const nx=cur.x+dx, ny=cur.y+dy; if(!walkable(nx,ny)) continue; const nk=key(nx,ny); const tg=(g.get(curK)??Infinity)+1;
-          if(tg < (g.get(nk)??Infinity)){ came.set(nk,curK); g.set(nk,tg); f.set(nk,tg+heur({x:nx,y:ny},goal)); open.add(nk); }
-        }
-      }
-      return null;
-    }
-
-    function goTo(tx,ty){ const p=aStar({x:avatar.x,y:avatar.y},{x:tx,y:ty}); if(!p||p.length<=1){ document.getElementById('status').textContent='No path'; return; } avatar.path=p.slice(1); document.getElementById('status').textContent='Walking…'; }
-
-    // ====== LOOP ======
-    let last=performance.now(); let speed=+speedRange.value; function step(dt){
-      speed=+speedRange.value;
-      if(avatar.path.length>0){ const next=avatar.path[0]; const stepTiles=speed*dt/6; if(stepTiles>=1){ avatar.x=next.x; avatar.y=next.y; avatar.path.shift(); } }
-      if(avatar.waving>0) avatar.waving--; }
-
-    function loop(t){ const dt=(t-last)/1000; last=t; step(dt); draw(); requestAnimationFrame(loop); }
-
-    // ====== RESIZE / INIT ======
-    function resize(){
-      const cssW=canvas.clientWidth; const cssH=canvas.clientHeight; // CSS pixels
-      const ratio=window.devicePixelRatio||1; canvas.width=Math.max(1,Math.floor(cssW*ratio)); canvas.height=Math.max(1,Math.floor(cssH*ratio));
-      if(!userHasPannedOrZoomed) fitToView(); draw();
-    }
-    window.addEventListener('resize', resize);
-
-    (function init(){
-      // theme & local prefs
-      const stored=localStorage.getItem('pp_style'); if(stored){ avatar.col=stored; document.getElementById('style').value=stored; }
-      document.getElementById('style').addEventListener('change',()=>localStorage.setItem('pp_style', avatar.col));
-      resize();
-      updateZoomLabel();
-      requestAnimationFrame(loop);
-    })();
+  // init + resize
+  window.addEventListener('resize', fit);
+  fit();
   </script>
 </body>
 </html>
