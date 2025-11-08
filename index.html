@@ -4,12 +4,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Spirit Board — Mobile (iPhone, Fixed)</title>
+<title>Spirit Board — Mobile (iPhone, Precision)</title>
 <style>
-  :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff}
+  :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff;--good:#7bf59a;--warn:#ffd166;--bad:#ff6b6b}
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial}
-  /* Allow normal page interaction; we'll only suppress gestures on the canvas */
   html,body{overscroll-behavior:auto; touch-action:auto}
   .wrap{display:flex;flex-direction:column;min-height:100vh}
   header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;background:#0f121a;border-bottom:1px solid #1b2330;position:sticky;top:0;z-index:10}
@@ -17,13 +16,14 @@
   button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);padding:10px 12px;border-radius:12px}
   button:active{transform:scale(0.98)}
   label{display:inline-flex;align-items:center;gap:6px}
-  input[type="range"]{accent-color:#2de2ff}
+  select, input[type="range"]{accent-color:#2de2ff;background:#0f1726;color:var(--ink);border:1px solid #2a3a58;border-radius:10px;padding:6px 8px}
   #status{color:#a9b3c6}
-  #stage{position:relative;flex:1;min-height:50vh}
+  #stage{position:relative;flex:1;min-height:52vh}
   #cv{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none}
   #log{min-height:120px;max-height:38vh;overflow:auto;padding:10px;background:#0a0f16;border-top:1px solid #1b2330;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .small{font-size:13px;color:#97a1b1}
+  .pill{padding:4px 8px;border-radius:999px;border:1px solid #2a3a58;background:#0f1726}
 </style>
 </head>
 <body>
@@ -41,10 +41,20 @@
       <label><input type="checkbox" id="chkBlind"> Blind</label>
       <label><input type="checkbox" id="chkSeal"> Seal</label>
       <label><input type="checkbox" id="chkShuffle"> Shuffle</label>
-      <label>Gain <input type="range" id="rngGain" min="0.6" max="3.0" step="0.1" value="1.8"></label>
+      <label>Gain <input type="range" id="rngGain" min="0.6" max="2.4" step="0.1" value="1.6"></label>
+      <label>Commit
+        <select id="selMode">
+          <option value="dwell">Dwell (safe)</option>
+          <option value="exit" selected>Exit (very safe)</option>
+          <option value="press">Press (tap-to-commit)</option>
+        </select>
+      </label>
+      <label>Dwell <input type="range" id="rngDwell" min="400" max="1500" step="50" value="750"></label>
+      <label>Spacing <input type="range" id="rngSpace" min="1.0" max="2.0" step="0.1" value="1.4"></label>
+      <span class="pill" id="badgeReady" style="display:none">READY</span>
       <button id="btnExport" type="button">Export</button>
     </div>
-    <div class="small">Tip: rotate to landscape, rest one finger lightly. Board won't scroll; buttons remain fully tappable.</div>
+    <div class="small">Precision mode: commit only after clear intent. <b>Exit</b> requires you to leave the tile after the dwell ring fills.</div>
   </header>
 
   <div id="stage"><canvas id="cv"></canvas></div>
@@ -57,24 +67,27 @@
   const $=s=>document.querySelector(s);
   const DPR = Math.min(2, window.devicePixelRatio || 1);
   const cv = $('#cv'); const ctx = cv.getContext('2d');
-  const statusEl = $('#status'); const logEl = $('#log');
+  const statusEl = $('#status'); const logEl = $('#log'); const badgeReady = $('#badgeReady');
 
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
   // ----- State -----
   let running=false, blind=false, sealed=false, shuffled=false;
-  let gain=1.8, message="", dwellTimer=0, lastT=performance.now();
+  let gain=1.6, message="", lastT=performance.now();
   let plan = { x:0, y:0, r:28, trail:[] };
   let target = { x:0, y:0 };
   const tiles=[];
 
-  // Commit gating
-  const BASE_DWELL = 640;            // ms base dwell
-  const REPEAT_COOLDOWN = 900;       // ms min before same tile can repeat
-  const REPEAT_EXTRA_DWELL = 450;    // ms extra dwell to intentionally repeat
-  const EXIT_DISTANCE_FACTOR = 1.2;  // must exit this many radii away before repeat allowed
-  let lastCommit = null;
-  let consecutiveSame = 0;
+  // Precision gates
+  let commitMode = 'exit';           // 'dwell' | 'exit' | 'press'
+  let DWELL_MS = 750;                // adjustable
+  let MIN_SPACE_FACTOR = 1.4;        // tile radii between commits
+  const MIN_COMMIT_GAP = 520;        // ms between any commits
+  const REPEAT_COOLDOWN = 900;       // ms before same tile can repeat
+  let entered = null;                // {tile, tEnter, ready}
+  let lastCommit = null;             // {label,x,y,t}
+  let dwellTimer = 0;
+  let readyVisual = 0;               // 0..1 visual ring progress
 
   // Layout
   const baseLayout = {
@@ -98,7 +111,7 @@
     const rect = cv.getBoundingClientRect();
     cv.width = Math.max(10, rect.width * DPR);
     cv.height = Math.max(10, rect.height * DPR);
-    plan.r = Math.max(20*DPR, Math.min(cv.width, cv.height)*0.05); // larger for touch
+    plan.r = Math.max(22*DPR, Math.min(cv.width, cv.height)*0.05); // larger for touch
     centerPlanchette();
     draw();
   }
@@ -170,6 +183,15 @@
         ctx.strokeStyle='rgba(200,210,230,0.16)'; ctx.strokeRect(k.x-18,k.y-12,36,24);
       }
     }
+
+    // Draw two-stage "ready" ring if inside a tile
+    if(entered && entered.tile){
+      const t = entered.tile;
+      ctx.strokeStyle='rgba(122,225,255,0.55)'; ctx.lineWidth=3;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.r*1.15, -Math.PI/2, (-Math.PI/2) + readyVisual*2*Math.PI);
+      ctx.stroke();
+    }
   }
 
   function drawPlanchette(){
@@ -183,17 +205,21 @@
 
   function draw(){ drawBoard(); drawPlanchette(); }
 
-  // ----- Touch Input (constrained to canvas only) -----
+  // ----- Touch Input (canvas only) -----
   function touchPoint(e){
     const t = e.changedTouches[0];
     const rect = cv.getBoundingClientRect();
-    return { x:(t.clientX-rect.left)*DPR, y:(t.clientY-rect.top)*DPR };
+    return { x:(t.clientX-rect.left)*DPR, y:(t.clientY-rect.top)*DPR, t: e.timeStamp };
   }
   cv.addEventListener('touchstart', e=>{
     e.preventDefault();
     const p = touchPoint(e);
     target.x = clamp(p.x, 0, cv.width);
     target.y = clamp(p.y, 0, cv.height);
+    // Press mode: mark potential press start
+    if(commitMode==='press'){
+      handlePressStart(p);
+    }
   }, {passive:false});
 
   cv.addEventListener('touchmove', e=>{
@@ -201,43 +227,77 @@
     const p = touchPoint(e);
     const tx = (target.x || p.x);
     const ty = (target.y || p.y);
-    target.x = clamp(tx + (p.x - tx) * (0.40 * gain), 0, cv.width);
-    target.y = clamp(ty + (p.y - ty) * (0.40 * gain), 0, cv.height);
+    target.x = clamp(tx + (p.x - tx) * (0.36 * gain), 0, cv.width);
+    target.y = clamp(ty + (p.y - ty) * (0.36 * gain), 0, cv.height);
   }, {passive:false});
 
-  cv.addEventListener('touchend', e=>{ e.preventDefault(); tryCommit(true); }, {passive:false});
+  cv.addEventListener('touchend', e=>{
+    e.preventDefault();
+    const p = touchPoint(e);
+    if(commitMode==='press'){ handlePressEnd(p); }
+    // Exit mode may commit on leaving tile; let loop handle it.
+  }, {passive:false});
 
-  // ----- Hit testing & dwell -----
+  // ----- Hit testing / entry tracking -----
   function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
-  function canRepeatSameTile(tile, now){
-    if(!lastCommit || lastCommit.label!==tile.label) return true;
-    const dist = Math.hypot(plan.x - lastCommit.x, plan.y - lastCommit.y);
-    const exited = dist >= tile.r * EXIT_DISTANCE_FACTOR;
-    const cooldownOk = (now - lastCommit.t) >= REPEAT_COOLDOWN;
-    const extraDwellOk = dwellTimer >= (BASE_DWELL + REPEAT_EXTRA_DWELL);
-    return exited && cooldownOk && extraDwellOk;
+
+  function onTileState(dt){
+    const curr = hit(plan.x, plan.y);
+    // entering new tile
+    if(curr && (!entered || entered.tile!==curr)){
+      entered = { tile: curr, tEnter: performance.now(), ready: false };
+      readyVisual = 0;
+      dwellTimer = 0;
+    }
+    // leaving tile
+    if(!curr && entered && entered.tile && entered.ready && commitMode==='exit'){
+      // commit on exit if ready passed
+      tryCommit(entered.tile, 'exit');
+      entered = null; readyVisual=0;
+    }
+    if(!curr){ entered = null; readyVisual=0; dwellTimer=0; return; }
+
+    // within tile
+    dwellTimer += dt;
+    readyVisual = Math.min(1, dwellTimer / DWELL_MS);
+    badgeReady.style.display = (readyVisual>=1? 'inline-block':'none');
+    if(readyVisual>=1) entered.ready = true;
+
+    if(commitMode==='dwell' && entered.ready){
+      tryCommit(curr, 'dwell');
+      // prevent rapid repeats: require exit before another ready
+      entered.ready = false; dwellTimer = 0;
+    }
   }
 
-  function tryCommit(force){
-    const tile = hit(plan.x, plan.y);
-    if(!tile) return;
+  // ----- Commit gating -----
+  function canCommitCommon(tile, now){
+    // spacing from last commit
+    if(lastCommit){
+      const dist = Math.hypot(plan.x - lastCommit.x, plan.y - lastCommit.y);
+      if(dist < tile.r * MIN_SPACE_FACTOR) return {ok:false, reason:'spacing'};
+      if(now - lastCommit.t < MIN_COMMIT_GAP) return {ok:false, reason:'gap'};
+    }
+    // same-tile repeat cooldown
+    if(lastCommit && lastCommit.label===tile.label){
+      if(now - lastCommit.t < REPEAT_COOLDOWN) return {ok:false, reason:'repeat'};
+    }
+    return {ok:true};
+  }
+
+  function tryCommit(tile, mode){
+    if(!running) return;
     const now = Date.now();
-    const dwellEnough = dwellTimer >= BASE_DWELL + (consecutiveSame>0 ? Math.min(600, consecutiveSame*200) : 0);
-    if(force && !dwellEnough) return;
-    if(lastCommit && lastCommit.label===tile.label && !canRepeatSameTile(tile, now)) return;
+    const gate = canCommitCommon(tile, now);
+    if(!gate.ok) return;
     commit(tile, now);
-    dwellTimer = 0;
   }
 
   function commit(tile, now){
-    if(!running) return;
     const lab = tile.label;
-    if(lab==='YES' || lab==='NO'){ message += ` [${lab}]`; consecutiveSame=0; }
-    else if(lab==='GOODBYE'){ message += ' [GOODBYE]'; consecutiveSame=0; stop(); }
-    else if(lab.length===1){
-      if(lastCommit && lastCommit.label===lab) consecutiveSame++; else consecutiveSame=0;
-      message += lab;
-    }
+    if(lab==='YES' || lab==='NO'){ message += ` [${lab}]`; }
+    else if(lab==='GOODBYE'){ message += ' [GOODBYE]'; stop(); }
+    else if(lab.length===1){ message += lab; }
     lastCommit = {label: lab, x: plan.x, y: plan.y, t: now};
     updateLog();
   }
@@ -249,21 +309,37 @@
     statusEl.textContent = (running?'Listening':'Idle') + ' • ' + (message.replace(/\s/g,'').length) + ' chars';
   }
 
+  // ----- Press mode (double-tap within tile to commit) -----
+  let pressCandidate = null; // {tile, tDown}
+  const DOUBLE_TAP_MS = 380;
+  function handlePressStart(p){
+    const t = hit(plan.x, plan.y);
+    if(!t) { pressCandidate = null; return; }
+    if(pressCandidate && pressCandidate.tile===t && (p.t - pressCandidate.tDown) < DOUBLE_TAP_MS){
+      // double-tap confirmed
+      tryCommit(t, 'press');
+      pressCandidate = null;
+    } else {
+      pressCandidate = {tile:t, tDown:p.t};
+    }
+  }
+  function handlePressEnd(p){
+    // nothing extra; double-tap handled in start
+  }
+
   // ----- Loop -----
   function tick(){
     const t = performance.now();
     const dt = (t - lastT) || 16; lastT = t;
     const nx = (target.x || plan.x);
     const ny = (target.y || plan.y);
-    const wob1 = Math.sin((t+97)*0.006)*4;
-    const wob2 = Math.cos((t+31)*0.004)*4;
+    const wob1 = Math.sin((t+97)*0.006)*3.5;
+    const wob2 = Math.cos((t+31)*0.004)*3.5;
     plan.x = clamp(plan.x + (nx + wob1 - plan.x) * 0.18, 0, cv.width);
     plan.y = clamp(plan.y + (ny + wob2 - plan.y) * 0.18, 0, cv.height);
     if(running){
       plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>900) plan.trail.shift();
-      const k = hit(plan.x, plan.y);
-      if(k){ dwellTimer += dt; } else { dwellTimer=0; }
-      if(k && dwellTimer > BASE_DWELL + (consecutiveSame*180)) tryCommit(false);
+      onTileState(dt);
     }
     draw();
     requestAnimationFrame(tick);
@@ -271,20 +347,20 @@
   requestAnimationFrame(tick);
 
   // ----- Controls -----
-  function start(){ if(running) return; running=true; message=""; plan.trail.length=0; lastCommit=null; consecutiveSame=0; updateLog(); }
+  function start(){ if(running) return; running=true; message=""; plan.trail.length=0; lastCommit=null; entered=null; dwellTimer=0; readyVisual=0; updateLog(); }
   function stop(){ if(!running) return; running=false; if(blind || sealed){ logEl.textContent = message || '(no text)'; } updateLog(); }
-  function reset(){ running=false; message=""; plan.trail.length=0; dwellTimer=0; lastCommit=null; consecutiveSame=0; centerPlanchette(); draw(); updateLog(); }
+  function reset(){ running=false; message=""; plan.trail.length=0; dwellTimer=0; lastCommit=null; entered=null; readyVisual=0; centerPlanchette(); draw(); updateLog(); }
   function exportJSON(){
     const body = {
-      ts: Date.now(), blind, sealed, shuffled, gain, message,
+      ts: Date.now(), blind, sealed, shuffled, gain, commitMode, DWELL_MS, MIN_SPACE_FACTOR, message,
       trail: plan.trail.slice(-400),
       tiles: tiles.map(t=>({x:t.x,y:t.y,r:t.r,label:t.label}))
     };
     const blob = new Blob([JSON.stringify(body,null,2)], {type:'application/json'});
-    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='spirit_board_mobile_session.json'; a.click();
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='spirit_board_mobile_precision.json'; a.click();
   }
 
-  // Bind buttons/inputs (iOS needs explicit onclick handlers)
+  // Bind buttons/inputs
   $('#btnStart').onclick = start;
   $('#btnStop').onclick = stop;
   $('#btnReset').onclick = reset;
@@ -293,7 +369,10 @@
   $('#chkBlind').onchange = (e)=>{ blind = e.target.checked; updateLog(); draw(); };
   $('#chkSeal').onchange = (e)=>{ sealed = e.target.checked; updateLog(); };
   $('#chkShuffle').onchange = (e)=>{ shuffled = e.target.checked; refreshLayout(); draw(); };
-  $('#rngGain').oninput = (e)=>{ gain = parseFloat(e.target.value||'1.8'); };
+  $('#rngGain').oninput = (e)=>{ gain = parseFloat(e.target.value||'1.6'); };
+  $('#selMode').onchange = (e)=>{ commitMode = e.target.value; };
+  $('#rngDwell').oninput = (e)=>{ DWELL_MS = parseInt(e.target.value||'750',10); };
+  $('#rngSpace').oninput = (e)=>{ MIN_SPACE_FACTOR = parseFloat(e.target.value||'1.4'); };
 
   // Boot
   refreshLayout();
