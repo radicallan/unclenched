@@ -1,339 +1,235 @@
 
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Spirit Board — v10 Ideomotor Physics</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>ORACLE PRO v5.2 — Rescue Mode</title>
 <style>
-  :root{
-    --ink:#eaf2ff; --muted:#9fb1c9;
-    --header-h:56px; --footer-h:30svh; --safe-b: env(safe-area-inset-bottom, 0px);
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:radial-gradient(1200px 800px at 70% 10%, #111a2a 0%, #0a0f18 50%, #06080d 100%);color:var(--ink);font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial}
-  .app{position:relative;min-height:100svh;min-height:100dvh;}
-  /* Header */
-  header{
-    position:fixed; inset:0 0 auto 0; height:var(--header-h);
-    display:flex; align-items:center; gap:10px; padding:10px 12px;
-    backdrop-filter:saturate(140%) blur(10px);
-    background:linear-gradient(180deg, rgba(18,24,36,.65), rgba(10,14,22,.35));
-    border-bottom:1px solid rgba(120,160,220,.15); z-index:20;
-  }
-  .brand{font-weight:600; letter-spacing:.3px; opacity:.85}
-  .spacer{flex:1}
-  button{
-    appearance:none; border:0; cursor:pointer; color:var(--ink); font-weight:600; letter-spacing:.2px;
-    padding:10px 14px; border-radius:12px;
-    background:linear-gradient(180deg, rgba(30,50,80,.9), rgba(24,38,64,.85));
-    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 10px 30px rgba(4,12,24,.35);
-    transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
-  }
-  .btn-accent{
-    background:linear-gradient(180deg, rgba(40,120,200,.95), rgba(24,64,110,.95));
-    box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 10px 32px rgba(20,110,190,.35);
-  }
-  /* Stage */
-  #stageWrap{ position:fixed; left:0; right:0; top:var(--header-h); bottom:calc(var(--footer-h) + var(--safe-b)); }
-  #cv{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; -webkit-user-select:none; user-select:none; filter: drop-shadow(0 50px 60px rgba(60,150,230,.06)); }
-  /* Footer transcript */
-  footer{
-    position:fixed; left:0; right:0; bottom:0; height:calc(var(--footer-h) + var(--safe-b));
-    background:linear-gradient(180deg, rgba(12,16,26,.9), rgba(9,12,20,.96));
-    border-top:1px solid rgba(120,160,220,.12);
-    padding:10px 12px calc(10px + var(--safe-b)) 12px; z-index:20; backdrop-filter:saturate(140%) blur(10px);
-  }
-  label.caption{display:block; font-size:12px; color:var(--muted); margin:0 0 6px 2px; letter-spacing:.2px}
-  textarea#ta{
-    width:100%; height:calc(100% - 24px);
-    background:linear-gradient(180deg,#0a0f18,#0a0e16);
-    color:var(--ink); border:1px solid rgba(120,160,220,.18); border-radius:14px; padding:12px 14px;
-    resize:none; font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: inset 0 10px 30px rgba(0,0,0,.25);
-  }
+  :root{ --ink:#eaf2ff; --muted:#9fb1c9; --good:#8ef5c1; --warn:#ffd68a; --bad:#ff9b9b; }
+  *{box-sizing:border-box} html,body{margin:0;height:100%;background:#0a0f18;color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  header{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid rgba(120,160,220,.18);background:linear-gradient(180deg,#101829,#0b111e)}
+  h1{font-size:16px;margin:0}
+  button{appearance:none;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;color:#eaf2ff;background:linear-gradient(180deg,#2b79c2,#1a4a7f);font-weight:600}
+  .ghost{background:linear-gradient(180deg,#1a263f,#121c33);border:1px solid rgba(120,160,220,.22)}
+  main{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;padding:12px}
+  .card{border:1px solid rgba(120,160,220,.18);border-radius:14px;background:rgba(14,20,32,.7);padding:12px;min-height:120px}
+  canvas{display:block;width:100%;height:120px;background:linear-gradient(180deg,#0b1220,#0a0f18)}
+  .pill{font-size:12px;color:var(--muted)}
+  textarea{width:100%;height:190px;background:linear-gradient(180deg,#0b1220,#0a0f18);border:1px solid rgba(120,160,220,.18);border-radius:12px;color:#eaf2ff;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .log{height:140px;overflow:auto;border:1px solid rgba(120,160,220,.18);border-radius:10px;padding:6px;background:rgba(10,14,24,.6);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#cfe3ff}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .cands{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .tag{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid rgba(120,160,220,.25);background:rgba(18,26,42,.6);color:#dfe8ff}
+  .tag.top{border-color:#9fd;color:#9fd}
+  @media (max-width: 900px){ main{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="brand">Spirit Board</div>
-    <div class="spacer"></div>
-    <button id="btnRefresh" class="btn-accent" aria-label="Refresh session">Refresh</button>
-    <button id="btnGoodbye" aria-label="End session">Goodbye</button>
-  </header>
-
-  <div id="stageWrap"><canvas id="cv"></canvas></div>
-
-  <footer>
-    <label class="caption" for="ta">Transcript</label>
+<header>
+  <h1>ORACLE PRO v5.2 — Rescue Mode</h1>
+  <div class="row">
+    <button id="btnStart">Enable Mic</button>
+    <button id="btnCal" class="ghost">Calibrate (10s)</button>
+    <button id="btnQuick" class="ghost">QuickStart (lenient)</button>
+    <button id="btnExport" class="ghost">Export Log</button>
+    <button id="btnSafari" class="ghost">Safari Fix</button>
+  </div>
+</header>
+<div id="msg" style="padding:10px" class="pill"></div>
+<main>
+  <div class="card">
+    <div class="row"><span class="pill">Energy & Spectrum</span><span id="status" class="pill" style="margin-left:auto">Idle</span></div>
+    <canvas id="meter"></canvas>
+    <canvas id="spec"></canvas>
+    <div id="diag" class="pill" style="margin-top:6px"></div>
+  </div>
+  <div class="card">
+    <div class="row"><span class="pill">Top Candidates</span></div>
+    <div id="cands" class="cands"></div>
+    <div class="row" style="margin-top:8px"><span class="pill">Transcript</span></div>
     <textarea id="ta" readonly>(no text)</textarea>
-  </footer>
-</div>
+    <div class="row" style="margin-top:8px"><span class="pill">Log</span></div>
+    <div id="log" class="log"></div>
+  </div>
+</main>
 
 <script>
-(function(){
+(() => {
+  const CORE = ["ABOUT", "ABOVE", "ACCEPT", "ACCESS", "ACTION", "ACTIVE", "ADVICE", "AFTER", "AGAIN", "AGAINST", "AGREE", "ALLOW", "ALMOST", "ALONE", "ALONG", "ALSO", "ALWAYS", "AMOUNT", "ANALYSE", "ANSWER", "ANYONE", "ANYTHING", "APPEAR", "APPLY", "AREA", "AROUND", "ARRIVE", "ASK", "ASSESS", "ASSIST", "ATTEND", "AWARE", "AWAY", "BALANCE", "BASIC", "BEAR", "BECOME", "BEFORE", "BEGIN", "BELIEVE", "BELONG", "BELOW", "BENEFIT", "BETWEEN", "BEYOND", "BLACK", "BLOOD", "BLUE", "BOARD", "BODY", "BOLD", "BOOK", "BOTH", "BOTTOM", "BRAIN", "BRANCH", "BRAND", "BRAVE", "BREAD", "BREAK", "BREATH", "BRIDGE", "BRIGHT", "BRING", "BROTHER", "BROWN", "BUILD", "BURN", "BUSINESS", "BUSY", "BUY", "CALL", "CALM", "CAMERA", "CANCEL", "CAPABLE", "CARBON", "CARE", "CAREER", "CAREFUL", "CARRY", "CASE", "CASH", "CAUSE", "CEILING", "CENTER", "CENTRE", "CERTAIN", "CHAIR", "CHANCE", "CHANGE", "CHARGE", "CHART", "CHECK", "CHOICE", "CHOOSE", "CIRCLE", "CITY", "CLAIM", "CLASS", "CLEAN", "CLEAR", "CLIENT", "CLIMATE", "CLIMB", "CLOCK", "CLOSE", "CLOUD", "CLUB", "CLUE", "COACH", "COAST", "CODE", "COFFEE", "COLD", "COLLECT", "COLOUR", "COMBINE", "COMFORT", "COMMON", "COMPANY", "COMPARE", "COMPETE", "COMPLETE", "COMPLEX", "COMPLY", "CONNECT", "CONSENT", "CONSIDER", "CONTACT", "CONTAIN", "CONTENT", "CONTEXT", "CONTINUE", "CONTRACT", "CONTROL", "CONVERT", "COOK", "COOL", "COPY", "CORNER", "CORRECT", "COST", "COULD", "COUNCIL", "COUNT", "COUNTRY", "COUPLE", "COURSE", "COVER", "CREATE", "CREDIT", "CREW", "CRISIS", "CRITERIA", "CROSS", "CROWD", "CULTURE", "CURRENT", "CUSTOMER", "CYCLE", "DAILY", "DAMAGE", "DANGER", "DARK", "DATA", "DATE", "DAY", "DEAL", "DEAR", "DEATH", "DEBATE", "DEBT", "DECIDE", "DECISION", "DECLINE", "DEEP", "DEFAULT", "DEFEND", "DEFINE", "DEGREE", "DELAY", "DELIVER", "DEMAND", "DENY", "DEPART", "DEPEND", "DESCRIBE", "DESIGN", "DESIRE", "DESPITE", "DETAIL", "DETECT", "DEVELOP", "DEVICE", "DIFFER", "DIRECT", "DISABLE", "DISCOVER", "DISCUSS", "DISEASE", "DISMISS", "DISPLAY", "DISTANCE", "DISTINCT", "DIVIDE", "DOCTOR", "DOCUMENT", "DOOR", "DOUBLE", "DOUBT", "DOWN", "DRAFT", "DRAW", "DREAM", "DRESS", "DRINK", "DRIVE", "DROP", "DRY", "DURING", "DUTY", "EACH", "EARLY", "EARN", "EARTH", "EAST", "EASY", "EAT", "EFFECT", "EFFORT", "EITHER", "EMAIL", "EMERGE", "EMOTION", "EMPLOY", "ENABLE", "ENCOURAGE", "END", "ENEMY", "ENERGY", "ENJOY", "ENOUGH", "ENSURE", "ENTER", "ENTIRE", "ENTRY", "ENVIRONMENT", "EQUAL", "EQUIP", "ERROR", "ESCAPE", "ESPECIALLY", "ESSENTIAL", "ESTABLISH", "ESTATE", "ESTIMATE", "EVEN", "EVENING", "EVENT", "EVERY", "EVIDENCE", "EXACT", "EXAMPLE", "EXCEED", "EXCEPT", "EXCHANGE", "EXERCISE", "EXIST", "EXIT", "EXPECT", "EXPENSE", "EXPERIENCE", "EXPERT", "EXPLAIN", "EXPLORE", "EXPRESS", "EXTEND", "EXTRA", "FACE", "FACTOR", "FAIL", "FAIR", "FAITH", "FALL", "FAMILY", "FAMOUS", "FANCY", "FAST", "FATHER", "FAULT", "FAVOUR", "FEAR", "FEATURE", "FEEL", "FEMALE", "FIELD", "FIGHT", "FIGURE", "FILE", "FILL", "FINAL", "FINANCE", "FIND", "FINE", "FINISH", "FIRE", "FIRST", "FISH", "FIT", "FIX", "FLAG", "FLAME", "FLAT", "FLIGHT", "FLOOR", "FLOW", "FLY", "FOLLOW", "FOOD", "FOOT", "FORCE", "FORGET", "FORGIVE", "FORM", "FORMAL", "FORMER", "FORTUNE", "FORWARD", "FOUND", "FRAME", "FREE", "FREEDOM", "FRESH", "FRIEND", "FRONT", "FROZEN", "FUEL", "FULL", "FUNCTION", "FUND", "FUNNY", "FUTURE", "GAIN", "GALLERY", "GAME", "GARDEN", "GAS", "GATE", "GATHER", "GENDER", "GENERAL", "GENERATE", "GENUINE", "GHOST", "GIFT", "GIVE", "GLASS", "GLOBAL", "GOAL", "GOOD", "GOVERNMENT", "GRACE", "GRADE", "GRANT", "GREAT", "GREEN", "GROUND", "GROUP", "GROW", "GROWTH", "GUARD", "GUESS", "GUEST", "GUIDE", "HABIT", "HALF", "HAND", "HANDLE", "HANG", "HAPPEN", "HAPPY", "HARD", "HARM", "HATE", "HEAD", "HEALTH", "HEAR", "HEART", "HEAT", "HEAVY", "HEIGHT", "HELLO", "HELP", "HERE", "HERO", "HIDE", "HIGH", "HILL", "HINT", "HISTORY", "HOLD", "HOLE", "HOLIDAY", "HOME", "HONEST", "HONOUR", "HOPE", "HORROR", "HOSPITAL", "HOST", "HOTEL", "HOUR", "HOUSE", "HUMAN", "HUNGRY", "HURRY", "HURT", "IDEA", "IDEAL", "IDENTIFY", "IMAGE", "IMAGINE", "IMPACT", "IMPROVE", "INCLUDE", "INCOME", "INCREASE", "INDICATE", "INDUSTRY", "INFLUENCE", "INFORM", "INITIAL", "INJURY", "INNER", "INNOVATE", "INSIDE", "INSIGHT", "INSIST", "INSPECT", "INSPIRE", "INSTALL", "INSTANT", "INSTEAD", "INSTRUCT", "INSURE", "INTEND", "INTEREST", "INTERNAL", "INTERNET", "INTERVIEW", "INTRODUCE", "INVEST", "INVITE", "INVOLVE", "IRON", "ISSUE", "ITEM", "JOB", "JOIN", "JOY", "JUDGE", "JUMP", "JUSTICE", "KEEP", "KID", "KIND", "KING", "KITCHEN", "KNEE", "KNOW", "KNOWLEDGE", "LAB", "LABEL", "LABOUR", "LACK", "LADDER", "LAND", "LANDLORD", "LANDSCAPE", "LANGUAGE", "LARGE", "LAST", "LATE", "LATER", "LAUGH", "LAUNCH", "LAW", "LAYER", "LEAD", "LEADER", "LEARN", "LEAST", "LEAVE", "LEFT", "LEG", "LEGAL", "LEGEND", "LEND", "LENGTH", "LESSON", "LETTER", "LEVEL", "LIBRARY", "LIFE", "LIFT", "LIGHT", "LIKE", "LIMIT", "LINE", "LINK", "LIST", "LISTEN", "LITTLE", "LIVE", "LOAD", "LOAN", "LOCAL", "LOCATE", "LOCATION", "LOCK", "LOGIC", "LONG", "LOOK", "LOSE", "LOSS", "LOST", "LOUD", "LOVE", "LOWER", "LUCK", "LUNCH", "MACHINE", "MAGIC", "MAIL", "MAIN", "MAJOR", "MAKE", "MAN", "MANAGE", "MANNER", "MANY", "MAP", "MARKET", "MARRIED", "MATCH", "MATERIAL", "MATTER", "MAYBE", "MEAL", "MEAN", "MEASURE", "MEDIA", "MEDICAL", "MEET", "MEMBER", "MEMORY", "MENTAL", "MENTION", "MENU", "MESSAGE", "METAL", "MIDDLE", "MIGHT", "MILLION", "MIND", "MINOR", "MINUTE", "MIRROR", "MISSION", "MISTAKE", "MIX", "MOBILE", "MODEL", "MODERN", "MOMENT", "MONEY", "MONTH", "MOOD", "MORE", "MORNING", "MOTHER", "MOTION", "MOUNTAIN", "MOUTH", "MOVE", "MOVEMENT", "MOVIE", "MUSIC", "MUST", "NAME", "NARROW", "NATION", "NATIONAL", "NATIVE", "NATURE", "NEAR", "NEAT", "NECESSARY", "NEED", "NEGLECT", "NEITHER", "NERVOUS", "NETWORK", "NEVER", "NEW", "NEWS", "NEXT", "NICE", "NIGHT", "NOBODY", "NOISE", "NONE", "NORMAL", "NORTH", "NOTE", "NOTHING", "NOTICE", "NUMBER", "NURSE", "OBJECT", "OBSERVE", "OBTAIN", "OBVIOUS", "OCCASION", "OCCUPY", "OCCUR", "OFFER", "OFFICE", "OFFICER", "OFFICIAL", "OFTEN", "OIL", "OKAY", "OLD", "ONCE", "ONE", "ONLY", "OPEN", "OPERATE", "OPINION", "OPPOSITE", "OPTION", "ORDER", "ORDINARY", "ORGANISE", "ORIGINAL", "OTHER", "OUT", "OUTCOME", "OUTSIDE", "OVER", "OWN", "OWNER", "PACE", "PACK", "PAGE", "PAIN", "PAINT", "PAIR", "PAPER", "PARENT", "PARK", "PARTNER", "PARTY", "PASS", "PAST", "PATH", "PATIENT", "PATTERN", "PAY", "PAYMENT", "PEACE", "PEAK", "PEOPLE", "PERFECT", "PERFORM", "PERHAPS", "PERIOD", "PERMIT", "PERSON", "PERSONAL", "PHONE", "PHOTO", "PHYSICAL", "PICK", "PICTURE", "PIECE", "PINK", "PLACE", "PLAN", "PLANE", "PLANT", "PLASTIC", "PLATE", "PLATFORM", "PLAY", "PLEASURE", "PLOT", "PLUS", "POCKET", "POINT", "POLICE", "POLICY", "POLITE", "POOL", "POOR", "POPULAR", "POSITION", "POSITIVE", "POSSIBLE", "POST", "POTENTIAL", "POWER", "PRACTICE", "PRAISE", "PREPARE", "PRESENT", "PRESS", "PRESSURE", "PREVENT", "PRICE", "PRIDE", "PRIMARY", "PRINCIPLE", "PRINT", "PRIOR", "PRISON", "PRIVATE", "PRIZE", "PROBLEM", "PROCESS", "PRODUCE", "PRODUCT", "PROFESSIONAL", "PROFILE", "PROFIT", "PROGRAM", "PROJECT", "PROMISE", "PROOF", "PROPER", "PROPERTY", "PROTECT", "PROVE", "PROVIDE", "PUBLIC", "PURPOSE", "PUSH", "PUT", "QUALITY", "QUESTION", "QUICK", "QUIET", "QUOTE", "RACE", "RADIO", "RAIN", "RAISE", "RANGE", "RATE", "RATHER", "REACH", "REACT", "READ", "READY", "REAL", "REALISE", "REALLY", "REASON", "RECEIVE", "RECENT", "RECORD", "RECOVER", "RED", "REDUCE", "REFER", "REFLECT", "REFRESH", "REFUND", "REFUSE", "REGARD", "REGION", "REGISTER", "REGRET", "REGULAR", "RELATE", "RELAX", "RELEASE", "RELIEF", "RELY", "REMAIN", "REMEMBER", "REMIND", "REMOVE", "RENT", "REPAIR", "REPEAT", "REPLACE", "REPLY", "REPORT", "REPRESENT", "REQUEST", "REQUIRE", "RESCUE", "RESEARCH", "RESIDENT", "RESIST", "RESPECT", "RESPOND", "RESULT", "RETURN", "REVEAL", "REVIEW", "REWARD", "RIDE", "RIGHT", "RING", "RISK", "ROAD", "ROLE", "ROLL", "ROOF", "ROOM", "ROOT", "ROUGH", "ROUND", "ROUTE", "ROYAL", "RULE", "RUN", "RURAL", "RUSH", "SAFE", "SAFETY", "SAID", "SAIL", "SALARY", "SALE", "SAME", "SAMPLE", "SAVE", "SAY", "SCALE", "SCENE", "SCHOOL", "SCIENCE", "SCORE", "SCREEN", "SEARCH", "SEASON", "SEAT", "SECOND", "SECRET", "SECTION", "SECURE", "SEEK", "SEEM", "SELECT", "SELF", "SELL", "SEND", "SENIOR", "SENSE", "SENTENCE", "SEPARATE", "SERIES", "SERIOUS", "SERVE", "SERVICE", "SESSION", "SET", "SETTLE", "SEVEN", "SEVERAL", "SHADE", "SHAKE", "SHAPE", "SHARE", "SHARP", "SHEET", "SHELTER", "SHINE", "SHIP", "SHIRT", "SHOCK", "SHOE", "SHOOT", "SHOP", "SHORT", "SHOULD", "SHOULDER", "SHOUT", "SHOW", "SHUT", "SIDE", "SIGHT", "SIGN", "SIGNAL", "SIGNIFICANT", "SILENT", "SILVER", "SIMPLE", "SIMPLY", "SING", "SISTER", "SITE", "SITUATION", "SIZE", "SKILL", "SLEEP", "SLOW", "SMALL", "SMART", "SMELL", "SMILE", "SMOKE", "SMOOTH", "SNOW", "SOCIAL", "SOCIETY", "SOFT", "SOFTWARE", "SOLUTION", "SOME", "SOMEONE", "SOMETHING", "SOMEWHERE", "SONG", "SOON", "SORRY", "SORT", "SOUND", "SOURCE", "SOUTH", "SPACE", "SPEAK", "SPECIAL", "SPECIFIC", "SPEECH", "SPEED", "SPEND", "SPIRIT", "SPORT", "SPOT", "SPRING", "SQUARE", "STAGE", "STAND", "STANDARD", "STAR", "START", "STATE", "STATION", "STAY", "STEEL", "STEP", "STILL", "STOCK", "STONE", "STOP", "STORE", "STORM", "STORY", "STRAIGHT", "STRANGE", "STRATEGY", "STREET", "STRENGTH", "STRESS", "STRICT", "STRIKE", "STRING", "STRONG", "STRUCTURE", "STUDENT", "STUDY", "STYLE", "SUBJECT", "SUBMIT", "SUBSCRIBE", "SUCCESS", "SUCH", "SUDDEN", "SUGAR", "SUIT", "SUMMER", "SUN", "SUNDAY", "SUPPLY", "SUPPORT", "SUPPOSE", "SURE", "SURFACE", "SURPRISE", "SURROUND", "SURVEY", "SURVIVE", "SYSTEM", "TABLE", "TACKLE", "TAIL", "TAKE", "TALK", "TALL", "TAPE", "TARGET", "TASK", "TASTE", "TAX", "TEACH", "TEAM", "TECHNICAL", "TECHNOLOGY", "TEETH", "TELEPHONE", "TELEVISION", "TELL", "TEMPORARY", "TEND", "TENDER", "TERM", "TERRIBLE", "TEST", "TEXT", "THAN", "THANK", "THAT", "THE", "THEIR", "THEM", "THEME", "THEN", "THEORY", "THERE", "THESE", "THEY", "THICK", "THIN", "THING", "THINK", "THIRD", "THIS", "THOUGHT", "THOUSAND", "THREAT", "THREE", "THROAT", "THROUGH", "THROW", "THURSDAY", "TICKET", "TIDY", "TIE", "TIGHT", "TIME", "TINY", "TITLE", "TODAY", "TOGETHER", "TOMORROW", "TONE", "TONGUE", "TONIGHT", "TOOL", "TOP", "TOPIC", "TOTAL", "TOUCH", "TOWN", "TRACK", "TRADE", "TRAFFIC", "TRAIN", "TRANSFER", "TRAVEL", "TREAT", "TREE", "TREND", "TRIAL", "TRIP", "TROUBLE", "TRUE", "TRUST", "TRUTH", "TRY", "TUESDAY", "TURN", "TWICE", "TYPE", "UNDER", "UNDERSTAND", "UNIT", "UNIVERSITY", "UNLESS", "UNLIKE", "UNLOCK", "UNTIL", "UPDATE", "UPPER", "URBAN", "URGENT", "US", "USE", "USUAL", "VACANT", "VALUE", "VARIOUS", "VAST", "VEHICLE", "VENTURE", "VERSION", "VERY", "VICTORY", "VIDEO", "VIEW", "VILLAGE", "VISION", "VISIT", "VISUAL", "VITAL", "VOICE", "VOLUME", "VOTE", "WAIT", "WAKE", "WALK", "WALL", "WANT", "WAR", "WARM", "WARN", "WASH", "WASTE", "WATCH", "WATER", "WAVE", "WAY", "WEAK", "WEALTH", "WEAR", "WEATHER", "WEDNESDAY", "WEEK", "WELCOME", "WELL", "WEST", "WHAT", "WHEEL", "WHEN", "WHERE", "WHETHER", "WHICH", "WHILE", "WHISPER", "WHITE", "WHO", "WHOLE", "WHOM", "WHOSE", "WHY", "WIDE", "WIFE", "WILD", "WILL", "WIND", "WINDOW", "WING", "WINNER", "WINTER", "WIRE", "WISDOM", "WISH", "WITH", "WITHIN", "WITHOUT", "WITNESS", "WOMAN", "WONDER", "WOOD", "WORD", "WORK", "WORLD", "WORRY", "WORTH", "WOULD", "WRITE", "WRONG", "YARD", "YEAR", "YELLOW", "YES", "YET", "YOUNG", "YOUR", "YOURSELF"];
   const $=s=>document.querySelector(s);
-  const cv=$('#cv'), ctx=cv.getContext('2d',{alpha:true});
-  const ta=$('#ta');
-  const DPR=Math.min(2, window.devicePixelRatio||1);
-  let W=0,H=0, running=true, message="";
-  // Timing + board
-  const DWELL_MS=700, tileScale=1.15, planRpx=22, arcTight=0.86;
-  const IN_FACTOR=1.22, OUT_FACTOR=1.60;
-  const MIN_GAP=240, REPEAT_CD=700;
-  // Physics
-  const MASS=1.0, FRICTION=0.90;           // velocity damping per frame (~60 FPS)
-  const G_USER=0.010;                       // user force gain
-  const G_CONSENSUS=0.020;                  // extra gain when directions agree
-  const G_WELL=0.008;                       // letter attraction
-  const WELL_RADIUS=120;                    // influence radius in canvas pixels (before DPR)
-  const DRIFT_AMPL=0.35;                    // sub-pixel micro drift amplitude
-  const DRIFT_FREQ=0.16;                    // Hz
-  // Shared planchette
-  const plan={x:0,y:0,r:Math.max(16*DPR, planRpx*DPR), trail:[], vx:0, vy:0};
-  // Touches id -> {x,y, vx, vy}
-  const touches=new Map();
-  // Dwell / commit
-  const tiles=[]; let entered=null, ready=0; let lastCommit=null;
+  const meter=$('#meter'), mtx=meter.getContext('2d');
+  const spec=$('#spec'), stx=spec.getContext('2d');
+  const statusEl=$('#status'), diag=$('#diag'), ta=$('#ta'), logEl=$('#log'), msgEl=$('#msg');
+  function log(msg){ const ts=new Date().toLocaleTimeString(); logEl.innerHTML='['+ts+'] '+msg+'<br>'+logEl.innerHTML; logEl.innerHTML=logEl.innerHTML.split('<br>').slice(0,180).join('<br>'); }
+  function status(s){ statusEl.textContent=s; }
 
-  // Canvas sizing
-  function sizeCanvas(){
-    const wrap=document.getElementById('stageWrap'), r=wrap.getBoundingClientRect();
-    const w=Math.max(50, Math.floor(r.width*DPR)), h=Math.max(50, Math.floor(r.height*DPR));
-    if(cv.width!==w) cv.width=w;
-    if(cv.height!==h) cv.height=h;
-    W=cv.width; H=cv.height;
-    buildTiles(); center(); draw();
-  }
-  new ResizeObserver(sizeCanvas).observe(document.getElementById('stageWrap'));
-  window.addEventListener('orientationchange', ()=>{ setTimeout(sizeCanvas, 250); setTimeout(sizeCanvas, 800); });
-  window.addEventListener('resize', ()=>{ setTimeout(sizeCanvas, 150); });
-  setTimeout(sizeCanvas, 60); setTimeout(sizeCanvas, 300); setTimeout(sizeCanvas, 900);
+  let audio, analyser, hp, lp, freqBuf, timeBuf, running=false;
+  let baseline=0, ema=0, overStreak=0, zEMA=0, lastCommit=0, coolUntil=0, sessionStart=0;
+  let assists=0;
 
-  function center(){ plan.x=W*0.52; plan.y=H*0.62; plan.vx=0; plan.vy=0; draw(); }
+  // Lenient defaults
+  const cfg = { cutoff:190, sens:1.16, cool:3000, conf:0.25 };
+  let strictValley=true; // will be temporarily relaxed by rescue
 
-  // Layout
-  function buildTiles(){
-    tiles.length=0;
-    const cx=W*0.52, cy=H*0.62, baseR=Math.min(W,H)*0.36;
-    const a0 = -Math.PI*(arcTight), a1 = -Math.PI*(1.0-arcTight);
-    const ring=(arr,r,idPrefix)=>{
-      const n=arr.length;
-      for(let i=0;i<n;i++){
-        const t=i/(n-1), ang=a0+(a1-a0)*t, x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
-        tiles.push({x,y,r:Math.min(W,H)*0.035*tileScale,label:arr[i], id:idPrefix+i});
-      }
-    };
-    const r1=[...'ABCDEFGH'], r2=[...'IJKLMNOP'], r3=[...'QRSTUVWXYZ'], nums=[...'1234567890'], cor=['YES','NO','GOODBYE'];
-    ring(r1, baseR*0.70, 'r1-'); ring(r2, baseR*0.90, 'r2-'); ring(r3, baseR*1.10, 'r3-');
-    const nbY=cy+baseR*0.62, nr=Math.min(W,H)*0.035*tileScale;
-    for(let i=0;i<nums.length;i++){ const x=(W*0.20)+i*(W*0.6/(nums.length-1)); tiles.push({x,y:nbY,r:nr,label:nums[i], id:'n-'+i}); }
-    tiles.push({x:W*0.18,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:'YES', id:'y'});
-    tiles.push({x:W*0.82,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:'NO', id:'n'});
-    tiles.push({x:W*0.50,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:'GOODBYE', id:'g'});
-  }
-
-  // Drawing
-  function drawBoard(){
-    ctx.clearRect(0,0,W,H);
-    const g=ctx.createRadialGradient(W*0.62,H*0.30,10, W*0.62,H*0.30, Math.max(W,H)*0.9);
-    g.addColorStop(0,'rgba(120,200,255,0.07)'); g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
-    for(let y=0;y<H;y+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
-    for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
-    ctx.strokeStyle='rgba(200,210,230,0.10)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
-    const cx=W*0.52, cy=H*0.62, baseR=Math.min(W,H)*0.36;
-    [0.70, 0.90, 1.10].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    const fontBig=(Math.min(W,H)*0.048)+'px ui-monospace,Menlo,Consolas';
-    const fontCor=(Math.min(W,H)*0.039)+'px ui-monospace,Menlo,Consolas';
-    for(const t of tiles){
-      if(t.label.length===1){ ctx.fillStyle='rgba(220,230,250,.98)'; ctx.font=fontBig; }
-      else if(t.label==='YES'){ ctx.fillStyle='rgba(157,246,178,.98)'; ctx.font=fontCor; }
-      else if(t.label==='NO'){ ctx.fillStyle='rgba(255,178,178,.98)'; ctx.font=fontCor; }
-      else { ctx.fillStyle='rgba(160,175,195,.98)'; ctx.font=fontCor; }
-      ctx.shadowColor='rgba(126,227,255,0.12)'; ctx.shadowBlur=8;
-      ctx.fillText(t.label, t.x, t.y);
-      ctx.shadowBlur=0;
-    }
-    if(entered && entered.tile){
-      const t=entered.tile, pct=ready;
-      ctx.lineWidth=5; ctx.strokeStyle = (pct>=1 ? 'rgba(157,246,178,0.95)' : 'rgba(122,225,255,0.75)');
-      ctx.beginPath(); ctx.arc(t.x, t.y, t.r*1.2, -Math.PI/2, (-Math.PI/2)+pct*2*Math.PI); ctx.stroke();
+  async function getMic(kind='normal'){
+    try{
+      if(location.protocol==='file:'){ msgEl.innerHTML='Note: mic may be blocked on <code>file://</code>. Run on http://localhost or HTTPS.'; }
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('getUserMedia not available');
+      audio = audio || new (window.AudioContext||window.webkitAudioContext)();
+      if(kind==='safari'){
+        const osc=audio.createOscillator(); const dst=audio.createMediaStreamDestination(); osc.connect(dst); osc.start(); osc.stop(audio.currentTime+0.05); await audio.resume();
+      } else { if(audio.state==='suspended'){ await audio.resume(); } }
+      const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:false, autoGainControl:false}});
+      const src=audio.createMediaStreamSource(stream);
+      hp=audio.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=20;
+      lp=audio.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=cfg.cutoff;
+      analyser=audio.createAnalyser(); analyser.fftSize=2048; analyser.smoothingTimeConstant=0.85;
+      freqBuf=new Uint8Array(analyser.frequencyBinCount); timeBuf=new Float32Array(analyser.fftSize);
+      src.connect(hp).connect(lp).connect(analyser);
+      running=true; status('Mic ready'); log('Mic ready');
+      sessionStart=performance.now(); lastCommit=0; coolUntil=0; assists=0;
+      loop();
+      return true;
+    }catch(e){
+      const msg=(e&&e.name?e.name+': ':'')+(e.message||e);
+      status('Mic error'); diag.textContent='Mic access failed: '+msg; msgEl.innerHTML='Mic access failed: '+msg;
+      log('Mic error: '+msg); return false;
     }
   }
-  function drawPlanchette(){
-    const r=plan.r, x=plan.x, y=plan.y;
-    ctx.strokeStyle='rgba(122,225,255,0.22)'; ctx.lineWidth=2;
-    ctx.beginPath(); for(let i=0;i<plan.trail.length;i++){ const p=plan.trail[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);} ctx.stroke();
-    ctx.fillStyle='rgba(14,22,36,0.92)'; ctx.strokeStyle='rgba(70,140,220,0.85)'; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.ellipse(x,y,r*1.05,r*0.95,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,0.10)'; ctx.beginPath(); ctx.arc(x,y,r*0.36,0,Math.PI*2); ctx.fill();
-  }
-  function draw(){ drawBoard(); drawPlanchette(); }
 
-  // Helpers
-  function toCanvas(clientX,clientY){ const r=cv.getBoundingClientRect(); return {x:(clientX-r.left)*DPR, y:(clientY-r.top)*DPR}; }
-  function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
-  function stickyHit(x,y){
-    if(entered && entered.tile){
-      const d=Math.hypot(x-entered.tile.x,y-entered.tile.y);
-      if(d <= entered.tile.r*OUT_FACTOR) return entered.tile;
-    }
-    return hit(x,y);
-  }
+  function lfEnergy(){ if(!analyser) return 0; analyser.getByteFrequencyData(freqBuf);
+    const nyq=audio.sampleRate/2, binHz=nyq/freqBuf.length, maxBin=Math.min(freqBuf.length-1, Math.floor(cfg.cutoff/binHz));
+    let sum=0; for(let i=0;i<=maxBin;i++) sum+=freqBuf[i]; return sum/(maxBin+1); }
+  function centroid(){ analyser.getByteFrequencyData(freqBuf); const nyq=audio.sampleRate/2, binHz=nyq/freqBuf.length; let num=0,den=0; for(let i=0;i<freqBuf.length;i++){ const f=i*binHz, a=freqBuf[i]; num+=f*a; den+=a; } return den>0?num/den:0; }
+  function zcr(){ analyser.getFloatTimeDomainData(timeBuf); let z=0; for(let i=1;i<timeBuf.length;i++){ const a=timeBuf[i-1], b=timeBuf[i]; if((a>=0&&b<0)||(a<0&&b>=0)) z++; } return z/timeBuf.length; }
 
-  // Consensus gain based on alignment of touch velocity directions
-  function consensusBoost(){
-    const vs=[];
-    for(const [,p] of touches){ if(p.vx||p.vy){ const m=Math.hypot(p.vx,p.vy); if(m>0.02) vs.push({x:p.vx/m, y:p.vy/m}); } }
-    if(vs.length<2) return 0;
-    // Mean resultant length as alignment measure
-    let sx=0, sy=0; for(const v of vs){ sx+=v.x; sy+=v.y; }
-    const R = Math.hypot(sx,sy)/vs.length; // 0..1
-    return R; // 0=no agreement, 1=perfect alignment
+  function drawMeter(e, base, over=false){
+    const W=meter.clientWidth,H=meter.clientHeight; if(meter.width!==W) meter.width=W; if(meter.height!==H) meter.height=H;
+    mtx.clearRect(0,0,W,H);
+    const thr=base*cfg.sens; const pct=Math.max(0,Math.min(1, thr>0 ? e/thr : 0));
+    mtx.fillStyle= over?'rgba(159,253,221,0.4)':'rgba(159,253,221,0.25)'; mtx.fillRect(0,H*(1-pct),W,H*pct);
+    mtx.fillStyle='rgba(220,235,255,0.9)'; mtx.font='12px ui-sans-serif'; mtx.fillText('E:'+e.toFixed(1)+' Thr:'+thr.toFixed(1)+' x='+pct.toFixed(2),8,16);
+  }
+  function drawSpec(empty){
+    const W=spec.clientWidth,H=spec.clientHeight; if(spec.width!==W) spec.width=W; if(spec.height!==H) spec.height=H;
+    stx.clearRect(0,0,W,H); if(!analyser||empty) return;
+    analyser.getByteFrequencyData(freqBuf);
+    const nyq=(audio?audio.sampleRate:44100)/2, binHz=nyq/freqBuf.length; const maxBin=Math.min(freqBuf.length-1, Math.floor(cfg.cutoff/binHz)); const barW=Math.max(1,W/(maxBin+1));
+    for(let i=0;i<=maxBin;i++){ const v=freqBuf[i]/255, h=v*H; stx.fillStyle='rgba(122,225,255,0.45)'; stx.fillRect(i*barW, H-h, barW-1, h); }
   }
 
-  // Attraction field toward nearest tile (soft well)
-  function attractionForce(px,py){
-    let best=null, bd=1e9;
-    for(const t of tiles){
-      const dx=t.x-px, dy=t.y-py; const d=Math.hypot(dx,dy);
-      if(d<bd){ bd=d; best={t,dx,dy,d}; }
-    }
-    if(!best) return {fx:0,fy:0};
-    const R = WELL_RADIUS*DPR;
-    if(best.d>R) return {fx:0,fy:0};
-    const k = G_WELL * Math.exp(- (best.d*best.d)/(2*(0.45*R)*(0.45*R)) ); // Gaussian falloff
-    return {fx:k*best.dx, fy:k*best.dy};
+  const COMMON_DAMP = new Set(['SEE','YES','NO','CAT','ECO']);
+  function scoreWord(w, e){
+    const L=w.toUpperCase(); const len=L.length;
+    let s = -Math.abs(len-6)*1.2;
+    const v=(L.match(/[AEIOU]/g)||[]).length; const vr=v/Math.max(1,len);
+    s += (0.8 - Math.abs(vr-0.42))*0.6;
+    const thr = baseline*cfg.sens;
+    if(COMMON_DAMP.has(L) && e < thr*1.2) s -= 1.0;
+    s += (Math.random()-0.5)*0.02;
+    return s;
   }
 
-  // Transcript & commit
-  function canCommit(tile, now){
-    if(!entered || !entered.ready) return false;
-    if(lastCommit){
-      if(lastCommit.id===tile.id && (now-lastCommit.t) < REPEAT_CD) return false;
-      if((now - lastCommit.t) < MIN_GAP) return false;
-    }
-    return true;
+  const recent=[]; const shadow=new Map();
+  function banned(w, now){ const u=shadow.get(w); if(u&&now<u) return true; return recent.slice(-10).some(x=>x===w); }
+  function pushRecent(w){ const now=performance.now(); recent.push(w); while(recent.length>120) recent.shift(); const last8=recent.slice(-8); const c=last8.filter(x=>x===w).length; if(c>=2){ shadow.set(w, now+90000); log('Shadow-ban '+w+' for 90s'); } }
+
+  function candidates(e){
+    const now=performance.now(); const arr=[];
+    for(const w of CORE){ const L=w.toUpperCase(); if(banned(L, now)) continue; arr.push([L, scoreWord(L, e)]); }
+    arr.sort((a,b)=>b[1]-a[1]); return arr.slice(0,6);
   }
-  function commit(tile){
+
+  let relaxUntil=0, tempConfUntil=0;
+
+  function emit(tok){
     const now=performance.now();
-    if(!canCommit(tile, now)) return;
-    const lab=tile.label;
-    if(lab==='GOODBYE'){ message+=' [GOODBYE]'; running=false; }
-    else if(lab==='YES' || lab==='NO'){ message+=` [${lab}]`; }
-    else if(lab.length===1){ message+=lab; }
-    lastCommit={id:tile.id, t:now};
-    entered && (entered.didCommit=true);
-    updateTranscript();
+    ta.value = (ta.value==='(no text)') ? tok : (ta.value + ' ' + tok);
+    ta.scrollTop = ta.scrollHeight;
+    pushRecent(tok);
+    lastCommit=now; coolUntil=now+cfg.cool;
+    log('Commit: '+tok);
   }
-  function updateTranscript(){ ta.value=message||'(no text)'; ta.scrollTop=ta.scrollHeight; }
 
-  // Animation
-  let lastTs=performance.now(); let driftPhase=0;
-  function tick(ts){
-    const dt=(ts-lastTs)||16; lastTs=ts;
-    const dtSec = dt/1000;
-    // Estimate per-touch velocity & centroid
-    let cx=0, cy=0, n=0;
-    for(const [id,p] of touches){
-      if(p.px===undefined){ p.px=p.x; p.py=p.y; p.vx=0; p.vy=0; }
-      const vx=(p.x - p.px)/dt; const vy=(p.y - p.py)/dt;
-      p.vx = 0.6*p.vx + 0.4*vx; p.vy = 0.6*p.vy + 0.4*vy; // smooth
-      p.px=p.x; p.py=p.y;
-      cx+=p.x; cy+=p.y; n++;
-    }
-    let fx=0, fy=0;
-    if(n>0){
-      cx/=n; cy/=n;
-      // User force tends to pull planchette toward centroid (spring-like)
-      const ux = cx - plan.x, uy = cy - plan.y;
-      let gain = G_USER;
-      // Consensus adds gentle amplification
-      gain += G_CONSENSUS * consensusBoost();
-      fx += gain * ux;
-      fy += gain * uy;
-    } else {
-      // No touches: slow to a stop
-    }
-
-    // Attraction toward nearest tile (soft, short range)
-    const well = attractionForce(plan.x, plan.y);
-    fx += well.fx; fy += well.fy;
-
-    // Micro drift when almost still & at least one touch is down (ideomotor feel)
-    const totalSpeed = Math.hypot(plan.vx, plan.vy);
-    const touchDown = n>0;
-    if(touchDown && totalSpeed < 0.02){
-      driftPhase += dtSec * (2*Math.PI*DRIFT_FREQ);
-      fx += (DRIFT_AMPL*Math.cos(driftPhase))/1000;
-      fy += (DRIFT_AMPL*Math.sin(driftPhase))/1000;
-    }
-
-    // Integrate physics
-    plan.vx = plan.vx*FRICTION + (fx/MASS);
-    plan.vy = plan.vy*FRICTION + (fy/MASS);
-    plan.x += plan.vx * dt;
-    plan.y += plan.vy * dt;
-
-    // Keep inside
-    plan.x = Math.max(0, Math.min(W, plan.x));
-    plan.y = Math.max(0, Math.min(H, plan.y));
-
-    // Trail
-    plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
-
-    // Dwell/commit at current position
-    const tile=stickyHit(plan.x, plan.y);
-    if(tile && (!entered || entered.tile!==tile)){
-      entered={tile, tEnter:ts, ready:false, didCommit:false}; ready=0;
-    }
-    if(tile){
-      ready = Math.min(1, (ts - entered.tEnter) / DWELL_MS);
-      entered.ready = ready >= 1;
-      if(entered.ready && !entered.didCommit) commit(tile);
-    }else{
-      entered=null; ready=0;
-    }
-
-    draw();
-    requestAnimationFrame(tick);
+  async function calibrate(){
+    if(!running){ await getMic(); if(!running) return; }
+    status('Calibrating...'); log('Calibration 10s');
+    let acc=0,n=0; const t0=performance.now();
+    while(performance.now()-t0<10000){ acc+=lfEnergy(); n++; await new Promise(r=>setTimeout(r,50)); }
+    baseline=acc/Math.max(1,n); ema=baseline; status('Calibrated'); log('Baseline '+baseline.toFixed(1));
   }
-  requestAnimationFrame(tick);
 
-  // Touch handlers (multi-person shared planchette)
-  function toCanvas(clientX,clientY){ const r=cv.getBoundingClientRect(); return {x:(clientX-r.left)*DPR, y:(clientY-r.top)*DPR}; }
-  cv.addEventListener('touchstart', e=>{
-    e.preventDefault();
-    for(const t of e.changedTouches){ const p=toCanvas(t.clientX,t.clientY); touches.set(t.identifier, p); }
-  }, {passive:false});
-  cv.addEventListener('touchmove', e=>{
-    e.preventDefault();
-    for(const t of e.changedTouches){ const p=toCanvas(t.clientX,t.clientY); touches.set(t.identifier, p); }
-  }, {passive:false});
-  function endTouches(list){ for(const t of list){ touches.delete(t.identifier); } }
-  cv.addEventListener('touchend', e=>{ e.preventDefault(); endTouches(e.changedTouches); }, {passive:false});
-  cv.addEventListener('touchcancel', e=>{ e.preventDefault(); endTouches(e.changedTouches); }, {passive:false});
-  // Mouse for desktop
-  let mouseDown=false;
-  cv.addEventListener('mousedown', e=>{ mouseDown=true; touches.set('mouse', toCanvas(e.clientX,e.clientY)); });
-  cv.addEventListener('mousemove', e=>{ if(mouseDown) touches.set('mouse', toCanvas(e.clientX,e.clientY)); });
-  cv.addEventListener('mouseup', e=>{ mouseDown=false; touches.delete('mouse'); });
+  async function enableMic(){ await getMic(); }
+
+  function assist(now, since){
+    if(assists>=3) return;
+    if(since>25000 && assists===0){ cfg.sens=Math.max(1.06,cfg.sens*0.97); baseline=baseline*0.99; assists++; log('Assist: slight sensitivity drop'); }
+    else if(since>40000 && assists===1){ relaxUntil=now+10000; assists++; log('Assist: relaxed valley 10s'); }
+    else if(since>55000 && assists===2){ tempConfUntil=now+12000; assists++; log('Assist: lowered confidence 12s'); }
+  }
+
+  function loop(){
+    if(!running){ drawMeter(0,0); drawSpec(true); return; }
+    const e=lfEnergy(); ema=ema+(e-ema)*0.02; baseline=baseline*0.995+ema*0.005;
+    const thr=baseline*cfg.sens; const over=e>thr;
+    const z=zcr(); zEMA=zEMA*0.9+z*0.1; const valley=z<zEMA*0.85;
+    overStreak=over?Math.min(overStreak+1,120):Math.max(0,overStreak-1);
+    drawMeter(e,baseline,over); drawSpec();
+
+    const list=candidates(e);
+    const now=performance.now();
+    const valleyOk = (now>=relaxUntil) ? (!strictValley || valley) : true;
+    const conf = (now<tempConfUntil) ? Math.max(0.18, cfg.conf*0.8) : cfg.conf;
+
+    if(now>=coolUntil && overStreak>=6 && valleyOk){
+      if(list.length>=2 && (list[0][1]-list[1][1])>=conf){
+        emit(list[0][0]);
+      }
+    }
+
+    // Rescue: if no commit after 75s, force a commit on next overStreak
+    const since = lastCommit ? (now-lastCommit) : (now-sessionStart);
+    if(since>75000 && overStreak>=4 && list.length){
+      emit(list[0][0]);
+      log('Rescue commit');
+    }
+
+    assist(now, since);
+    requestAnimationFrame(loop);
+  }
 
   // Buttons
-  $('#btnRefresh').onclick=()=>{
-    running=true; message=''; ta.value='(no text)';
-    plan.trail.length=0; entered=null; ready=0; lastCommit=null; plan.vx=0; plan.vy=0;
-  };
-  $('#btnGoodbye').onclick=()=>{
-    if(!running) return;
-    message+=' [GOODBYE]'; running=false; updateTranscript();
+  document.getElementById('btnStart').onclick=enableMic;
+  document.getElementById('btnCal').onclick=calibrate;
+  document.getElementById('btnSafari').onclick=async()=>{ await getMic('safari'); };
+  document.getElementById('btnQuick').onclick=()=>{
+    // Apply lenient QuickStart
+    strictValley=false; cfg.sens=1.18; cfg.cutoff=180; cfg.cool=2800; baseline=baseline*0.98; log('QuickStart applied');
+    if(lp) lp.frequency.value=cfg.cutoff;
   };
 
-  // Init
-  sizeCanvas(); updateTranscript();
+  // Export
+  document.getElementById('btnExport').onclick=()=>{
+    const lines = logEl.innerText.split('\\n').reverse();
+    const out = [
+      '# ORACLE PRO v5.2 — Rescue Mode',
+      'Time: '+new Date().toISOString(),
+      'Cutoff: '+cfg.cutoff+' Hz; Sens: '+cfg.sens.toFixed(2)+'x; Cooldown: '+cfg.cool+' ms; Conf: '+cfg.conf.toFixed(2),
+      'Strict valley: '+strictValley,
+      '',
+      'Transcript:',
+      ta.value,
+      '',
+      'Diagnostics (oldest → newest):',
+      ...lines
+    ].join('\\n');
+    const blob = new Blob([out], {type:'text/plain'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='oracle_pro_v5_2_rescue_session.txt'; a.click(); URL.revokeObjectURL(a.href);
+  };
+
+  log('Ready');
 })();
 </script>
 </body>
