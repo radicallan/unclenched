@@ -4,63 +4,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Spirit Board — Aesthetic v7</title>
+<title>Spirit Board — v9 Shared Planchette</title>
 <style>
   :root{
-    --bg0:#07090f; --bg1:#0b1020; --bg2:#0a0f1a;
-    --ink:#eaf2ff; --muted:#9fb1c9; --glow:#7ee3ff; --good:#9df6b2; --accent:#4ad8ff;
-    --header-h:56px;
-    --footer-h:30svh;
-    --safe-b: env(safe-area-inset-bottom, 0px);
+    --ink:#eaf2ff; --muted:#9fb1c9;
+    --header-h:56px; --footer-h:30svh; --safe-b: env(safe-area-inset-bottom, 0px);
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:radial-gradient(1200px 800px at 70% 10%, #111a2a 0%, #0a0f18 50%, #06080d 100%);color:var(--ink);font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial}
   .app{position:relative;min-height:100svh;min-height:100dvh;}
-  /* Glass header */
+  /* Header */
   header{
     position:fixed; inset:0 0 auto 0; height:var(--header-h);
     display:flex; align-items:center; gap:10px; padding:10px 12px;
     backdrop-filter:saturate(140%) blur(10px);
     background:linear-gradient(180deg, rgba(18,24,36,.65), rgba(10,14,22,.35));
-    border-bottom:1px solid rgba(120,160,220,.15);
-    z-index:20;
+    border-bottom:1px solid rgba(120,160,220,.15); z-index:20;
   }
   .brand{font-weight:600; letter-spacing:.3px; opacity:.85}
   .spacer{flex:1}
-  /* Buttons */
   button{
-    appearance:none; border:0; cursor:pointer;
-    color:var(--ink); font-weight:600; letter-spacing:.2px;
+    appearance:none; border:0; cursor:pointer; color:var(--ink); font-weight:600; letter-spacing:.2px;
     padding:10px 14px; border-radius:12px;
     background:linear-gradient(180deg, rgba(30,50,80,.9), rgba(24,38,64,.85));
     box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 10px 30px rgba(4,12,24,.35);
     transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
   }
-  button:hover{ filter:brightness(1.07) }
-  button:active{ transform: translateY(1px) }
   .btn-accent{
     background:linear-gradient(180deg, rgba(40,120,200,.95), rgba(24,64,110,.95));
     box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 10px 32px rgba(20,110,190,.35);
   }
   /* Stage */
-  #stageWrap{
-    position:fixed; left:0; right:0;
-    top:var(--header-h);
-    bottom:calc(var(--footer-h) + var(--safe-b));
-  }
-  #cv{
-    position:absolute; inset:0; width:100%; height:100%;
-    display:block; touch-action:none; -webkit-user-select:none; user-select:none;
-    filter: drop-shadow(0 50px 60px rgba(60,150,230,.06));
-  }
+  #stageWrap{ position:fixed; left:0; right:0; top:var(--header-h); bottom:calc(var(--footer-h) + var(--safe-b)); }
+  #cv{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; -webkit-user-select:none; user-select:none; filter: drop-shadow(0 50px 60px rgba(60,150,230,.06)); }
   /* Footer transcript */
   footer{
-    position:fixed; left:0; right:0; bottom:0;
-    height:calc(var(--footer-h) + var(--safe-b));
+    position:fixed; left:0; right:0; bottom:0; height:calc(var(--footer-h) + var(--safe-b));
     background:linear-gradient(180deg, rgba(12,16,26,.9), rgba(9,12,20,.96));
     border-top:1px solid rgba(120,160,220,.12);
-    padding:10px 12px calc(10px + var(--safe-b)) 12px; z-index:20;
-    backdrop-filter:saturate(140%) blur(10px);
+    padding:10px 12px calc(10px + var(--safe-b)) 12px; z-index:20; backdrop-filter:saturate(140%) blur(10px);
   }
   label.caption{display:block; font-size:12px; color:var(--muted); margin:0 0 6px 2px; letter-spacing:.2px}
   textarea#ta{
@@ -69,8 +51,6 @@
     color:var(--ink); border:1px solid rgba(120,160,220,.18); border-radius:14px; padding:12px 14px;
     resize:none; font-family:ui-monospace,Menlo,Consolas,monospace; box-shadow: inset 0 10px 30px rgba(0,0,0,.25);
   }
-  /* Tiny status (screen-reader only but still updates) */
-  .sr{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 </style>
 </head>
 <body>
@@ -80,7 +60,6 @@
     <div class="spacer"></div>
     <button id="btnRefresh" class="btn-accent" aria-label="Refresh session">Refresh</button>
     <button id="btnGoodbye" aria-label="End session">Goodbye</button>
-    <span id="status" class="sr" aria-live="polite">Idle</span>
   </header>
 
   <div id="stageWrap"><canvas id="cv"></canvas></div>
@@ -95,44 +74,44 @@
 (function(){
   const $=s=>document.querySelector(s);
   const cv=$('#cv'), ctx=cv.getContext('2d',{alpha:true});
-  const ta=$('#ta'), statusEl=$('#status');
+  const ta=$('#ta');
   const DPR=Math.min(2, window.devicePixelRatio||1);
   let W=0,H=0, running=true, message="";
-  // Optimal defaults
-  let DWELL_MS=700, tileScale=1.15, planRpx=22, arcTight=0.86;
-  // State
-  const plan={x:0,y:0,r:28,trail:[]};
-  const tiles=[];
-  let entered=null, ready=0, ringPulse=0;
+  // Tuned defaults (same as aesthetic build)
+  const DWELL_MS=700, tileScale=1.15, planRpx=22, arcTight=0.86;
   const IN_FACTOR=1.22, OUT_FACTOR=1.60;
-  // Commit rules
-  let lastCommit=null; const MIN_GAP=240, REPEAT_CD=700;
-  let touching=false, mouseDown=false;
+  const MIN_GAP=240, REPEAT_CD=700;
 
-  // Sizing
-  function stageRectPx(){
-    const wrap = document.getElementById('stageWrap');
-    const r = wrap.getBoundingClientRect();
-    return {w: Math.max(50, Math.floor(r.width*DPR)), h: Math.max(50, Math.floor(r.height*DPR))};
-  }
+  // Shared planchette
+  const plan={x:0,y:0,r:Math.max(16*DPR, planRpx*DPR), trail:[]};
+  // Active touches map id -> {x,y}
+  const touches=new Map();
+  // Smoothing
+  let smoothX=0, smoothY=0, initialized=false;
+  const SMOOTH=0.22; // 0..1 higher = snappier
+
+  // Dwell / commit state (shared)
+  const tiles=[];
+  let entered=null, ready=0;
+  let lastCommit=null;
+
+  // Canvas sizing
   function sizeCanvas(){
-    const r = stageRectPx();
-    if(cv.width!==r.w) cv.width=r.w;
-    if(cv.height!==r.h) cv.height=r.h;
+    const wrap=document.getElementById('stageWrap'), r=wrap.getBoundingClientRect();
+    const w=Math.max(50, Math.floor(r.width*DPR)), h=Math.max(50, Math.floor(r.height*DPR));
+    if(cv.width!==w) cv.width=w;
+    if(cv.height!==h) cv.height=h;
     W=cv.width; H=cv.height;
-    plan.r = Math.max(16*DPR, planRpx*DPR);
-    buildTiles(); if(plan.x===0 && plan.y===0) center();
-    draw();
+    buildTiles(); center(); draw();
   }
   new ResizeObserver(sizeCanvas).observe(document.getElementById('stageWrap'));
   window.addEventListener('orientationchange', ()=>{ setTimeout(sizeCanvas, 250); setTimeout(sizeCanvas, 800); });
   window.addEventListener('resize', ()=>{ setTimeout(sizeCanvas, 150); });
   setTimeout(sizeCanvas, 60); setTimeout(sizeCanvas, 300); setTimeout(sizeCanvas, 900);
 
-  function center(){ plan.x=W*0.52; plan.y=H*0.62; draw(); }
+  function center(){ plan.x=W*0.52; plan.y=H*0.62; smoothX=plan.x; smoothY=plan.y; initialized=true; draw(); }
 
   // Layout
-  const base = { r1:[...'ABCDEFGH'], r2:[...'IJKLMNOP'], r3:[...'QRSTUVWXYZ'], nums:[...'1234567890'], cor:['YES','NO','GOODBYE'] };
   function buildTiles(){
     tiles.length=0;
     const cx=W*0.52, cy=H*0.62, baseR=Math.min(W,H)*0.36;
@@ -144,36 +123,27 @@
         tiles.push({x,y,r:Math.min(W,H)*0.035*tileScale,label:arr[i], id:idPrefix+i});
       }
     };
-    ring(base.r1, baseR*0.70, 'r1-');
-    ring(base.r2, baseR*0.90, 'r2-');
-    ring(base.r3, baseR*1.10, 'r3-');
+    const r1=[...'ABCDEFGH'], r2=[...'IJKLMNOP'], r3=[...'QRSTUVWXYZ'], nums=[...'1234567890'], cor=['YES','NO','GOODBYE'];
+    ring(r1, baseR*0.70, 'r1-'); ring(r2, baseR*0.90, 'r2-'); ring(r3, baseR*1.10, 'r3-');
     const nbY=cy+baseR*0.62, nr=Math.min(W,H)*0.035*tileScale;
-    for(let i=0;i<base.nums.length;i++){
-      const x=(W*0.20)+i*(W*0.6/(base.nums.length-1));
-      tiles.push({x,y:nbY,r:nr,label:base.nums[i], id:'n-'+i});
-    }
-    const c=base.cor;
-    tiles.push({x:W*0.18,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:c[0], id:'y'});
-    tiles.push({x:W*0.82,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:c[1], id:'n'});
-    tiles.push({x:W*0.50,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:c[2], id:'g'});
+    for(let i=0;i<nums.length;i++){ const x=(W*0.20)+i*(W*0.6/(nums.length-1)); tiles.push({x,y:nbY,r:nr,label:nums[i], id:'n-'+i}); }
+    tiles.push({x:W*0.18,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:'YES', id:'y'});
+    tiles.push({x:W*0.82,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:'NO', id:'n'});
+    tiles.push({x:W*0.50,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:'GOODBYE', id:'g'});
   }
 
-  // Drawing + effects
+  // Drawing
   function drawBoard(){
     ctx.clearRect(0,0,W,H);
-    // soft glow background
     const g=ctx.createRadialGradient(W*0.62,H*0.30,10, W*0.62,H*0.30, Math.max(W,H)*0.9);
     g.addColorStop(0,'rgba(120,200,255,0.07)'); g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    // grid
     ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
     for(let y=0;y<H;y+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
     for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
-    // rings
     ctx.strokeStyle='rgba(200,210,230,0.10)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
     const cx=W*0.52, cy=H*0.62, baseR=Math.min(W,H)*0.36;
     [0.70, 0.90, 1.10].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
-    // letters
     ctx.textAlign='center'; ctx.textBaseline='middle';
     const fontBig=(Math.min(W,H)*0.048)+'px ui-monospace,Menlo,Consolas';
     const fontCor=(Math.min(W,H)*0.039)+'px ui-monospace,Menlo,Consolas';
@@ -186,12 +156,10 @@
       ctx.fillText(t.label, t.x, t.y);
       ctx.shadowBlur=0;
     }
-    // READY ring (animated pulse)
+    // READY ring
     if(entered && entered.tile){
       const t=entered.tile, pct=ready;
-      const pulse = (Math.sin(ringPulse)+1)/2; // 0..1
-      ctx.lineWidth=5;
-      ctx.strokeStyle = (pct>=1 ? `rgba(157,246,178,0.95)` : `rgba(122,225,255,${0.65+0.25*pulse})`);
+      ctx.lineWidth=5; ctx.strokeStyle = (pct>=1 ? 'rgba(157,246,178,0.95)' : 'rgba(122,225,255,0.75)');
       ctx.beginPath(); ctx.arc(t.x, t.y, t.r*1.2, -Math.PI/2, (-Math.PI/2)+pct*2*Math.PI); ctx.stroke();
     }
   }
@@ -208,7 +176,7 @@
   }
   function draw(){ drawBoard(); drawPlanchette(); }
 
-  // Hit & sticky
+  // Hit helpers
   function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
   function stickyHit(x,y){
     if(entered && entered.tile){
@@ -218,7 +186,7 @@
     return hit(x,y);
   }
 
-  // Commit gating
+  // Commit gating (close-letter fix)
   function canCommit(tile, now){
     if(!entered || !entered.ready) return false;
     if(lastCommit){
@@ -234,71 +202,101 @@
     if(lab==='GOODBYE'){ message+=' [GOODBYE]'; running=false; }
     else if(lab==='YES' || lab==='NO'){ message+=` [${lab}]`; }
     else if(lab.length===1){ message+=lab; }
-    lastCommit={id:tile.id, label:lab, x:tile.x, y:tile.y, t:now};
-    if(entered) entered.didCommit=true;
+    lastCommit={id:tile.id, t:now};
+    entered && (entered.didCommit=true);
     updateTranscript();
   }
+  function updateTranscript(){ ta.value=message||'(no text)'; ta.scrollTop=ta.scrollHeight; }
 
-  function updateTranscript(){
-    ta.value = message || '(no text)';
-    ta.scrollTop = ta.scrollHeight;
-    statusEl.textContent = (running?'Listening':'Idle') + ' • ' + (message.replace(/\s/g,'').length) + ' chars';
+  // Compute centroid of touches
+  function centroid(){
+    const n=touches.size; if(n===0) return null;
+    let sx=0, sy=0; for(const [,p] of touches){ sx+=p.x; sy+=p.y; }
+    return {x:sx/n, y:sy/n};
+  }
+  function toCanvas(clientX,clientY){
+    const r=cv.getBoundingClientRect();
+    return {x:(clientX-r.left)*DPR, y:(clientY-r.top)*DPR};
   }
 
-  // Dwell loop
+  // Animation
   let lastTs=performance.now();
   function tick(ts){
-    const dt = (ts - lastTs) || 16; lastTs = ts;
-    ringPulse += dt/380;
-    if(touching || mouseDown){
-      const tile = stickyHit(plan.x, plan.y);
+    const dt=(ts-lastTs)||16; lastTs=ts;
+    // Update centroid → shared planchette
+    const c=centroid();
+    if(c){
+      if(!initialized){ smoothX=c.x; smoothY=c.y; initialized=true; }
+      // smoothing
+      smoothX = smoothX + (c.x - smoothX)*SMOOTH;
+      smoothY = smoothY + (c.y - smoothY)*SMOOTH;
+      plan.x=smoothX; plan.y=smoothY;
+      plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
+      // Dwell logic for shared planchette
+      const tile=stickyHit(plan.x, plan.y);
       if(tile && (!entered || entered.tile!==tile)){
-        entered = { tile, tEnter: ts, ready:false, didCommit:false };
-        ready = 0;
+        entered={tile, tEnter:ts, ready:false, didCommit:false}; ready=0;
       }
       if(tile){
         ready = Math.min(1, (ts - entered.tEnter) / DWELL_MS);
         entered.ready = ready >= 1;
         if(entered.ready && !entered.didCommit) commit(tile);
       }else{
-        entered = null; ready = 0;
+        entered=null; ready=0;
       }
     }else{
-      entered = null; ready = 0;
+      // No touches: reset dwell
+      entered=null; ready=0;
     }
     draw();
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 
-  // Coords helpers
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  function toCanvas(clientX,clientY){ const r=cv.getBoundingClientRect(); return {x:(clientX-r.left)*DPR,y:(clientY-r.top)*DPR}; }
-
-  // Touch
-  cv.addEventListener('touchstart', e=>{ e.preventDefault(); touching=true;
-    const t=e.changedTouches[0], p=toCanvas(t.clientX,t.clientY);
-    plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H); draw();
+  // Touch handlers (multi-person)
+  cv.addEventListener('touchstart', e=>{
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const p=toCanvas(t.clientX,t.clientY);
+      touches.set(t.identifier, p);
+    }
   }, {passive:false});
-  cv.addEventListener('touchmove', e=>{ e.preventDefault();
-    const t=e.changedTouches[0], p=toCanvas(t.clientX,t.clientY);
-    plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
-    plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
+  cv.addEventListener('touchmove', e=>{
+    e.preventDefault();
+    for(const t of e.changedTouches){
+      const p=toCanvas(t.clientX,t.clientY);
+      touches.set(t.identifier, p);
+    }
   }, {passive:false});
-  cv.addEventListener('touchend', e=>{ e.preventDefault(); touching=false; }, {passive:false});
-  cv.addEventListener('touchcancel', e=>{ e.preventDefault(); touching=false; }, {passive:false});
+  function endTouches(list){
+    for(const t of list){ touches.delete(t.identifier); }
+  }
+  cv.addEventListener('touchend', e=>{ e.preventDefault(); endTouches(e.changedTouches); }, {passive:false});
+  cv.addEventListener('touchcancel', e=>{ e.preventDefault(); endTouches(e.changedTouches); }, {passive:false});
 
-  // Mouse
-  cv.addEventListener('mousedown', e=>{ mouseDown=true; const p=toCanvas(e.clientX,e.clientY); plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H); });
-  cv.addEventListener('mousemove', e=>{ if(!mouseDown) return; const p=toCanvas(e.clientX,e.clientY); plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H); plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift(); });
-  cv.addEventListener('mouseup', e=>{ mouseDown=false; });
+  // Mouse as another "finger" (desktop testing)
+  let mouseDown=false;
+  cv.addEventListener('mousedown', e=>{
+    mouseDown=true; const p=toCanvas(e.clientX,e.clientY); touches.set('mouse', p);
+  });
+  cv.addEventListener('mousemove', e=>{
+    if(!mouseDown) return; const p=toCanvas(e.clientX,e.clientY); touches.set('mouse', p);
+  });
+  cv.addEventListener('mouseup', e=>{ mouseDown=false; touches.delete('mouse'); });
 
   // Buttons
-  $('#btnRefresh').onclick=()=>{ running=true; message=''; plan.trail.length=0; entered=null; ready=0; updateTranscript(); center(); draw(); };
-  $('#btnGoodbye').onclick=()=>{ if(!running) return; commit({id:'g',label:'GOODBYE', x:0,y:0}); running=false; };
+  $('#btnRefresh').onclick=()=>{
+    running=true; message=''; ta.value='(no text)';
+    plan.trail.length=0; entered=null; ready=0; lastCommit=null;
+    smoothX=plan.x; smoothY=plan.y;
+  };
+  $('#btnGoodbye').onclick=()=>{
+    if(!running) return;
+    message+=' [GOODBYE]'; running=false; updateTranscript();
+  };
 
   // Init
-  updateTranscript();
+  sizeCanvas(); updateTranscript();
 })();
 </script>
 </body>
