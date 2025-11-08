@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Spirit Board — OMNI v2 (Desktop + Mobile)</title>
+<title>Spirit Board — OMNI v3 (Sticky + Stability)</title>
 <style>
   :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff;--good:#7bf59a;--warn:#ffd166;--bad:#ff6b6b}
   *{box-sizing:border-box}
@@ -50,11 +50,11 @@
         <label><input type="checkbox" id="chkShuffle"> Shuffle</label>
         <label><input type="checkbox" id="chkDebug"> Debug view</label>
         <label><input type="checkbox" id="chkSound" checked> Audio tick</label>
-        <label><input type="checkbox" id="chkHiSens"> High-sensitivity (desktop)</label>
-        <label><input type="checkbox" id="chkNeedReady" checked> Require READY to commit</label>
+        <label><input type="checkbox" id="chkNeedReady" checked> Require READY</label>
+        <label><input type="checkbox" id="chkStability" checked> Stability Boost</label>
       </div>
       <div class="row" style="margin-top:8px">
-        <label>Gain <input type="range" id="rngGain" min="0.6" max="2.6" step="0.1" value="1.8"></label>
+        <label>Gain <input type="range" id="rngGain" min="0.6" max="2.6" step="0.1" value="1.7"></label>
         <label>Commit
           <select id="selMode">
             <option value="exit" selected>Exit (very safe)</option>
@@ -62,24 +62,15 @@
             <option value="press">Press (double‑tap/‑click)</option>
           </select>
         </label>
-        <label>Dwell <input type="range" id="rngDwell" min="400" max="1600" step="50" value="900"></label>
-        <label>Spacing <input type="range" id="rngSpace" min="1.0" max="2.2" step="0.1" value="1.7"></label>
+        <label>Dwell <input type="range" id="rngDwell" min="350" max="1600" step="50" value="750"></label>
+        <label>Spacing <input type="range" id="rngSpace" min="1.0" max="2.4" step="0.1" value="1.8"></label>
         <label>Commit gap <input type="range" id="rngGap" min="300" max="1200" step="50" value="600"></label>
         <label>Repeat cooldown <input type="range" id="rngRepeat" min="400" max="1600" step="50" value="950"></label>
-        <label>Arm delay <input type="range" id="rngArm" min="100" max="800" step="50" value="250"></label>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <label>Assist
-          <select id="selAssist">
-            <option value="off" selected>Off</option>
-            <option value="bigram">Bigram Bias</option>
-            <option value="lexicon">Lexicon Snap</option>
-          </select>
-        </label>
-        <label>Warm‑up (s) <input type="range" id="rngWarm" min="0" max="40" step="5" value="12"></label>
+        <label>Arm delay <input type="range" id="rngArm" min="50" max="800" step="50" value="250"></label>
+        <label>Tile size <input type="range" id="rngTile" min="1.0" max="1.6" step="0.05" value="1.2"></label>
       </div>
     </details>
-    <div class="small">Exit mode: enter a letter → ring fills → <b>slide off</b> to commit. “Require READY” forces the ring to complete before any commit (even Press).</div>
+    <div class="small">Sticky tiles: once you enter a letter, you won’t “fall out” unless you really leave it. Stability Boost reduces wobble and speeds dwell slightly while inside.</div>
   </header>
 
   <div id="stage"><canvas id="cv"></canvas></div>
@@ -100,6 +91,9 @@
   const statusEl=$('#status'), logEl=$('#log'), toastEl=$('#toast');
   const badgeMode=$('#badgeMode'), badgeReady=$('#badgeReady');
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const isTouch=()=>('ontouchstart' in window || navigator.maxTouchPoints>0);
+
+  // Audio
   let audioOn=true, ac=null;
   function beep(freq=660, dur=0.05){
     if(!audioOn) return;
@@ -112,21 +106,18 @@
       o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime+dur);
     }catch(e){} }
   function toast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.remove('show'),700); }
-  function isTouch(){ return 'ontouchstart' in window || navigator.maxTouchPoints>0; }
 
   // State
-  let running=false, blind=false, sealed=false, shuffled=false, debugView=false, pointerLocked=false, hiSens=false, needReady=true;
-  let gain=1.8, message="", lastT=performance.now();
+  let running=false, blind=false, sealed=false, shuffled=false, debugView=false, needReady=true, stabilityBoost=true;
+  let gain=1.7, message="", lastT=performance.now();
   let plan={x:0,y:0,r:28,trail:[]}, target={x:0,y:0}; const tiles=[];
+  let tileScale=1.2;
 
-  // Commit control
-  let commitMode='exit'; let DWELL_MS=900, MIN_SPACE_FACTOR=1.7, MIN_COMMIT_GAP=600, REPEAT_COOLDOWN=950, ARM_DELAY=250;
+  // Commit control & sticky hysteresis
+  let commitMode='exit'; let DWELL_MS=750, MIN_SPACE_FACTOR=1.8, MIN_COMMIT_GAP=600, REPEAT_COOLDOWN=950, ARM_DELAY=250;
+  const IN_FACTOR=1.18, OUT_FACTOR=1.45; // sticky thresholds
   let entered=null, lastCommit=null, dwellTimer=0, readyVisual=0, armed=false;
-
-  // Assist + warmup
-  let assistMode='off', warmupSec=12, startTs=0;
-  const BIGRAM=(()=>{ const list=['TH','HE','IN','ER','AN','RE','ED','ON','ES','ST','EN','AT','TO','NT','HA','ND','OU','EA','NG','AS','OR','TI','IS','ET','IT','AR','TE','SE','HI','OF']; const map={}; list.forEach((b,i)=>map[b]=(list.length-i)); return map; })();
-  const SMALL_LEXICON=new Set(['YES','NO','HELLO','GOODBYE','PLEASE','THANK','YOU','WHO','WHAT','WHEN','WHERE','WHY','HOW','LOVE','PEACE','LIGHT','TRUTH','SAFE','HELP','ALLAN','ELI']);
+  let stickyCurrent=null; // last tile we consider "inside"
 
   // Sizing
   function sizeCanvas(){ const r=cv.getBoundingClientRect(); cv.width=Math.max(10,r.width*DPR); cv.height=Math.max(10,r.height*DPR); plan.r=Math.max(isTouch()?22:20, Math.min(cv.width,cv.height)*(isTouch()?0.05:0.04)); center(); draw(); }
@@ -158,7 +149,7 @@
       const n=arr.length, a0=-Math.PI*0.8, a1=-Math.PI*0.2;
       for(let i=0;i<n;i++){
         const t=i/(n-1), ang=a0+(a1-a0)*t, x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
-        tiles.push({x,y,r:Math.min(W,H)*(isTouch()?0.040:0.032), label:arr[i]});
+        tiles.push({x,y,r:Math.min(W,H)*(isTouch()?0.040:0.032)*tileScale, label:arr[i]});
         if(!blind || debugView){ ctx.fillStyle='#cfd6e6'; ctx.font=(Math.min(W,H)*(isTouch()?0.05:0.035))+'px ui-monospace,Menlo,Consolas'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(arr[i],x,y); }
         else { ctx.fillStyle='rgba(180,190,210,0.14)'; ctx.beginPath(); ctx.arc(x,y,Math.min(W,H)*0.008,0,Math.PI*2); ctx.fill(); }
       }
@@ -166,7 +157,7 @@
     drawRing(layout.ring1, baseR*0.70); drawRing(layout.ring2, baseR*0.86); drawRing(layout.ring3, baseR*1.02);
 
     // numbers
-    const nbY=cy+baseR*0.55, nbR=Math.min(W,H)*(isTouch()?0.040:0.032);
+    const nbY=cy+baseR*0.55, nbR=Math.min(W,H)*(isTouch()?0.040:0.032)*tileScale;
     for(let i=0;i<layout.numbers.length;i++){
       const x=(W*0.20)+i*(W*0.6/(layout.numbers.length-1));
       tiles.push({x,y:nbY,r:nbR,label:layout.numbers[i]});
@@ -178,14 +169,14 @@
     const c=layout.corners;
     const corners=[{x:W*0.18,y:H*0.18,l:c[0],col:'#7bf59a'},{x:W*0.82,y:H*0.18,l:c[1],col:'#ffb3b3'},{x:W*0.50,y:H*0.18,l:c[2],col:'#9aa3b2'}];
     for(const k of corners){
-      tiles.push({x:k.x,y:k.y,r:Math.min(W,H)*(isTouch()?0.052:0.042),label:k.l});
+      tiles.push({x:k.x,y:k.y,r:Math.min(W,H)*(isTouch()?0.052:0.042)*tileScale,label:k.l});
       if(!blind || debugView){ ctx.fillStyle=k.col; ctx.font=(Math.min(W,H)*(isTouch()?0.04:0.028))+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(k.l,k.x,k.y); }
       else { ctx.strokeStyle='rgba(200,210,230,0.14)'; ctx.strokeRect(k.x-18,k.y-12,36,24); }
     }
 
-    // Ready ring (thicker + green when done)
-    if(entered && entered.tile){
-      const t=entered.tile;
+    // Ready ring (thicker + green when done) on stickyCurrent
+    const t = stickyCurrent;
+    if(t){
       ctx.lineWidth=5;
       ctx.strokeStyle = (readyVisual>=1 ? 'rgba(123,245,154,0.9)' : 'rgba(122,225,255,0.7)');
       ctx.beginPath(); ctx.arc(t.x, t.y, t.r*1.18, -Math.PI/2, (-Math.PI/2)+readyVisual*2*Math.PI); ctx.stroke();
@@ -201,52 +192,37 @@
   }
   function draw(){ drawBoard(); drawPlanchette(); }
 
-  // Input
+  // Touch
   function tPoint(e){ const t=e.changedTouches[0], r=cv.getBoundingClientRect(); return {x:(t.clientX-r.left)*DPR, y:(t.clientY-r.top)*DPR, time:e.timeStamp}; }
   cv.addEventListener('touchstart', e=>{ e.preventDefault(); const p=tPoint(e); target.x=clamp(p.x,0,cv.width); target.y=clamp(p.y,0,cv.height); if(commitMode==='press') pressStart(p); }, {passive:false});
-  cv.addEventListener('touchmove', e=>{ e.preventDefault(); const p=tPoint(e); const tx=(target.x||p.x), ty=(target.y||p.y); target.x=clamp(tx+(p.x-tx)*(0.36*gain),0,cv.width); target.y=clamp(ty+(p.y-ty)*(0.36*gain),0,cv.height); }, {passive:false});
+  cv.addEventListener('touchmove', e=>{ e.preventDefault(); const p=tPoint(e); const tx=(target.x||p.x), ty=(target.y||p.y); target.x=clamp(tx+(p.x-tx)*(0.34*gain),0,cv.width); target.y=clamp(ty+(p.y-ty)*(0.34*gain),0,cv.height); }, {passive:false});
   cv.addEventListener('touchend', e=>{ e.preventDefault(); const p=tPoint(e); if(commitMode==='press') pressEnd(p); }, {passive:false});
 
+  // Mouse / Pointer
   cv.addEventListener('pointermove', e=>{
-    if(isTouch() || pointerLocked) return;
+    if(isTouch()) return;
     const r=cv.getBoundingClientRect(); const px=(e.clientX-r.left)*DPR, py=(e.clientY-r.top)*DPR;
-    const tx=(target.x||px), ty=(target.y||py); target.x=clamp(tx+(px-tx)*(0.35*gain),0,cv.width); target.y=clamp(ty+(py-ty)*(0.35*gain),0,cv.height);
-  });
-  cv.addEventListener('pointerdown', e=>{ if(!isTouch()) cv.setPointerCapture(e.pointerId); if(commitMode==='press') clickStart(e); });
-  cv.addEventListener('pointerup', e=>{ if(commitMode==='press') clickEnd(e); });
-
-  function enablePointerLock(){ if(pointerLocked||!cv.requestPointerLock) return; cv.requestPointerLock(); }
-  document.addEventListener('pointerlockchange', ()=>{ pointerLocked=(document.pointerLockElement===cv); });
-  document.addEventListener('mousemove', e=>{
-    if(!pointerLocked) return;
-    const dx=(e.movementX||0)*DPR*gain, dy=(e.movementY||0)*DPR*gain;
-    target.x=clamp((target.x||plan.x)+dx,0,cv.width); target.y=clamp((target.y||plan.y)+dy,0,cv.height);
+    const tx=(target.x||px), ty=(target.y||py); target.x=clamp(tx+(px-tx)*(0.33*gain),0,cv.width); target.y=clamp(ty+(py-ty)*(0.33*gain),0,cv.height);
   });
 
-  // Hit & assist
-  function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
-  function nearby(x,y,rf=1.5){ const R=Math.min(cv.width,cv.height)*0.065*rf, out=[]; for(const t of tiles){ const d=Math.hypot(x-t.x,y-t.y); if(d<=R) out.push({tile:t,d}); } out.sort((a,b)=>a.d-b.d); return out; }
-  function bigramScore(prev,next){ if(!prev||!next) return 0; const key=(prev+next).toUpperCase(); return BIGRAM[key]||0; }
-  function chooseAssist(primary){
-    if(assistMode==='off') return primary;
-    const prev=lastCommit && lastCommit.label && lastCommit.label.length===1 ? lastCommit.label : null;
-    const nb=nearby(plan.x,plan.y,1.6); if(nb.length===0) return primary;
-    let best={score:-1e9, tile:primary};
-    for(const {tile,d} of nb){
-      let score=-d;
-      if(assistMode==='bigram' && prev) score += bigramScore(prev,tile.label)*4.0;
-      if(assistMode==='lexicon'){
-        const maybe=(message+(tile.label.length===1?tile.label:'')).toUpperCase();
-        for(const w of SMALL_LEXICON){ if(w.startsWith(maybe)) score += 6.0; }
-        const isV='AEIOUY'.includes(tile.label), prevIsV=prev?'AEIOUY'.includes(prev):null;
-        if(prev && prevIsV!==null && isV!==prevIsV) score += 1.5;
-      }
-      if(lastCommit && lastCommit.label===tile.label) score -= 3.2;
-      if(score>best.score) best={score,tile};
+  // Hit test with sticky hysteresis
+  function baseHit(x,y){
+    for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; }
+    return null;
+  }
+  function stickyHit(x,y){
+    // If we already have a sticky tile, stay inside until OUT_FACTOR*r
+    if(stickyCurrent){
+      const d = Math.hypot(x-stickyCurrent.x, y-stickyCurrent.y);
+      if(d <= stickyCurrent.r*OUT_FACTOR) return stickyCurrent;
     }
-    const maxJump=Math.min(cv.width,cv.height)*0.12;
-    if(Math.hypot(best.tile.x-primary.x, best.tile.y-primary.y)>maxJump) return primary;
-    return best.tile;
+    // Otherwise, enter if within IN_FACTOR*r of any tile
+    let best=null, bestD=1e9;
+    for(const t of tiles){
+      const d=Math.hypot(x-t.x,y-t.y);
+      if(d <= t.r*IN_FACTOR && d<bestD){ best=t; bestD=d; }
+    }
+    return best;
   }
 
   // Commit gating
@@ -268,67 +244,57 @@
     else if(lab.length===1){ message += lab; toast(lab); beep(660,0.03); }
     lastCommit={label:lab, x:tile.x, y:tile.y, t:now};
     updateLog();
-    // disarm until we re-enter & arm again
-    armed=false; entered && (entered.ready=false);
+    entered.ready=false; armed=false; // require re-arm
   }
 
-  // Entry tracking
+  // Loop logic
   function onTileState(dt){
-    let tile = hit(plan.x, plan.y);
-    if(tile && assistMode!=='off') tile = chooseAssist(tile);
-    // warmup
-    if(running && warmupSec>0 && (Date.now()-startTs) < warmupSec*1000){
-      if(!(tile && (tile.label==='YES' || tile.label==='NO'))) tile=null;
-    }
-    // entering
+    let tile = stickyHit(plan.x, plan.y);
+    stickyCurrent = tile || null;
+
+    // Enter / leave logic
     if(tile && (!entered || entered.tile!==tile)){
       entered={tile, tEnter:performance.now(), ready:false};
       readyVisual=0; dwellTimer=0; armed=false;
     }
-    // leaving
     if(!tile){
       if(entered && entered.tile && entered.ready && commitMode==='exit' && armed){
         const now=Date.now(); if(canCommit(entered.tile, now)) doCommit(entered.tile, now);
       }
       entered=null; readyVisual=0; dwellTimer=0; armed=false; return;
     }
-    // within tile
-    dwellTimer += dt;
+
+    // Dwell progression
     const sinceEnter = performance.now() - (entered ? entered.tEnter : performance.now());
-    armed = sinceEnter >= ARM_DELAY; // short arming delay
+    armed = sinceEnter >= ARM_DELAY;
+    // reduce wobble & accelerate dwell when stabilityBoost ON
+    let wobbleFactor = stabilityBoost ? 0.3 : 1.0;
+    let dwellFactor = stabilityBoost ? 1.5 : 1.0;
+
+    dwellTimer += dt * dwellFactor;
     readyVisual = Math.min(1, dwellTimer / DWELL_MS);
     entered.ready = readyVisual >= 1;
     badgeReady.textContent = 'Ready: ' + Math.round(readyVisual*100) + '%';
     badgeReady.classList.toggle('green', entered.ready);
 
+    // Commit in dwell mode
     if(commitMode==='dwell' && entered.ready && armed){
       const now=Date.now(); if(canCommit(tile, now)) doCommit(tile, now);
-      entered.ready=false; dwellTimer=0; armed=false; // require re-entry
+      entered.ready=false; dwellTimer=0; armed=false;
     }
+
+    // Apply wobble attenuation
+    wobbleScale = wobbleFactor;
   }
 
-  // Press mode (double tap/click) — now also requires READY if needReady=true
-  let pressCand=null; const DBL_MS=380;
-  function pressStart(p){
-    const t=hit(plan.x, plan.y); if(!t){ pressCand=null; return; }
-    if(pressCand && pressCand.tile===t && (p.time - pressCand.tDown) < DBL_MS){
-      const now=Date.now(); if(canCommit(t, now)) doCommit(t, now); pressCand=null; return;
-    }
-    pressCand={tile:t, tDown:p.time};
-  }
-  function pressEnd(p){ /* no-op */ }
-  function clickStart(e){
-    const r=cv.getBoundingClientRect(); const px=(e.clientX-r.left)*DPR, py=(e.clientY-r.top)*DPR;
-    target.x=px; target.y=py;
-    const t=hit(px,py); const time=performance.now();
-    pressStart({time, tile:t});
-  }
-  function clickEnd(e){}
+  // Globals for wobble
+  let wobbleScale = 1.0;
 
-  // Loop
+  // Tick
   function tick(){
     const t=performance.now(), dt=(t-lastT)||16; lastT=t;
-    const wob1=Math.sin((t+97)*0.006)*(isTouch()?3.5:6), wob2=Math.cos((t+31)*0.004)*(isTouch()?3.5:6);
+    const wob1=Math.sin((t+97)*0.006)*(isTouch()?3.5:6)*wobbleScale;
+    const wob2=Math.cos((t+31)*0.004)*(isTouch()?3.5:6)*wobbleScale;
     const nx=(target.x||plan.x), ny=(target.y||plan.y);
     plan.x=clamp(plan.x + (nx + wob1 - plan.x)*0.18, 0, cv.width);
     plan.y=clamp(plan.y + (ny + wob2 - plan.y)*0.18, 0, cv.height);
@@ -339,37 +305,34 @@
     draw();
     requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
+  let lastT=performance.now(); requestAnimationFrame(tick);
 
   // Log & status
   function updateLog(){ if((sealed||blind) && running && !debugView) logEl.textContent='(sealed)'; else logEl.textContent=message||'(no text)'; statusEl.textContent=(running?'Listening':'Idle') + ' • ' + (message.replace(/\s/g,'').length) + ' chars'; }
 
   // Controls
-  function start(){ if(running) return; running=true; message=''; plan.trail.length=0; lastCommit=null; entered=null; dwellTimer=0; readyVisual=0; startTs=Date.now(); updateLog(); if(hiSens && !isTouch()) enablePointerLock(); }
-  function stop(){ if(!running) return; running=false; if(pointerLocked && document.exitPointerLock) document.exitPointerLock(); updateLog(); }
-  function reset(){ running=false; message=''; plan.trail.length=0; dwellTimer=0; lastCommit=null; entered=null; readyVisual=0; armed=false; center(); draw(); updateLog(); }
+  function start(){ if(running) return; running=true; message=''; plan.trail.length=0; lastCommit=null; entered=null; dwellTimer=0; readyVisual=0; stickyCurrent=null; updateLog(); }
+  function stop(){ if(!running) return; running=false; updateLog(); }
+  function reset(){ running=false; message=''; plan.trail.length=0; dwellTimer=0; lastCommit=null; entered=null; readyVisual=0; stickyCurrent=null; center(); draw(); updateLog(); }
 
-  function exportJSON(){ const body={ ts:Date.now(), blind, sealed, shuffled, debugView, audioOn, hiSens, needReady, gain, commitMode, DWELL_MS, MIN_SPACE_FACTOR, MIN_COMMIT_GAP, REPEAT_COOLDOWN, ARM_DELAY, assistMode, warmupSec, message, trail:plan.trail.slice(-500), tiles:tiles.map(t=>({x:t.x,y:t.y,r:t.r,label:t.label})) }; const blob=new Blob([JSON.stringify(body,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='spirit_board_omni_v2_session.json'; a.click(); }
+  function exportJSON(){ const body={ ts:Date.now(), blind, sealed, shuffled, debugView, audioOn, needReady, stabilityBoost, gain, commitMode, DWELL_MS, MIN_SPACE_FACTOR, MIN_COMMIT_GAP, REPEAT_COOLDOWN, ARM_DELAY, tileScale, message, trail:plan.trail.slice(-500), tiles:tiles.map(t=>({x:t.x,y:t.y,r:t.r,label:t.label})) }; const blob=new Blob([JSON.stringify(body,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='spirit_board_omni_v3_session.json'; a.click(); }
 
   $('#btnStart').onclick=start; $('#btnStop').onclick=stop; $('#btnReset').onclick=reset; $('#btnCenter').onclick=()=>{center(); draw();};
   $('#selMode').onchange=e=>{ commitMode=e.target.value; badgeMode.textContent='Mode: '+(commitMode[0].toUpperCase()+commitMode.slice(1)); };
-  $('#rngDwell').oninput=e=>{ DWELL_MS=parseInt(e.target.value,10)||900; };
-  $('#rngSpace').oninput=e=>{ MIN_SPACE_FACTOR=parseFloat(e.target.value)||1.7; };
+  $('#rngDwell').oninput=e=>{ DWELL_MS=parseInt(e.target.value,10)||750; };
+  $('#rngSpace').oninput=e=>{ MIN_SPACE_FACTOR=parseFloat(e.target.value)||1.8; };
   $('#rngGap').oninput=e=>{ MIN_COMMIT_GAP=parseInt(e.target.value,10)||600; };
   $('#rngRepeat').oninput=e=>{ REPEAT_COOLDOWN=parseInt(e.target.value,10)||950; };
   $('#rngArm').oninput=e=>{ ARM_DELAY=parseInt(e.target.value,10)||250; };
-  $('#rngGain').oninput=e=>{ gain=parseFloat(e.target.value)||1.8; };
-  $('#selAssist').onchange=e=>{ assistMode=e.target.value; };
-  $('#rngWarm').oninput=e=>{ warmupSec=parseInt(e.target.value,10)||0; };
+  $('#rngGain').oninput=e=>{ gain=parseFloat(e.target.value)||1.7; };
   $('#chkBlind').onchange=e=>{ blind=e.target.checked; updateLog(); draw(); };
   $('#chkSeal').onchange=e=>{ sealed=e.target.checked; updateLog(); };
   $('#chkShuffle').onchange=e=>{ shuffled=e.target.checked; refreshLayout(); draw(); };
   $('#chkDebug').onchange=e=>{ debugView=e.target.checked; updateLog(); draw(); };
   $('#chkSound').onchange=e=>{ audioOn=e.target.checked; };
-  $('#chkHiSens').onchange=e=>{ hiSens=e.target.checked; if(!hiSens && pointerLocked && document.exitPointerLock) document.exitPointerLock(); };
   $('#chkNeedReady').onchange=e=>{ needReady=e.target.checked; };
-  $('#btnExport').onclick=exportJSON;
-
+  $('#chkStability').onchange=e=>{ stabilityBoost=e.target.checked; };
+  $('#rngTile').oninput=e=>{ tileScale=parseFloat(e.target.value)||1.2; draw(); };
   // Boot
   refreshLayout(); center(); draw(); updateLog();
 })();</script>
