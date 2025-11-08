@@ -106,11 +106,21 @@
   const fx = document.getElementById('fx');
   const ctx = board.getContext('2d');
   const gfx = fx.getContext('2d');
+  // Helper to centre planchette/target on the board
+  function centerPlanchette(){
+    const r = board.getBoundingClientRect();
+    const cx = (r.width * 0.52) * DPR;
+    const cy = (r.height * 0.58) * DPR;
+    target.x = cx; target.y = cy;
+    plan.x = cx; plan.y = cy;
+  }
   const DPR = Math.min(2, window.devicePixelRatio||1);
   function resize(){
     const r = board.parentElement.getBoundingClientRect();
     [board,fx].forEach(c=>{ c.width = r.width*DPR; c.height=r.height*DPR; c.style.width=r.width+'px'; c.style.height=r.height+'px';});
     drawBoard();
+    // Keep the planchette centred when not actively running
+    if(!state.running){ centerPlanchette(); drawFX(0); }
   }
   window.addEventListener('resize', resize);
 
@@ -181,7 +191,7 @@
   const plan = {x:0,y:0,vx:0,vy:0, size: 54, trail:[], dwell:{tile:null,t:0}};
   const state = {running:false, sealed:false, startedAt:null, lastMove:performance.now(), microJitter:0, decisions:[], message:""};
 
-  function resetAll(){ state.running=false; state.sealed=false; state.startedAt=null; state.decisions.length=0; state.message=""; plan.trail.length=0; plan.dwell={tile:null,t:0}; $('#log').textContent='(nothing yet)'; $('#badgeLen').textContent='0 chars'; $('#hudMode').textContent='Idle'; $('#hudConf').textContent='—'; drawBoard(); drawFX(0); }
+  function resetAll(){ state.running=false; state.sealed=false; state.startedAt=null; state.decisions.length=0; state.message=""; plan.trail.length=0; plan.dwell={tile:null,t:0}; $('#log').textContent='(nothing yet)'; $('#badgeLen').textContent='0 chars'; $('#hudMode').textContent='Idle'; $('#hudConf').textContent='—'; centerPlanchette(); drawBoard(); drawFX(0); }
 
   // pointer input → smoothed target
   let target={x:0,y:0};
@@ -192,6 +202,7 @@
     target.x = px; target.y = py;
   }
   board.addEventListener('pointermove', onPointer);
+  board.addEventListener('pointerenter', onPointer);
   board.addEventListener('pointerdown', e=>{board.setPointerCapture(e.pointerId)});
   board.addEventListener('pointerup', e=>{tryDwellCommit(true)});
 
@@ -247,7 +258,7 @@
   function pulse(){ gfx.save(); gfx.strokeStyle='rgba(122,225,255,0.6)'; gfx.lineWidth=6; gfx.beginPath(); gfx.arc(plan.x,plan.y,plan.size*DPR*0.58,0,Math.PI*2); gfx.stroke(); gfx.restore(); }
 
   // ======== Session control ========
-  function startSession(){ if(state.running) return; state.running=true; state.startedAt=Date.now(); $('#hudMode').textContent='Listening'; toast('Begin. Keep a light touch and don\'t steer.'); }
+  function startSession(){ if(state.running) return; state.running=true; state.startedAt=Date.now(); $('#hudMode').textContent='Listening'; centerPlanchette(); toast('Begin. Keep a light touch and don\'t steer.'); }
   function stopSession(){ if(!state.running) return; state.running=false; $('#hudMode').textContent='Stopped'; if(blind){ blind=false; $('#chkBlind').checked=false; $('#hudBlind').textContent='Off'; drawBoard(); $('#log').textContent=state.message||'(no text)'; toast('Reveal'); }}
   function hardReset(){ resetAll(); toast('Reset'); }
 
@@ -285,7 +296,7 @@
   });
 
   // ======== Boot ========
-  makeLayout(); resize(); resetAll(); loop();
+  makeLayout(); resize(); centerPlanchette(); resetAll(); loop();
 })();
 </script>
 </body>
