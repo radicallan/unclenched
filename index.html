@@ -111,16 +111,24 @@
   const gfx = fx.getContext('2d');
   // Helper to centre planchette/target on the board
   function centerPlanchette(){
-    const r = board.getBoundingClientRect();
-    const cx = (r.width * 0.52) * DPR;
-    const cy = (r.height * 0.58) * DPR;
+    // robust centre: use canvas size if DOM rect not ready
+    const br = board.getBoundingClientRect();
+    const w = br.width>0? br.width*DPR : board.width;
+    const h = br.height>0? br.height*DPR : board.height;
+    const cx = w * 0.52;
+    const cy = h * 0.58;
     target.x = cx; target.y = cy;
     plan.x = cx; plan.y = cy;
   }
   const DPR = Math.min(2, window.devicePixelRatio||1);
   function resize(){
     const r = board.parentElement.getBoundingClientRect();
-    [board,fx].forEach(c=>{ c.width = r.width*DPR; c.height=r.height*DPR; c.style.width=r.width+'px'; c.style.height=r.height+'px';});
+    const w = Math.max(10, r.width*DPR), h = Math.max(10, r.height*DPR);
+    [board,fx].forEach(c=>{ c.width = w; c.height = h; c.style.width=r.width+'px'; c.style.height=r.height+'px';});
+    drawBoard();
+    if(!state.running){ centerPlanchette(); drawFX(0); }
+  }
+  try{ const ro=new ResizeObserver(()=>resize()); ro.observe(document.getElementById('stage')); }catch(e){});
     drawBoard();
     // Keep the planchette centred when not actively running
     if(!state.running){ centerPlanchette(); drawFX(0); }
@@ -149,12 +157,16 @@
   const tiles=[]; // {x,y,r,label}
 
   function drawBoard(){
+    // safety: if canvas not sized yet, bail
+    if(board.width<20||board.height<20){ return; }
     ctx.clearRect(0,0,board.width, board.height);
     const W=board.width, H=board.height;
     // background halo
     const grad = ctx.createRadialGradient(W*0.62,H*0.35,10, W*0.62,H*0.35, Math.max(W,H)*0.9);
     grad.addColorStop(0,'rgba(255,255,255,0.05)'); grad.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+    // subtle grid so the board never looks empty (esp. in Blind mode)
+    ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1; for(let y=0;y<H;y+=Math.max(20,DPR*24)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); } for(let x=0;x<W;x+=Math.max(20,DPR*24)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
 
     tiles.length=0;
     const cx=W*0.52, cy=H*0.58; // board center
@@ -195,12 +207,11 @@
   const state = {running:false, sealed:false, startedAt:null, lastMove:performance.now(), microJitter:0, decisions:[], message:"", pointerLocked:false};
   let gain = 1.8; // movement amplification
 
-  function resetAll(){ state.running=false; state.sealed=false; state.startedAt=null; stdConf').textContent='—'; centerPlanchette(); drawBoard(); drawFX(0); }
+  function resetAll(){ state.running=false; state.sealed=false; state.startedAt=null; state.decisions.length=0; state.message=""; plan.trail.length=0; plan.dwell={tile:null,t:0}; $('#log').textContent='(nothing yet)'; $('#badgeLen').textContent='0 chars'; $('#hudMode').textContent='Idle'; $('#hudConf').textContent='—'; centerPlanchette(); drawBoard(); drawFX(0); }
 
   // pointer input → smoothed target
   let target={x:0,y:0};
-  function onPointer(e){ const rect=board.getBoundingClientRect(); const px=(e.clientX-rect.left)*DPR, py=(e.clientY-rect.top)*DPR; const t=performance.now();
-    const dt=t-state.lastMove; state.lastMove=t; //function onPointer(e){
+  function onPointer(e){
     if(state.pointerLocked) return; // when locked we use movementX/Y
     const rect=board.getBoundingClientRect();
     const px=(e.clientX-rect.left)*DPR, py=(e.clientY-rect.top)*DPR;
@@ -210,11 +221,13 @@
     const speed=Math.hypot(dx,dy)/(dt||16);
     state.microJitter = lerp(state.microJitter, Math.min(1, speed/50), 0.12);
     target.x = (target.x||px)+dx; target.y = (target.y||py)+dy;
-  }steboard.addEventListener('pointermove', onPointer);
+  }
+  board.addEventListener('pointermove', onPointer);
   // high frequency raw updates where supported
-  board.addEventListener('pointerrawupdate', onPointer);unction stepPhysics(dt){
-    const kFollow = 0.12; // smoothing factor
-    const noise = (n)=> (Math.sin((performance.now()+n*97)*0.006 + n)board.addEventListener('pointerup', e=>{tryDwellCommit(true)});
+  board.addEventListener('pointerrawupdate', onPointer);
+  board.addEventListener('pointerenter', onPointer);
+  board.addEventListener('pointerdown', e=>{board.setPointerCapture(e.pointerId)});
+  board.addEventListener('pointerup', e=>{tryDwellCommit(true)});
   // Pointer lock for ultra sensitivity
   function enablePointerLock(){ if(state.pointerLocked) return; if(board.requestPointerLock){ board.requestPointerLock(); }}
   document.addEventListener('pointerlockchange', ()=>{ state.pointerLocked = document.pointerLockElement === board; });
@@ -226,7 +239,12 @@
     target.y = clamp((target.y||plan.y)+dy, 0, board.height);
     const speed=Math.hypot(dx,dy)/(dt||16);
     state.microJitter = lerp(state.microJitter, Math.min(1, speed/40), 0.15);
-  });plify tiny involuntary drift
+  });
+
+  function stepPhysics(dt){
+    const kFollow = 0.12; // smoothing factor
+    const noise = (n)=> (Math.sin((performance.now()+n*97)*0.006 + n)*0.8 + Math.cos((performance.now()+n*31)*0.004))*0.4;
+    // amplify tiny involuntary drift
     const amp = 0.6 + state.microJitter*0.9;
     const nx = target.x + noise(1)*8*amp, ny = target.y + noise(2)*8*amp;
     plan.x = lerp(plan.x||nx, nx, kFollow);
@@ -275,19 +293,28 @@
   function pulse(){ gfx.save(); gfx.strokeStyle='rgba(122,225,255,0.6)'; gfx.lineWidth=6; gfx.beginPath(); gfx.arc(plan.x,plan.y,plan.size*DPR*0.58,0,Math.PI*2); gfx.stroke(); gfx.restore(); }
 
   // ======== Session control ========
-  function startSession(){ if(state.running) return; state.running=true; state.startedAt=Date.now(); $('#hudMode').textContent='Listening'; centerPlanchette(); toast('Begin. Keep a light touch and don\'t steer.function startSession(){
+  function startSession(){
     if(state.running) return;
     state.running=true; state.startedAt=Date.now();
     $('#hudMode').textContent='Listening';
     centerPlanchette();
     if($('#chkHiSens').checked) enablePointerLock();
     toast('Begin. Keep a light touch and don\'t steer.');
-  }d()function stopSession(){
+  }
+  function stopSession(){
     if(!state.running) return;
     state.running=false; $('#hudMode').textContent='Stopped';
     if(state.pointerLocked && document.exitPointerLock){ document.exitPointerLock(); }
     if(blind){ blind=false; $('#chkBlind').checked=false; $('#hudBlind').textContent='Off'; drawBoard(); $('#log').textContent=state.message||'(no text)'; toast('Reveal'); }
-  }out: layoutShuffle? 'shuffled':'classic',
+  }}
+  function hardReset(){ resetAll(); toast('Reset'); }
+
+  // ======== Export / Seal ========
+  function exportJSON(){
+    const body = {
+      startedAt: state.startedAt,
+      endedAt: Date.now(),
+      layout: layoutShuffle? 'shuffled':'classic',
       blind,
       sealed: state.sealed,
       message: state.message,
@@ -307,12 +334,13 @@
   $('#chkBlind').onchange=(e)=>{ blind=e.target.checked; $('#hudBlind').textContent=blind? 'On':'Off'; drawBoard(); if(blind){ $('#log').textContent='(sealed — stop to reveal)'; }}
   $('#chkShuffle').onchange=(e)=>{ layoutShuffle=e.target.checked; makeLayout(); drawBoard(); }
   $('#chkSeal').onchange=(e)=>{ state.sealed=e.target.checked; }
+  $('#chkHiSens').onchange=(e)=>{ if(state.running && e.target.checked) enablePointerLock(); else if(!e.target.checked && document.exitPointerLock){ document.exitPointerLock(); }}
+  $('#rngGain').oninput=(e)=>{ gain = parseFloat(e.target.value||'1.8'); }
 
   window.addEventListener('keydown',e=>{
     if(e.key===' '){ e.preventDefault(); state.running? stopSession(): startSession(); }
-    if(e.key==$('#chkSeal').onchange=(e)=>{ state.sealed=e.target.checked; }
-  $('#chkHiSens').onchange=(e)=>{ if(state.running && e.target.checked) enablePointerLock(); else if(!e.target.checked && document.exitPointerLock){ document.exitPointerLock(); }}
-  $('#rngGain').oninput=(e)=>{ gain = parseFloat(e.target.value||'1.8'); }blind=!blind; $('#chkBlind').checked=blind; $('#hudBlind').textContent=blind? 'On':'Off'; drawBoard(); if(blind) $('#log').textContent='(sealed — stop to reveal)'; }
+    if(e.key==='Escape'){ hardReset(); }
+    if(e.key.toLowerCase()==='b'){ blind=!blind; $('#chkBlind').checked=blind; $('#hudBlind').textContent=blind? 'On':'Off'; drawBoard(); if(blind) $('#log').textContent='(sealed — stop to reveal)'; }
     if(e.key.toLowerCase()==='s'){ layoutShuffle=!layoutShuffle; $('#chkShuffle').checked=layoutShuffle; makeLayout(); drawBoard(); toast(layoutShuffle? 'Shuffled layout':'Classic layout'); }
   });
 
