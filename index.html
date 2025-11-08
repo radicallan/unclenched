@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Spirit Board — HOLD‑TO‑WRITE v2</title>
+<title>Spirit Board — HOLD‑TO‑WRITE v4 (Close‑Letter Fix)</title>
 <style>
   :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1}
   *{box-sizing:border-box}
@@ -27,9 +27,11 @@
   <button id="btnGoodbye">Goodbye</button>
   <button id="btnReset">Reset</button>
   <button id="btnCenter">Center</button>
-  <label style="margin-left:8px;"><input type="checkbox" id="chkRequire" checked> Require READY</label>
-  <label>Dwell <input id="rngDwell" type="range" min="400" max="1600" step="50" value="800"></label>
-  <label>Tile size <input id="rngTile" type="range" min="1.0" max="1.8" step="0.05" value="1.45"></label>
+  <button id="btnFix">Close‑Letter Fix</button>
+  <label><span>Planchette</span> <input id="rngPlan" type="range" min="16" max="44" step="1" value="24"></label>
+  <label><span>Tile size</span> <input id="rngTile" type="range" min="0.80" max="1.80" step="0.05" value="1.20"></label>
+  <label><span>Arc width</span> <input id="rngArc" type="range" min="0.70" max="0.92" step="0.01" value="0.88"></label>
+  <label><span>Dwell</span> <input id="rngDwell" type="range" min="400" max="1600" step="50" value="700"></label>
   <span id="status">Idle • 0 chars</span>
 </header>
 
@@ -47,12 +49,17 @@
   const ta=$('#ta'), statusEl=$('#status');
   const DPR=Math.min(2, window.devicePixelRatio||1);
   let W=0,H=0, running=false, message="";
-  let DWELL_MS=800, tileScale=1.45, needReady=true;
+  // Controls (defaults lean small/tight for iPhone)
+  let DWELL_MS=700, tileScale=1.20, planRpx=24, arcTight=0.88; // arcTight controls how wide the letter arc is
+  // State
   const plan={x:0,y:0,r:28,trail:[]};
   const tiles=[];
   let entered=null, ready=0;
-  const IN_FACTOR=1.20, OUT_FACTOR=1.50;
-  let lastCommit=null; const MIN_SPACE_FACTOR=1.65, MIN_GAP=520, REPEAT_CD=850;
+  const IN_FACTOR=1.22, OUT_FACTOR=1.60; // strong hysteresis
+  // Commit rules (no distance gate; only time + same-tile lock)
+  let lastCommit=null;
+  const MIN_GAP=220;              // minimal ms between any two commits
+  const REPEAT_CD=700;            // ms before same tile/letter can commit again
   let touching=false, mouseDown=false;
 
   // Canvas sizing
@@ -63,7 +70,7 @@
     if(cv.width!==w) cv.width=w;
     if(cv.height!==h) cv.height=h;
     W=cv.width; H=cv.height;
-    plan.r=Math.max(22*DPR, Math.min(W,H)*0.045);
+    plan.r = Math.max(16*DPR, planRpx*DPR);
     buildTiles(); if(plan.x===0 && plan.y===0) center();
     draw();
   }
@@ -71,30 +78,35 @@
   window.addEventListener('orientationchange', ()=>setTimeout(sizeCanvas,300));
   requestAnimationFrame(sizeCanvas);
 
-  function center(){ plan.x=W*0.52; plan.y=H*0.60; draw(); }
+  function center(){ plan.x=W*0.52; plan.y=H*0.62; draw(); }
 
-  // Layout
+  // Layout: wider arc by default to spread letters apart (controls via arcTight)
+  // arcTight near 0.92 = narrower arc; 0.70 = very wide arc. We invert to use edges [-a..-b].
   const base = { r1:[...'ABCDEFGH'], r2:[...'IJKLMNOP'], r3:[...'QRSTUVWXYZ'], nums:[...'1234567890'], cor:['YES','NO','GOODBYE'] };
   function buildTiles(){
     tiles.length=0;
-    const cx=W*0.52, cy=H*0.60, baseR=Math.min(W,H)*0.36;
-    const ring=(arr,r)=>{
-      const n=arr.length,a0=-Math.PI*0.8,a1=-Math.PI*0.2;
+    const cx=W*0.52, cy=H*0.62, baseR=Math.min(W,H)*0.36;
+    const a0 = -Math.PI*(arcTight);   // e.g. -0.88π
+    const a1 = -Math.PI*(1.0-arcTight); // e.g. -0.12π => wider arc than before
+    const ring=(arr,r, idPrefix)=>{
+      const n=arr.length;
       for(let i=0;i<n;i++){
         const t=i/(n-1), ang=a0+(a1-a0)*t, x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
-        tiles.push({x,y,r:Math.min(W,H)*0.040*tileScale,label:arr[i]});
+        tiles.push({x,y,r:Math.min(W,H)*0.035*tileScale,label:arr[i], id:idPrefix+i});
       }
     };
-    ring(base.r1, baseR*0.70); ring(base.r2, baseR*0.86); ring(base.r3, baseR*1.02);
-    const nbY=cy+baseR*0.55, nr=Math.min(W,H)*0.040*tileScale;
+    ring(base.r1, baseR*0.70, 'r1-');
+    ring(base.r2, baseR*0.90, 'r2-');
+    ring(base.r3, baseR*1.10, 'r3-');
+    const nbY=cy+baseR*0.62, nr=Math.min(W,H)*0.035*tileScale;
     for(let i=0;i<base.nums.length;i++){
       const x=(W*0.20)+i*(W*0.6/(base.nums.length-1));
-      tiles.push({x,y:nbY,r:nr,label:base.nums[i]});
+      tiles.push({x,y:nbY,r:nr,label:base.nums[i], id:'n-'+i});
     }
     const c=base.cor;
-    tiles.push({x:W*0.18,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:c[0]});
-    tiles.push({x:W*0.82,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:c[1]});
-    tiles.push({x:W*0.50,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:c[2]});
+    tiles.push({x:W*0.18,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:c[0], id:'y'});
+    tiles.push({x:W*0.82,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:c[1], id:'n'});
+    tiles.push({x:W*0.50,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:c[2], id:'g'});
   }
 
   // Draw board and planchette
@@ -105,13 +117,13 @@
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
     ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
     for(let y=0;y<H;y+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
-    for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(W,x+0.5); ctx.stroke(); }
+    for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
     ctx.strokeStyle='rgba(200,210,230,0.10)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
-    const cx=W*0.52, cy=H*0.60, baseR=Math.min(W,H)*0.36;
-    [0.70,0.86,1.02].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
+    const cx=W*0.52, cy=H*0.62, baseR=Math.min(W,H)*0.36;
+    [0.70, 0.90, 1.10].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    const fontBig=(Math.min(W,H)*0.05)+'px ui-monospace,Menlo,Consolas';
-    const fontCor=(Math.min(W,H)*0.04)+'px ui-monospace,Menlo,Consolas';
+    const fontBig=(Math.min(W,H)*0.048)+'px ui-monospace,Menlo,Consolas';
+    const fontCor=(Math.min(W,H)*0.039)+'px ui-monospace,Menlo,Consolas';
     for(const t of tiles){
       if(t.label.length===1){ ctx.fillStyle='#cfd6e6'; ctx.font=fontBig; }
       else if(t.label==='YES'){ ctx.fillStyle='#7bf59a'; ctx.font=fontCor; }
@@ -132,8 +144,8 @@
     ctx.strokeStyle='rgba(122,225,255,0.25)'; ctx.lineWidth=2;
     ctx.beginPath(); for(let i=0;i<plan.trail.length;i++){ const p=plan.trail[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);} ctx.stroke();
     ctx.fillStyle='rgba(16,24,36,0.92)'; ctx.strokeStyle='rgba(45,90,150,0.85)'; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.ellipse(x,y,r*1.1,r,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,0.10)'; ctx.beginPath(); ctx.arc(x,y,r*0.38,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x,y,r*1.05,r*0.95,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.10)'; ctx.beginPath(); ctx.arc(x,y,r*0.36,0,Math.PI*2); ctx.fill();
   }
   function draw(){ drawBoard(); drawPlanchette(); }
 
@@ -150,12 +162,12 @@
   }
 
   function canCommit(tile, now){
-    if(needReady && !(entered && entered.ready)) return false;
+    if(!entered || !entered.ready) return false;
     if(lastCommit){
-      const dist=Math.hypot(tile.x-lastCommit.x, tile.y-lastCommit.y);
-      if(dist < tile.r*MIN_SPACE_FACTOR) return false;
-      if(now - lastCommit.t < MIN_GAP) return false;
-      if(lastCommit.label===tile.label && (now-lastCommit.t) < REPEAT_CD) return false;
+      // Block if same tile quickly
+      if(lastCommit.id===tile.id && (now-lastCommit.t) < REPEAT_CD) return false;
+      // No distance check — allow very close sequential letters
+      if((now - lastCommit.t) < MIN_GAP) return false;
     }
     return true;
   }
@@ -167,7 +179,7 @@
     if(lab==='GOODBYE'){ message+=' [GOODBYE]'; running=false; }
     else if(lab==='YES' || lab==='NO'){ message+=` [${lab}]`; }
     else if(lab.length===1){ message+=lab; }
-    lastCommit={label:lab, x:tile.x, y:tile.y, t:now};
+    lastCommit={id:tile.id, label:lab, x:tile.x, y:tile.y, t:now};
     if(entered) entered.didCommit=true;
     updateTranscript();
   }
@@ -183,7 +195,6 @@
   function tick(ts){
     const dt = (ts - lastTs) || 16; lastTs = ts;
     if(touching || mouseDown){
-      const prev = entered ? entered.tile : null;
       const tile = stickyHit(plan.x, plan.y);
       if(tile && (!entered || entered.tile!==tile)){
         entered = { tile, tEnter: ts, ready:false, didCommit:false };
@@ -226,12 +237,23 @@
 
   // UI
   $('#btnInvite').onclick=()=>{ running=true; message=''; plan.trail.length=0; entered=null; ready=0; updateTranscript(); draw(); };
-  $('#btnGoodbye').onclick=()=>{ if(!running) return; commit({label:'GOODBYE', x:0,y:0}); running=false; };
+  $('#btnGoodbye').onclick=()=>{ if(!running) return; commit({id:'g',label:'GOODBYE', x:0,y:0}); running=false; };
   $('#btnReset').onclick=()=>{ running=false; message=''; plan.trail.length=0; entered=null; ready=0; center(); updateTranscript(); draw(); };
   $('#btnCenter').onclick=()=>{ center(); draw(); };
-  $('#rngDwell').oninput=e=>{ DWELL_MS=parseInt(e.target.value,10)||800; };
-  $('#rngTile').oninput=e=>{ tileScale=parseFloat(e.target.value)||1.45; buildTiles(); draw(); };
-  $('#chkRequire').onchange=e=>{ needReady=e.target.checked; };
+  $('#btnFix').onclick=()=>{
+    // Preset tuned for close letters on iPhone
+    planRpx = 20; plan.r = planRpx*DPR;
+    tileScale = 1.10; arcTight = 0.84; DWELL_MS = 650;
+    buildTiles(); draw();
+    $('#rngPlan').value = String(planRpx);
+    $('#rngTile').value = String(tileScale);
+    $('#rngArc').value  = String(arcTight);
+    $('#rngDwell').value= String(DWELL_MS);
+  };
+  $('#rngPlan').oninput=e=>{ planRpx = parseInt(e.target.value,10)||24; plan.r = planRpx*DPR; draw(); };
+  $('#rngTile').oninput=e=>{ tileScale = parseFloat(e.target.value)||1.20; buildTiles(); draw(); };
+  $('#rngArc').oninput=e=>{ arcTight = parseFloat(e.target.value)||0.88; buildTiles(); draw(); };
+  $('#rngDwell').oninput=e=>{ DWELL_MS = parseInt(e.target.value,10)||700; };
 
   // Init
   updateTranscript();
