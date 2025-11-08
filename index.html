@@ -1,499 +1,291 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Office Fire Safety | Evac Trainer</title>
-  <style>
-    :root{
-      --bg:#0c0d10; --panel:#111218; --ink:#e8eaee; --muted:#a9aeba; --accent:#76e4ff; --good:#7bf59a; --warn:#ffd166; --bad:#ff6b6b;
-      --tile:24; /* base tile px */
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;background:var(--bg);color:var(--ink);margin:0;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    .wrap{display:grid;grid-template-columns:1fr 360px;gap:14px;height:100%;padding:14px}
-    .left{position:relative;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#0f1116,#0a0b0f)}
-    .right{display:flex;flex-direction:column;gap:12px}
-    header{background:var(--panel);border:1px solid #1c1f27;padding:12px 14px;border-radius:14px}
-    header h1{font-size:16px;margin:0 0 2px 0}
-    header p{margin:2px 0;color:var(--muted)}
-    .hud{position:absolute;inset:12px auto auto 12px;display:flex;gap:8px;align-items:center}
-    .chip{background:#121520;border:1px solid #202636;padding:6px 10px;border-radius:999px;color:var(--muted)}
-    .chip strong{color:var(--ink)}
-    .legend{display:grid;grid-template-columns:1fr;gap:12px}
-    .card{background:var(--panel);border:1px solid #1c1f27;padding:12px 14px;border-radius:14px}
-    .card h2{font-size:15px;margin:0 0 6px 0}
-    .card p{margin:6px 0;color:var(--muted)}
-    .card .row{display:flex;gap:10px;flex-wrap:wrap}
-    .pill{padding:6px 10px;border-radius:10px;border:1px solid #21242c;background:#0c0f15;color:var(--muted)}
-    button{appearance:none;padding:10px 14px;border-radius:12px;border:1px solid #232733;background:#121520;color:var(--ink);cursor:pointer}
-    button.primary{background:linear-gradient(180deg,#16223a,#121a2c);border-color:#24314a}
-    button.good{border-color:#1e3928;background:#0f1f15;color:var(--good)}
-    button.warn{border-color:#3d3115;background:#1d1608;color:var(--warn)}
-    button.bad{border-color:#3c1e1e;background:#1a0f10;color:var(--bad)}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;padding:.5px 6px;border:1px solid #2a2e3a;border-bottom-width:2px;border-radius:6px;background:#0d1016;color:#b7bdca}
-    .flex{display:flex;gap:8px;align-items:center}
-    .grow{flex:1}
-    .meter{height:8px;background:#0f121a;border:1px solid #1e2231;border-radius:999px;overflow:hidden}
-    .meter>i{display:block;height:100%;background:linear-gradient(90deg,#2de2ff,#7bf59a)}
-    .toast{position:absolute;left:50%;top:20px;transform:translateX(-50%);background:#0c1118;border:1px solid #1b2433;padding:10px 14px;border-radius:12px;color:var(--ink);opacity:0;pointer-events:none;transition:.3s ease}
-    .toast.show{opacity:1;top:28px}
-    canvas{display:block;width:100%;height:100%;image-rendering:pixelated}
-    .overlay{position:absolute;inset:0;display:none;place-items:center;background:linear-gradient(180deg,rgba(12,14,18,.3),rgba(6,7,10,.7))}
-    .overlay.show{display:grid}
-    .modal{width:min(680px,92vw);background:var(--panel);border:1px solid #1c1f27;border-radius:16px;padding:18px}
-    .modal h3{margin:0 0 6px 0}
-    .modal h4{margin:14px 0 6px 0}
-    .opt{display:block;margin:8px 0;padding:10px;border-radius:12px;border:1px solid #222638;background:#0e1118;cursor:pointer}
-    .opt:hover{border-color:#2b6cff}
-    .score{font-size:18px}
-    footer{color:#6b7280;text-align:center;margin-top:6px}
-    .badge{border:1px solid #2a2f3c;background:#11141c;padding:4px 8px;border-radius:8px;color:#b8bfcc}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Spirit Board — Planchette (Trackpad)</title>
+<style>
+  :root{
+    --bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#9aa3b2;--accent:#7ae1ff;--good:#7bf59a;--warn:#ffd166;--bad:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial;background:var(--bg);color:var(--ink)}
+  .wrap{display:grid;grid-template-columns:1fr 360px;gap:14px;height:100%;padding:14px}
+  .stage{position:relative;border-radius:16px;background:radial-gradient(1200px 800px at 65% 35%,#0f141f,#090c12 55%);overflow:hidden}
+  .side{display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--panel);border:1px solid #1b2330;border-radius:14px;padding:12px 14px}
+  h1{font-size:16px;margin:0 0 4px 0}
+  h2{font-size:15px;margin:0 0 6px 0}
+  p{margin:6px 0;color:var(--muted)}
+  button{appearance:none;border:1px solid #253146;background:#0f1622;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer}
+  button.primary{background:linear-gradient(180deg,#162338,#0e1727);border-color:#253a5b}
+  button.good{background:#0f1f15;border-color:#1f3a27;color:var(--good)}
+  button.warn{background:#1d1608;border-color:#3c2f14;color:var(--warn)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .kbd{font-family:ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border:1px solid #2a3140;border-bottom-width:2px;border-radius:6px;background:#0b1018;color:#b9c1d0}
+  canvas{position:absolute;inset:0;display:block;width:100%;height:100%;}
+  .hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;align-items:center;z-index:10}
+  .chip{background:#0e1420;border:1px solid #1e2a3f;color:#a9b3c6;padding:6px 10px;border-radius:999px}
+  .chip strong{color:var(--ink)}
+  .toast{position:absolute;left:50%;top:18px;transform:translateX(-50%);background:#0c1118;border:1px solid #1b2433;padding:10px 14px;border-radius:12px;color:var(--ink);opacity:0;pointer-events:none;transition:.3s ease;z-index:12}
+  .toast.show{opacity:1;top:26px}
+  .transcript{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0a0f16;border:1px solid #1b2330;border-radius:10px;padding:10px;max-height:180px;overflow:auto;white-space:pre-wrap}
+  .badge{border:1px solid #2a2f3c;background:#11141c;padding:4px 8px;border-radius:8px;color:#b8bfcc}
+  .switch{display:inline-flex;align-items:center;gap:8px}
+  .switch input{accent-color:#2de2ff}
+  footer{color:#7e8798;text-align:center}
+</style>
 </head>
 <body>
   <div class="wrap">
-    <div class="left">
+    <div class="stage" id="stage">
       <div class="hud">
-        <span class="chip">Mode: <strong id="mode">Briefing</strong></span>
-        <span class="chip">Objective: <strong id="objective">Read the briefing</strong></span>
-        <span class="chip">Time: <strong id="time">00:00</strong></span>
-        <span class="chip">Score: <strong id="score">0</strong></span>
+        <span class="chip">Mode: <strong id="hudMode">Idle</strong></span>
+        <span class="chip">Layout: <strong id="hudLayout">Classic</strong></span>
+        <span class="chip">Blind: <strong id="hudBlind">Off</strong></span>
+        <span class="chip">Confidence: <strong id="hudConf">—</strong></span>
       </div>
-      <div id="toast" class="toast">Placeholder</div>
-      <canvas id="floor" aria-label="floor layer"></canvas>
-      <canvas id="world" aria-label="world layer"></canvas>
-      <canvas id="ui" aria-label="ui layer"></canvas>
-      <div id="overlay" class="overlay">
-        <div class="modal" id="modal">
-          <!-- populated dynamically -->
-        </div>
-      </div>
+      <div id="toast" class="toast">—</div>
+      <canvas id="board"></canvas>
+      <canvas id="fx"></canvas>
     </div>
-    <div class="right">
-      <header>
-        <h1>Office Fire Safety — Interactive Evac Training</h1>
-        <p>Habbo‑inspired, grid movement, live fire/smoke simulation, choices with consequences. Keyboard only.</p>
-        <div class="row">
-          <span class="pill"><span class="kbd">WASD</span> / <span class="kbd">Arrows</span> move</span>
-          <span class="pill"><span class="kbd">E</span> interact</span>
-          <span class="pill"><span class="kbd">Space</span> use extinguisher</span>
-          <span class="pill"><span class="kbd">Shift</span> jog</span>
-          <span class="pill"><span class="kbd">P</span> pause</span>
-        </div>
-      </header>
+
+    <div class="side">
       <div class="card">
-        <h2>Scenario</h2>
-        <p>An electrical fault in the kitchen sparks a small fire. Recognise alarms, raise the alert, avoid lifts, assist NPC colleagues, and reach the muster point. Choose the right extinguisher or retreat if unsafe. Every decision is scored.</p>
-        <div class="flex" style="margin-top:6px">
-          <div class="grow meter" aria-label="performance">
-            <i id="meterBar" style="width:0%"></i>
-          </div>
-          <span class="badge" id="grade">—</span>
+        <h1>Spirit Board — Trackpad Planchette</h1>
+        <p>Place one finger lightly on your trackpad and let the planchette follow. Don’t steer — just keep light contact. The board captures **ideomotor** micro‑movements and resolves answers by dwell.</p>
+        <div class="row" style="margin-top:6px">
+          <span class="kbd">Space</span> start/stop &nbsp; <span class="kbd">Esc</span> reset &nbsp; <span class="kbd">B</span> toggle blind &nbsp; <span class="kbd">S</span> shuffle
         </div>
       </div>
-      <div class="card legend">
-        <h2>Legend</h2>
-        <div class="row">
-          <span class="pill">🟦 walls</span>
-          <span class="pill">⬛ desk</span>
-          <span class="pill">🟥 fire</span>
-          <span class="pill">🟣 smoke</span>
-          <span class="pill">🟩 exit</span>
-          <span class="pill">🔔 alarm point</span>
-          <span class="pill">🧯 extinguisher</span>
-          <span class="pill">🚷 no lift</span>
-        </div>
-        <p style="margin-top:0">(symbols are overlays; in‑world art is custom drawn at runtime for a clean, pixel look)</p>
-      </div>
+
       <div class="card">
-        <h2>Actions</h2>
+        <h2>Session</h2>
         <div class="row">
-          <button class="primary" id="btnStart">Start Briefing</button>
+          <button class="primary" id="btnStart">Invite</button>
+          <button id="btnStop">Goodbye</button>
           <button id="btnReset">Reset</button>
-          <button id="btnHard">Hard Mode</button>
+        </div>
+        <p class="row" style="margin-top:8px">
+          <label class="switch"><input type="checkbox" id="chkBlind"> Blind mode</label>
+          <label class="switch"><input type="checkbox" id="chkShuffle"> Shuffle letters</label>
+          <label class="switch"><input type="checkbox" id="chkSeal"> Seal transcript</label>
+        </p>
+        <div class="row">
+          <button id="btnExport">Export JSON</button>
+          <span class="badge" id="badgeLen">0 chars</span>
         </div>
       </div>
-      <footer>Designed for desktop. Zero external libraries. Single‑file, optimised canvas renderer. ©</footer>
+
+      <div class="card">
+        <h2>Transcript</h2>
+        <div class="transcript" id="log">(nothing yet)</div>
+      </div>
+
+      <div class="card">
+        <h2>How it works (experiment)</h2>
+        <p>• The planchette follows your pointer with slight smoothing and noise. <br/>• When its window dwells over a tile, that symbol is recorded. <br/>• In <em>Blind</em> mode the board hides symbols or shuffles them; you only see the text after you stop — a better test of ideomotor effects.</p>
+      </div>
+
+      <footer>Private, client‑side. No data leaves your browser.</footer>
     </div>
   </div>
 
 <script>
 (function(){
-  // =========================
-  // Engine & Utilities
-  // =========================
-  const $ = sel => document.querySelector(sel);
-  const toast = (msg, t=1400)=>{const el = $('#toast'); el.textContent = msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), t)};
-  const setHUD = (id, val)=> { document.getElementById(id).textContent = val };
-  const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
-  const lerp = (a,b,t)=> a+(b-a)*t;
-  const rand = (a,b)=> Math.random()*(b-a)+a;
-  const now = ()=> performance.now();
+  // ======== Utilities ========
+  const $=s=>document.querySelector(s);
+  const toast=(t,d=1400)=>{const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),d)};
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const rand=(a,b)=>Math.random()*(b-a)+a;
+  const hash32 = (s)=>{let h=2166136261>>>0; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0};
 
-  // Timing
-  let startTime=0, elapsed=0, paused=false;
-  function fmtTime(ms){const s=Math.floor(ms/1000);const m=Math.floor(s/60);const r=s%60;return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`}
-
-  // Canvas setup (multi-layer for performance)
-  const floor = document.getElementById('floor');
-  const world = document.getElementById('world');
-  const ui    = document.getElementById('ui');
+  // ======== Canvas & Layout ========
+  const board = document.getElementById('board');
+  const fx = document.getElementById('fx');
+  const ctx = board.getContext('2d');
+  const gfx = fx.getContext('2d');
   const DPR = Math.min(2, window.devicePixelRatio||1);
-
-  const size = {w: 30, h: 20, tile: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile'))};
   function resize(){
-    const rect = floor.parentElement.getBoundingClientRect();
-    [floor, world, ui].forEach(c=>{ c.width = rect.width*DPR; c.height = rect.height*DPR; c.style.width = rect.width+'px'; c.style.height = rect.height+'px'; });
-    camera.viewport = {w: floor.width, h: floor.height};
-    drawStatic();
+    const r = board.parentElement.getBoundingClientRect();
+    [board,fx].forEach(c=>{ c.width = r.width*DPR; c.height=r.height*DPR; c.style.width=r.width+'px'; c.style.height=r.height+'px';});
+    drawBoard();
   }
   window.addEventListener('resize', resize);
 
-  const ctxF = floor.getContext('2d');
-  const ctxW = world.getContext('2d');
-  const ctxU = ui.getContext('2d');
-
-  // Camera controls
-  const camera = {x:0,y:0, viewport:{w:0,h:0}, follow(target){
-    const px = target.x*tile + tile/2; const py = target.y*tile + tile/2;
-    this.x = clamp(px - this.viewport.w/2, 0, mapW*tile - this.viewport.w);
-    this.y = clamp(py - this.viewport.h/2, 0, mapH*tile - this.viewport.h);
-  }}
-
-  // World constants
-  const tile = size.tile * DPR;
-  const mapW = size.w, mapH = size.h;
-
-  // Tile types
-  const T = {
-    VOID:0, FLOOR:1, WALL:2, DESK:3, DOOR:4, EXIT:5, KITCHEN:6, LIFT:7, ALARM:8, EXTING:9
+  // ======== Board Model ========
+  const symbolsClassic = {
+    ring1:[...'ABCDEFGH'],
+    ring2:[...'IJKLMNOP'],
+    ring3:[...'QRSTUVWXYZ'],
+    numbers:[...'1234567890'],
+    corners:['YES','NO','GOODBYE']
   };
+  let layoutShuffle=false, blind=false;
+  let layout = JSON.parse(JSON.stringify(symbolsClassic));
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()* (i+1))|0; [a[i],a[j]]=[a[j],a[i]] } }
+  function makeLayout(){
+    layout = JSON.parse(JSON.stringify(symbolsClassic));
+    if(layoutShuffle){ shuffle(layout.ring1); shuffle(layout.ring2); shuffle(layout.ring3); shuffle(layout.numbers); }
+    $('#hudLayout').textContent = layoutShuffle? 'Shuffled' : 'Classic';
+    $('#hudBlind').textContent = blind? 'On':'Off';
+  }
 
-  // Build a handcrafted map (rooms, corridors, kitchen, exit)
-  const map = Array.from({length:mapH},(_,y)=>Array.from({length:mapW},(_,x)=>T.FLOOR));
-  // Surround with walls
-  for(let y=0;y<mapH;y++){ map[y][0]=T.WALL; map[y][mapW-1]=T.WALL; }
-  for(let x=0;x<mapW;x++){ map[0][x]=T.WALL; map[mapH-1][x]=T.WALL; }
-  // Partition: offices (left), corridor (center), kitchen (top-right), exit (bottom-right), lift (don’t use)
-  for(let y=2;y<mapH-3;y++) map[y][8]=T.WALL; // vertical wall
-  for(let x=8;x<mapW-2;x++) map[6][x]=T.WALL; // horizontal wall
-  map[6][14]=T.DOOR; // door to corridor
-  map[6][20]=T.DOOR; // door to kitchen
-  // Kitchen area
-  for(let y=1;y<6;y++) for(let x=18;x<mapW-2;x++) map[y][x]=T.KITCHEN;
-  map[2][22]=T.EXTING; map[2][19]=T.ALARM; // extinguisher & alarm in kitchen
-  // Exit area (muster point outside)
-  map[mapH-2][mapW-2]=T.EXIT; map[mapH-2][mapW-3]=T.EXIT;
-  // Lift (forbidden)
-  map[10][mapW-3]=T.LIFT;
-  // Desks left side
-  for(let y=3;y<mapH-3;y+=3){ for(let x=2;x<7;x+=2){ map[y][x]=T.DESK; }}
+  // Ring geometry cache
+  const tiles=[]; // {x,y,r,label}
 
-  // Fire/Smoke fields
-  const fire = Array.from({length:mapH},()=>Array(mapW).fill(0));
-  const smoke= Array.from({length:mapH},()=>Array(mapW).fill(0));
+  function drawBoard(){
+    ctx.clearRect(0,0,board.width, board.height);
+    const W=board.width, H=board.height;
+    // background halo
+    const grad = ctx.createRadialGradient(W*0.62,H*0.35,10, W*0.62,H*0.35, Math.max(W,H)*0.9);
+    grad.addColorStop(0,'rgba(255,255,255,0.05)'); grad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
 
-  // Start fire in kitchen corner
-  fire[2][24]=0.7; fire[2][23]=0.4; smoke[2][24]=0.3;
+    tiles.length=0;
+    const cx=W*0.52, cy=H*0.58; // board center
+    const baseR = Math.min(W,H)*0.36;
 
-  // Entities
-  const player = {x:4,y:12, px:0,py:0, speed:6, hasExt:false, breath:100, rescued:0};
-  const npcs = [
-    {x:5,y:4, state:'idle'}, {x:6,y:9,state:'idle'}, {x:4,y:15,state:'idle'}, {x:22,y:3,state:'idle'}
-  ];
-
-  // Pathfinding (A*) on grid
-  function astar(sx,sy, tx,ty){
-    const key=(x,y)=>x+","+y; const inb=(x,y)=>x>=0&&y>=0&&x<mapW&&y<mapH;
-    const walk=(x,y)=> map[y][x]!==T.WALL && map[y][x]!==T.DESK && !(map[y][x]===T.DOOR && false) && fire[y][x]<0.6;
-    const open=new Map(), came=new Map(), g=new Map();
-    const h=(x,y)=> Math.abs(x-tx)+Math.abs(y-ty);
-    const startK=key(sx,sy); g.set(startK,0); open.set(startK,{x:sx,y:sy,f:h(sx,sy)});
-    while(open.size){
-      let curK=null, cur=null, best=1e9; for(const [k,n] of open){ if(n.f<best){best=n.f; cur=n; curK=k;}}
-      if(cur.x===tx && cur.y===ty){ // reconstruct
-        const path=[{x:tx,y:ty}]; let ck=curK; while(came.has(ck)){ const prev=came.get(ck); path.unshift({x:prev.x,y:prev.y}); ck=key(prev.x,prev.y);} return path; }
-      open.delete(curK);
-      const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
-      for(const [dx,dy] of dirs){ const nx=cur.x+dx, ny=cur.y+dy; if(!inb(nx,ny)||!walk(nx,ny)) continue; const nk=key(nx,ny); const tentative = g.get(curK)+1+ (smoke[ny][nx]*0.5);
-        if(!g.has(nk) || tentative < g.get(nk)){ came.set(nk,cur); g.set(nk,tentative); open.set(nk,{x:nx,y:ny,f:tentative+h(nx,ny)}); }
+    const drawRing=(chars,r,visible=true)=>{
+      const n = chars.length; const a0=-Math.PI*0.8, a1=-Math.PI*0.2;
+      for(let i=0;i<n;i++){
+        const t = i/(n-1); const ang= a0 + (a1-a0)*t;
+        const x = cx + Math.cos(ang)*r, y = cy + Math.sin(ang)*r;
+        tiles.push({x,y,r:Math.min(W,H)*0.03,label:chars[i],type:'char'});
+        if(visible && !blind){ ctx.fillStyle='#cfd6e6'; ctx.font=(Math.min(W,H)*0.035)+'px ui-monospace,Menlo,Consolas'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(chars[i],x,y); }
       }
     }
-    return null;
-  }
 
-  // Gameplay state
-  const State = { BRIEF:'Briefing', LIVE:'Live', EVAC:'Evacuate', DONE:'Debrief' };
-  let mode = State.BRIEF; setHUD('mode', mode);
-  let score = 0; setHUD('score', score);
-  let hard=false;
+    drawRing(layout.ring1, baseR*0.70, true);
+    drawRing(layout.ring2, baseR*0.86, true);
+    drawRing(layout.ring3, baseR*1.02, true);
 
-  // Static draw (floor & fixtures)
-  function drawStatic(){
-    const W=floor.width,H=floor.height; ctxF.clearRect(0,0,W,H);
-    // floor grid
-    for(let y=0;y<mapH;y++){
-      for(let x=0;x<mapW;x++){
-        const sx = x*tile - camera.x; const sy = y*tile - camera.y;
-        // tile base
-        ctxF.fillStyle = (map[y][x]===T.KITCHEN? '#0e141a' : '#0b1016');
-        ctxF.fillRect(sx,sy,tile,tile);
-        // subtle grid
-        ctxF.strokeStyle = 'rgba(255,255,255,0.03)'; ctxF.lineWidth=1; ctxF.strokeRect(sx+0.5,sy+0.5,tile-1,tile-1);
-        // fixtures
-        switch(map[y][x]){
-          case T.WALL:
-            ctxF.fillStyle='#1b2433'; ctxF.fillRect(sx,sy,tile,tile);
-            break;
-          case T.DESK:
-            ctxF.fillStyle='#191f2a'; ctxF.fillRect(sx+2,sy+6,tile-4,tile-8);
-            ctxF.fillStyle='#232c3b'; ctxF.fillRect(sx+2,sy+6, tile-4, 4);
-            break;
-          case T.DOOR:
-            ctxF.fillStyle='#26344a'; ctxF.fillRect(sx,sy,tile,tile);
-            ctxF.fillStyle='#385279'; ctxF.fillRect(sx+4,sy+4,tile-8,tile-8);
-            break;
-          case T.EXIT:
-            ctxF.fillStyle='#0f1f15'; ctxF.fillRect(sx,sy,tile,tile);
-            ctxF.fillStyle='#18a34a'; ctxF.fillRect(sx+4,sy+4,tile-8,tile-8);
-            break;
-          case T.LIFT:
-            ctxF.fillStyle='#141821'; ctxF.fillRect(sx,sy,tile,tile);
-            ctxF.fillStyle='#3c4457'; ctxF.fillRect(sx+4,sy+4,tile-8,tile-8);
-            break;
-          case T.ALARM:
-            ctxF.fillStyle='#221416'; ctxF.fillRect(sx,sy,tile,tile);
-            ctxF.fillStyle='#b42d2d'; ctxF.fillRect(sx+8,sy+8,tile-16,tile-16);
-            break;
-          case T.EXTING:
-            ctxF.fillStyle='#181216'; ctxF.fillRect(sx,sy,tile,tile);
-            ctxF.strokeStyle='#b42d2d'; ctxF.strokeRect(sx+9,sy+6,6,12);
-            break;
-        }
-      }
+    // Numbers along bottom
+    const nb = layout.numbers; const nbY = cy + baseR*0.55; const nbW = Math.min(W,H)*0.03;
+    for(let i=0;i<nb.length;i++){
+      const x = (W*0.20) + i*(W*0.6/ (nb.length-1));
+      tiles.push({x,y:nbY,r:nbW,label:nb[i],type:'num'});
+      if(!blind){ ctx.fillStyle='#aab3c7'; ctx.font=(Math.min(W,H)*0.03)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(nb[i],x,nbY); }
+    }
+
+    // Corners
+    const c = layout.corners;
+    const cSpec=[{x:W*0.18,y:H*0.18,l:c[0],col:'#7bf59a'},{x:W*0.82,y:H*0.18,l:c[1],col:'#ffb3b3'},{x:W*0.5,y:H*0.18,l:c[2],col:'#9aa3b2'}];
+    for(const k of cSpec){ tiles.push({x:k.x,y:k.y,r:Math.min(W,H)*0.04,label:k.l,type:'corner'});
+      if(!blind){ ctx.fillStyle=k.col; ctx.font=(Math.min(W,H)*0.028)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(k.l,k.x,k.y); }
     }
   }
 
-  function drawWorld(dt){
-    const W=world.width,H=world.height; ctxW.clearRect(0,0,W,H);
-    // Smoke layer first
-    for(let y=0;y<mapH;y++){
-      for(let x=0;x<mapW;x++){
-        const s=smoke[y][x]; if(s>0.05){ const sx=x*tile - camera.x, sy=y*tile - camera.y;
-          ctxW.fillStyle=`rgba(118,152,187,${clamp(s*0.5,0,0.65)})`; ctxW.fillRect(sx,sy,tile,tile);
-        }
-      }
-    }
-    // Fire
-    for(let y=0;y<mapH;y++){
-      for(let x=0;x<mapW;x++){
-        const f=fire[y][x]; if(f>0.05){ const sx=x*tile - camera.x, sy=y*tile - camera.y; const g=ctxW.createLinearGradient(sx,sy,sx,sy+tile);
-          g.addColorStop(0,`rgba(255,180,120,${0.7*f})`); g.addColorStop(1,`rgba(255,60,20,${0.9*f})`);
-          ctxW.fillStyle=g; ctxW.fillRect(sx+2,sy+2,tile-4,tile-4);
-        }
-      }
-    }
-    // NPCs
-    for(const n of npcs){ const sx=n.x*tile - camera.x, sy=n.y*tile - camera.y; drawAgent(ctxW,sx,sy,'#9fb4ff'); }
-    // Player
-    const sx=player.x*tile - camera.x, sy=player.y*tile - camera.y; drawAgent(ctxW,sx,sy,'#ffffff');
+  // ======== Planchette Physics ========
+  const plan = {x:0,y:0,vx:0,vy:0, size: 54, trail:[], dwell:{tile:null,t:0}};
+  const state = {running:false, sealed:false, startedAt:null, lastMove:performance.now(), microJitter:0, decisions:[], message:""};
+
+  function resetAll(){ state.running=false; state.sealed=false; state.startedAt=null; state.decisions.length=0; state.message=""; plan.trail.length=0; plan.dwell={tile:null,t:0}; $('#log').textContent='(nothing yet)'; $('#badgeLen').textContent='0 chars'; $('#hudMode').textContent='Idle'; $('#hudConf').textContent='—'; drawBoard(); drawFX(0); }
+
+  // pointer input → smoothed target
+  let target={x:0,y:0};
+  function onPointer(e){ const rect=board.getBoundingClientRect(); const px=(e.clientX-rect.left)*DPR, py=(e.clientY-rect.top)*DPR; const t=performance.now();
+    const dt=t-state.lastMove; state.lastMove=t; // micro jitter magnitude
+    const dx=px-target.x, dy=py-target.y; const speed=Math.hypot(dx,dy)/(dt||16);
+    state.microJitter = lerp(state.microJitter, Math.min(1, speed/50), 0.15);
+    target.x = px; target.y = py;
+  }
+  board.addEventListener('pointermove', onPointer);
+  board.addEventListener('pointerdown', e=>{board.setPointerCapture(e.pointerId)});
+  board.addEventListener('pointerup', e=>{tryDwellCommit(true)});
+
+  function stepPhysics(dt){
+    const kFollow = 0.12; // smoothing factor
+    const noise = (n)=> (Math.sin((performance.now()+n*97)*0.006 + n)*0.8 + Math.cos((performance.now()+n*31)*0.004))*0.4;
+    // amplify tiny involuntary drift
+    const amp = 0.6 + state.microJitter*0.9;
+    const nx = target.x + noise(1)*8*amp, ny = target.y + noise(2)*8*amp;
+    plan.x = lerp(plan.x||nx, nx, kFollow);
+    plan.y = lerp(plan.y||ny, ny, kFollow);
+    // conf is simply inverse of plan speed jitter (for vibe only)
+    const conf = clamp(1 - (Math.abs(noise(1))+Math.abs(noise(2)))/2, 0, 1);
+    $('#hudConf').textContent = (conf*100|0)+'%';
   }
 
-  function drawAgent(ctx,sx,sy,color){
-    ctx.fillStyle=color; ctx.fillRect(sx+6,sy+4,tile-12,tile-8); // torso
-    ctx.fillStyle='#2de2ff'; ctx.fillRect(sx+8,sy+12,tile-16,4); // belt/accent
-    ctx.fillStyle='#b8bfcc'; ctx.fillRect(sx+8,sy+2,tile-16,3); // headband
+  // ======== Detection & Transcript ========
+  function drawFX(dt){
+    const W=fx.width,H=fx.height; gfx.clearRect(0,0,W,H);
+    // trail
+    gfx.strokeStyle='rgba(122,225,255,0.25)'; gfx.lineWidth=2; gfx.beginPath();
+    for(let i=0;i<plan.trail.length;i++){ const p=plan.trail[i]; if(i===0) gfx.moveTo(p.x,p.y); else gfx.lineTo(p.x,p.y);} gfx.stroke();
+    // planchette
+    const r=plan.size*DPR*0.5; const x=plan.x, y=plan.y;
+    // body
+    gfx.fillStyle='rgba(15,22,34,0.9)'; gfx.strokeStyle='rgba(45,90,150,0.8)'; gfx.lineWidth=3; gfx.beginPath(); gfx.ellipse(x,y,r*1.1,r,0,0,Math.PI*2); gfx.fill(); gfx.stroke();
+    // peephole
+    gfx.fillStyle='rgba(255,255,255,0.06)'; gfx.beginPath(); gfx.arc(x,y,r*0.35,0,Math.PI*2); gfx.fill();
   }
 
-  function drawUI(){
-    const W=ui.width,H=ui.height; ctxU.clearRect(0,0,W,H);
-    // vignette
-    const vg=ctxU.createRadialGradient(W/2,H/2,Math.min(W,H)*0.2,W/2,H/2,Math.min(W,H)*0.7);
-    vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.35)'); ctxU.fillStyle=vg; ctxU.fillRect(0,0,W,H);
-    // player status
-    ctxU.fillStyle='#b7bdca'; ctxU.fillRect(16*DPR, H-32*DPR, (player.breath/100)*(180*DPR), 8*DPR);
-    ctxU.strokeStyle='#2a2f3c'; ctxU.strokeRect(16*DPR,H-32*DPR,180*DPR,8*DPR);
-    ctxU.fillStyle='#8f98ad'; ctxU.fillText('Breath (smoke exposure)', 16*DPR, H-38*DPR);
-    if(player.hasExt){ ctxU.fillStyle='#ffb4b4'; ctxU.fillText('Extinguisher equipped — Space to use (cone spray)', 16*DPR, H-52*DPR); }
-  }
-
-  // Simulation: smoke & fire spread
-  function stepHazards(dtMS){
-    const dt = dtMS/1000; const nf = fire.map(r=>r.slice()); const ns = smoke.map(r=>r.slice());
-    for(let y=1;y<mapH-1;y++){
-      for(let x=1;x<mapW-1;x++){
-        const isKitchen = map[y][x]===T.KITCHEN;
-        let f = fire[y][x]; let s = smoke[y][x];
-        // Fire growth
-        if(f>0){ f = clamp(f + (isKitchen? 0.12:0.06)*dt, 0, 1); }
-        // Spread probability influenced by walls/doors
-        const neigh=[[1,0],[-1,0],[0,1],[0,-1]];
-        for(const [dx,dy] of neigh){
-          const nx=x+dx, ny=y+dy; if(map[ny][nx]===T.WALL) continue; // walls block
-          const edge = (map[y][x]===T.DOOR||map[ny][nx]===T.DOOR)?0.7:1; // doors slow
-          if(f>0.4 && Math.random()<0.12*edge*dt){ nf[ny][nx]=Math.max(nf[ny][nx], clamp(f-0.2,0,1)); }
-        }
-        // Smoke diffusion
-        s = clamp(s + f*0.35*dt, 0, 1);
-        for(const [dx,dy] of neigh){ const nx=x+dx, ny=y+dy; if(map[ny][nx]!==T.WALL){ ns[ny][nx] = Math.max(ns[ny][nx], s*0.5); }}
-        nf[y][x]=Math.max(nf[y][x], f); ns[y][x]=Math.max(ns[y][x], s*0.98);
-      }
-    }
-    // Slight decay in non-kitchen areas
-    for(let y=0;y<mapH;y++) for(let x=0;x<mapW;x++){ if(map[y][x]!==T.KITCHEN){ nf[y][x]*=0.999; }
-      ns[y][x]*=0.995; }
-    for(let y=0;y<mapH;y++){ fire[y]=nf[y].slice(); smoke[y]=ns[y].slice(); }
-  }
-
-  // Input
-  const keys={}; window.addEventListener('keydown',e=>{ keys[e.key.toLowerCase()]=true; if(e.key==='p'||e.key==='P'){ paused=!paused; toast(paused? 'Paused':'Resumed'); }});
-  window.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
-
-  // Movement & interactions
-  function canWalk(nx,ny){ if(nx<0||ny<0||nx>=mapW||ny>=mapH) return false; const t=map[ny][nx]; if(t===T.WALL||t===T.DESK||t===T.LIFT) return false; return true; }
-  function tryMove(ent, dx,dy){ const nx=ent.x+dx, ny=ent.y+dy; if(canWalk(nx,ny)){ ent.x=nx; ent.y=ny; return true } return false }
-
-  function interact(){
-    const t = map[player.y][player.x];
-    if(t===T.ALARM){ if(mode!==State.LIVE){ toast('You raise the alarm. Evacuate!'); mode=State.EVAC; setHUD('mode',mode); setHUD('objective','Head to EXIT ▶'); score+=50; } else { toast('Alarm already raised. Head to EXIT.'); }}
-    if(t===T.EXTING){ player.hasExt=true; toast('Picked up extinguisher. Space to spray.'); score+=10; }
-    if(t===T.DOOR){ toast('Door opened'); map[player.y][player.x]=T.FLOOR; drawStatic(); }
-  }
-
-  function spray(){ if(!player.hasExt) return; // spray cone ahead (use last move intent)
-    const dirs=[[1,0],[-1,0],[0,1],[0,-1]]; let dir=[0,0]; if(keys['arrowright']||keys['d']) dir=[1,0]; else if(keys['arrowleft']||keys['a']) dir=[-1,0]; else if(keys['arrowup']||keys['w']) dir=[0,-1]; else if(keys['arrowdown']||keys['s']) dir=[0,1]; else dir=[0,1];
-    const range=4; for(let i=1;i<=range;i++){ const x=player.x+dir[0]*i, y=player.y+dir[1]*i; if(x<0||y<0||x>=mapW||y>=mapH) break; fire[y][x]=Math.max(0, fire[y][x]-0.5); smoke[y][x]=Math.max(0, smoke[y][x]-0.3); if(map[y][x]===T.WALL) break; }
-    score+=1;
-  }
-  window.addEventListener('keydown',e=>{ if(e.code==='Space'){ e.preventDefault(); spray(); }});
-  window.addEventListener('keydown',e=>{ if(e.key.toLowerCase()==='e'){ interact(); }});
-
-  // NPC logic
-  function stepNPCs(){
-    for(const n of npcs){
-      if(mode===State.BRIEF) continue;
-      // choose target: during LIVE seek alarm; during EVAC seek exit
-      let target=null;
-      if(mode===State.LIVE){ target=findFirst(T.ALARM); }
-      if(mode===State.EVAC){ target=findFirst(T.EXIT); }
-      if(!target) continue;
-      const path = astar(n.x,n.y, target.x,target.y);
-      if(path && path.length>1){ const next=path[1]; n.x=next.x; n.y=next.y; }
-    }
-  }
-
-  function findFirst(tileType){ for(let y=0;y<mapH;y++) for(let x=0;x<mapW;x++) if(map[y][x]===tileType) return {x,y}; return null }
-
-  // Game loop
-  let last=now();
   function loop(){
-    const t=now(); const dt=t-last; last=t; if(!paused){
-      if(mode!==State.BRIEF){ stepHazards(dt); stepNPCs();
-        // Player smoke damage
-        player.breath = clamp(player.breath - smoke[player.y][player.x]*0.25, 0, 100);
-        if(player.breath<=0){ finish(false,'You were overcome by smoke.'); }
-        // Win condition
-        if(map[player.y][player.x]===T.EXIT && mode===State.EVAC){ finish(true,'You reached the muster point.'); }
-      }
-      // Movement
-      const sp = (keys['shift']? 2 : 1);
-      if(keys['arrowright']||keys['d']) tryMove(player,1,0);
-      else if(keys['arrowleft']||keys['a']) tryMove(player,-1,0);
-      else if(keys['arrowup']||keys['w']) tryMove(player,0,-1);
-      else if(keys['arrowdown']||keys['s']) tryMove(player,0,1);
-      // Camera
-      camera.follow(player);
-      // Draw
-      drawStatic(); drawWorld(dt); drawUI();
-      // HUD
-      if(mode!==State.BRIEF){ elapsed = (t-startTime); setHUD('time', fmtTime(elapsed)); }
-    }
-    requestAnimationFrame(loop);
+    const t=performance.now(); stepPhysics(16); if(state.running){ plan.trail.push({x:plan.x,y:plan.y,t}); if(plan.trail.length>1200) plan.trail.shift(); checkDwell(16);} drawFX(16); requestAnimationFrame(loop);
   }
 
-  // Start/Reset/Hard
-  $('#btnStart').addEventListener('click', showBrief);
-  $('#btnReset').addEventListener('click', ()=>{ location.reload() });
-  $('#btnHard').addEventListener('click', ()=>{ hard=!hard; toast(hard?'Hard mode on':'Hard mode off'); document.getElementById('btnHard').classList.toggle('warn',hard); });
+  function hitTest(x,y){ for(const tile of tiles){ if(Math.hypot(x-tile.x,y-tile.y) <= tile.r) return tile; } return null }
 
-  function showBrief(){
-    const o=$('#overlay'), m=$('#modal'); o.classList.add('show');
-    m.innerHTML=`
-      <h3>Briefing — Electrical Fire in Kitchen</h3>
-      <p>You are on Floor 4. A fault may occur in the kitchen area. Your tasks:</p>
-      <ol>
-        <li>Investigate safely. If confirmed, <strong>raise the alarm</strong> at the nearest manual call point.</li>
-        <li>Only use an extinguisher if trained and the fire is <strong>small</strong> and your exit is clear.</li>
-        <li><strong>Do not</strong> use lifts. Move to the signed <strong>EXIT</strong> and head to the muster point.</li>
-        <li>Assist colleagues en route if safe to do so.</li>
-      </ol>
-      <h4>Quick quiz: The fire involves a toaster. Which extinguisher?</h4>
-      <div class="opt" data-a="water">Water</div>
-      <div class="opt" data-a="co2">CO₂</div>
-      <div class="opt" data-a="foam">Foam</div>
-      <div class="opt" data-a="powder">Dry Powder</div>
-      <div style="margin-top:12px" class="flex"><span class="muted">Answer to continue.</span><span class="grow"></span><button class="primary" id="btnBegin" disabled>Begin Scenario</button></div>
-    `;
-    m.querySelectorAll('.opt').forEach(el=> el.addEventListener('click', ()=>{
-      m.querySelectorAll('.opt').forEach(x=>x.style.borderColor='#222638');
-      el.style.borderColor = '#2de2ff';
-      const ans = el.getAttribute('data-a');
-      const btn = m.querySelector('#btnBegin');
-      btn.disabled=false; btn.onclick=()=>{ o.classList.remove('show'); start(ans==='co2'); };
-    }));
+  function checkDwell(dt){
+    const tile = hitTest(plan.x, plan.y);
+    if(tile && tile!==plan.dwell.tile){ plan.dwell={tile,t:0}; }
+    if(tile){ plan.dwell.t += dt; if(plan.dwell.t>600){ commit(tile); plan.dwell={tile:null,t:0}; } }
   }
 
-  function start(correctExt){
-    mode=State.LIVE; setHUD('mode',mode); setHUD('objective','Confirm hazard ▶ Raise alarm'); startTime=now();
-    setTimeout(()=>{ // escalate fire slowly if wrong quiz
-      if(!correctExt){ fire[2][24]=Math.min(1, fire[2][24]+0.15); toast('Because you chose poorly, the fault escalates slightly.'); score-=10; }
-    }, 800);
-    // Hard mode tweaks
-    if(hard){ fire[2][24]=Math.min(1, fire[2][24]+0.2); smoke[2][24]=Math.min(1, smoke[2][24]+0.2); player.breath=85; }
-    setHUD('score',score);
+  function tryDwellCommit(force=false){ const tile = hitTest(plan.x,plan.y); if(force && tile){ commit(tile); plan.dwell={tile:null,t:0}; }}
+
+  function commit(tile){ if(!state.running) return; const lab = tile.label; state.decisions.push({t:Date.now(),label:lab,x:tile.x,y:tile.y});
+    if(lab==='YES'||lab==='NO'){ state.message += ' ['+lab+']'; }
+    else if(lab==='GOODBYE'){ state.message += ' [GOODBYE]'; stopSession(); }
+    else{ state.message += (lab.length===1? lab : ''); }
+    $('#log').textContent = blind? '(sealed — stop to reveal)': state.message; $('#badgeLen').textContent = (state.message.replace(/\s/g,'').length)+' chars';
+    pulse();
   }
 
-  function finish(success,msg){ if(mode===State.DONE) return; mode=State.DONE; setHUD('mode','Debrief'); setHUD('objective','—');
-    const timeScore = Math.max(0, 600 - Math.floor(elapsed/1000));
-    const breathScore = Math.floor(player.breath);
-    const rescueScore = npcs.filter(n=> map[n.y][n.x]===T.EXIT).length * 25;
-    score += (success? 200: -50) + timeScore*0.5 + breathScore + rescueScore;
-    score = Math.max(0, Math.floor(score));
-    setHUD('score', score);
-    const pct = clamp(score/1000,0,1);
-    $('#meterBar').style.width = `${Math.floor(pct*100)}%`;
-    $('#grade').textContent = pct>0.8? 'A' : pct>0.6? 'B' : pct>0.4? 'C' : pct>0.2? 'D' : 'E';
+  function pulse(){ gfx.save(); gfx.strokeStyle='rgba(122,225,255,0.6)'; gfx.lineWidth=6; gfx.beginPath(); gfx.arc(plan.x,plan.y,plan.size*DPR*0.58,0,Math.PI*2); gfx.stroke(); gfx.restore(); }
 
-    const o=$('#overlay'), m=$('#modal'); o.classList.add('show');
-    m.innerHTML=`
-      <h3>${success? 'Debrief — Successful Evacuation' : 'Debrief — Failure'}</h3>
-      <p>${msg}</p>
-      <div class="score">Final Score: <strong>${score}</strong></div>
-      <ul>
-        <li>Time: ${fmtTime(elapsed)}</li>
-        <li>Breath remaining: ${Math.floor(player.breath)}%</li>
-        <li>Colleagues at exit: ${npcs.filter(n=> map[n.y][n.x]===T.EXIT).length}</li>
-      </ul>
-      <h4>Notes</h4>
-      <ul>
-        <li>Raise the alarm early. Doors slow fire spread — use them tactically.</li>
-        <li>CO₂ is suitable for electrical fires; water is not.</li>
-        <li>If visibility drops, keep contact with walls and lower your height.</li>
-      </ul>
-      <div class="flex" style="margin-top:10px"><button id="btnReplay">Replay</button><div class="grow"></div><button class="good" id="btnSave">Save Run (JSON)</button></div>
-    `;
-    m.querySelector('#btnReplay').onclick=()=>location.reload();
-    m.querySelector('#btnSave').onclick=()=>{
-      const data = { success, score, elapsed, breath:player.breath, rescued:npcs.filter(n=> map[n.y][n.x]===T.EXIT).length, hard };
-      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`evac_run_${Date.now()}.json`; a.click();
+  // ======== Session control ========
+  function startSession(){ if(state.running) return; state.running=true; state.startedAt=Date.now(); $('#hudMode').textContent='Listening'; toast('Begin. Keep a light touch and don\'t steer.'); }
+  function stopSession(){ if(!state.running) return; state.running=false; $('#hudMode').textContent='Stopped'; if(blind){ blind=false; $('#chkBlind').checked=false; $('#hudBlind').textContent='Off'; drawBoard(); $('#log').textContent=state.message||'(no text)'; toast('Reveal'); }}
+  function hardReset(){ resetAll(); toast('Reset'); }
+
+  // ======== Export / Seal ========
+  function exportJSON(){
+    const body = {
+      startedAt: state.startedAt,
+      endedAt: Date.now(),
+      layout: layoutShuffle? 'shuffled':'classic',
+      blind,
+      sealed: state.sealed,
+      message: state.message,
+      decisions: state.decisions,
+      trail: plan.trail.slice(-400),
+      hash: hash32(JSON.stringify(state.message)+'/'+state.startedAt)
     };
+    const blob=new Blob([JSON.stringify(body,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`spiritboard_${body.startedAt}.json`; a.click();
   }
 
-  // Boot
-  resize(); drawStatic(); drawWorld(0); drawUI(); setHUD('time','00:00');
-  loop();
+  // ======== Bind UI ========
+  $('#btnStart').onclick=()=>startSession();
+  $('#btnStop').onclick=()=>stopSession();
+  $('#btnReset').onclick=()=>hardReset();
+  $('#btnExport').onclick=()=>exportJSON();
+  $('#chkBlind').onchange=(e)=>{ blind=e.target.checked; $('#hudBlind').textContent=blind? 'On':'Off'; drawBoard(); if(blind){ $('#log').textContent='(sealed — stop to reveal)'; }}
+  $('#chkShuffle').onchange=(e)=>{ layoutShuffle=e.target.checked; makeLayout(); drawBoard(); }
+  $('#chkSeal').onchange=(e)=>{ state.sealed=e.target.checked; }
+
+  window.addEventListener('keydown',e=>{
+    if(e.key===' '){ e.preventDefault(); state.running? stopSession(): startSession(); }
+    if(e.key==='Escape'){ hardReset(); }
+    if(e.key.toLowerCase()==='b'){ blind=!blind; $('#chkBlind').checked=blind; $('#hudBlind').textContent=blind? 'On':'Off'; drawBoard(); if(blind) $('#log').textContent='(sealed — stop to reveal)'; }
+    if(e.key.toLowerCase()==='s'){ layoutShuffle=!layoutShuffle; $('#chkShuffle').checked=layoutShuffle; makeLayout(); drawBoard(); toast(layoutShuffle? 'Shuffled layout':'Classic layout'); }
+  });
+
+  // ======== Boot ========
+  makeLayout(); resize(); resetAll(); loop();
 })();
 </script>
 </body>
