@@ -1,33 +1,31 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Spirit Board — HOLD‑TO‑WRITE v5 (Mobile Layout)</title>
+<title>Spirit Board — Minimal (v6)</title>
 <style>
   :root{
     --bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;
-    --header-h:44px;           /* compact top bar */
-    --footer-h:28svh;          /* transcript panel */
+    --header-h:48px;           /* compact top bar */
+    --footer-h:30svh;          /* transcript panel */
     --safe-b: env(safe-area-inset-bottom, 0px);
-    --safe-t: env(safe-area-inset-top, 0px);
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial;height:100%;}
   .app{position:relative; min-height:100svh; min-height:100dvh;}
   header{
     position:fixed; inset:0 0 auto 0; height:var(--header-h);
-    display:flex; align-items:center; gap:8px; padding:4px 8px;
+    display:flex; align-items:center; gap:8px; padding:6px 10px;
     background:var(--panel); border-bottom:1px solid #1b2330; z-index:20;
   }
   button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);
-    padding:6px 10px;border-radius:10px;cursor:pointer;font-size:14px;line-height:1}
-  #status{margin-left:auto;color:#a9b3c6;font-size:12px}
+    padding:8px 14px;border-radius:12px;cursor:pointer;font-size:15px;line-height:1}
   #stageWrap{
     position:fixed; left:0; right:0;
     top:var(--header-h);
     bottom:calc(var(--footer-h) + var(--safe-b));
-    /* ensure canvas fills */
     display:block;
   }
   #cv{position:absolute; inset:0; width:100%; height:100%; display:block;
@@ -35,40 +33,29 @@
   footer{
     position:fixed; left:0; right:0; bottom:0;
     height:calc(var(--footer-h) + var(--safe-b));
-    background:#0a0f16; border-top:1px solid #1b2330; padding:8px 8px calc(8px + var(--safe-b)) 8px;
+    background:#0a0f16; border-top:1px solid #1b2330; padding:8px 10px calc(8px + var(--safe-b)) 10px;
     z-index:20;
   }
-  .row{display:flex; gap:8px; align-items:center; margin-bottom:6px; flex-wrap:wrap}
-  .row label{display:inline-flex; align-items:center; gap:6px; color:#cfe2ff; font-size:12px}
-  input[type="range"]{accent-color:#2de2ff}
   textarea#ta{
-    width:100%; height:calc(100% - 40px);
-    background:#0b1018;color:#eaf2ff;border:1px solid #2a3a58;border-radius:10px;padding:10px;
+    width:100%; height:100%;
+    background:#0b1018;color:#eaf2ff;border:1px solid #2a3a58;border-radius:12px;padding:12px;
     resize:none; font-family:ui-monospace,Menlo,Consolas,monospace
   }
-  .tiny{font-size:12px;color:#9fb1c9}
+  .sr{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <button id="btnInvite">Invite</button>
-    <button id="btnGoodbye">Goodbye</button>
-    <button id="btnReset">Reset</button>
-    <button id="btnFix">Close‑Letter Fix</button>
-    <span id="status">Idle • 0 chars</span>
+    <button id="btnInvite" aria-label="Start session">Start</button>
+    <button id="btnGoodbye" aria-label="Stop session">Stop</button>
+    <span id="status" class="sr" aria-live="polite">Idle</span>
   </header>
 
   <div id="stageWrap"><canvas id="cv"></canvas></div>
 
   <footer>
-    <div class="row">
-      <label>Planchette <input id="rngPlan" type="range" min="16" max="44" step="1" value="24"></label>
-      <label>Tile size <input id="rngTile" type="range" min="0.80" max="1.80" step="0.05" value="1.20"></label>
-      <label>Arc width <input id="rngArc" type="range" min="0.70" max="0.92" step="0.01" value="0.88"></label>
-      <label>Dwell <input id="rngDwell" type="range" min="400" max="1600" step="50" value="700"></label>
-      <span class="tiny" id="dims"></span>
-    </div>
+    <label for="ta" class="sr">Transcript</label>
     <textarea id="ta" readonly>(no text)</textarea>
   </footer>
 </div>
@@ -77,21 +64,21 @@
 (function(){
   const $=s=>document.querySelector(s);
   const cv=$('#cv'), ctx=cv.getContext('2d',{alpha:true});
-  const ta=$('#ta'), statusEl=$('#status'), dims=$('#dims');
+  const ta=$('#ta'), statusEl=$('#status');
   const DPR=Math.min(2, window.devicePixelRatio||1);
   let W=0,H=0, running=false, message="";
-  // Controls (v4 defaults)
-  let DWELL_MS=700, tileScale=1.20, planRpx=24, arcTight=0.88;
+  // Optimal defaults (tuned)
+  let DWELL_MS=700, tileScale=1.15, planRpx=22, arcTight=0.86;
   // State
   const plan={x:0,y:0,r:28,trail:[]};
   const tiles=[];
   let entered=null, ready=0;
   const IN_FACTOR=1.22, OUT_FACTOR=1.60;
-  // Commit rules (no distance gate; per‑tile lock + short time gap)
-  let lastCommit=null; const MIN_GAP=220, REPEAT_CD=700;
+  // Commit rules (no distance gate; per‑tile lock + small time gap)
+  let lastCommit=null; const MIN_GAP=240, REPEAT_CD=700;
   let touching=false, mouseDown=false;
 
-  // Layout helpers
+  // Sizing helpers
   function stageRectPx(){
     const wrap = document.getElementById('stageWrap');
     const r = wrap.getBoundingClientRect();
@@ -105,9 +92,7 @@
     plan.r = Math.max(16*DPR, planRpx*DPR);
     buildTiles(); if(plan.x===0 && plan.y===0) center();
     draw();
-    dims.textContent = Math.round(W/DPR)+'x'+Math.round(H/DPR)+'px';
   }
-  // Handle 100vh quirks by re‑sizing on orientation/resize and after short delays
   new ResizeObserver(sizeCanvas).observe(document.getElementById('stageWrap'));
   window.addEventListener('orientationchange', ()=>{ setTimeout(sizeCanvas, 250); setTimeout(sizeCanvas, 800); });
   window.addEventListener('resize', ()=>{ setTimeout(sizeCanvas, 150); });
@@ -115,7 +100,7 @@
 
   function center(){ plan.x=W*0.52; plan.y=H*0.62; draw(); }
 
-  // Board layout
+  // Layout
   const base = { r1:[...'ABCDEFGH'], r2:[...'IJKLMNOP'], r3:[...'QRSTUVWXYZ'], nums:[...'1234567890'], cor:['YES','NO','GOODBYE'] };
   function buildTiles(){
     tiles.length=0;
@@ -142,7 +127,7 @@
     tiles.push({x:W*0.50,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:c[2], id:'g'});
   }
 
-  // Draw board + planchette
+  // Drawing
   function drawBoard(){
     ctx.clearRect(0,0,W,H);
     const g=ctx.createRadialGradient(W*0.62,H*0.35,10, W*0.62,H*0.35, Math.max(W,H)*0.9);
@@ -150,7 +135,7 @@
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
     ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
     for(let y=0;y<H;y+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
-    for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
+    for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(W,x+0.5); ctx.stroke(); }
     ctx.strokeStyle='rgba(200,210,230,0.10)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
     const cx=W*0.52, cy=H*0.62, baseR=Math.min(W,H)*0.36;
     [0.70, 0.90, 1.10].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
@@ -219,9 +204,7 @@
   }
 
   // Dwell loop
-  let lastTs=performance.now();
   function tick(ts){
-    const dt = (ts - lastTs) || 16; lastTs = ts;
     if(touching || mouseDown){
       const tile = stickyHit(plan.x, plan.y);
       if(tile && (!entered || entered.tile!==tile)){
@@ -265,25 +248,9 @@
   cv.addEventListener('mousemove', e=>{ if(!mouseDown) return; const p=toCanvas(e.clientX,e.clientY); plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H); plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift(); });
   cv.addEventListener('mouseup', e=>{ mouseDown=false; });
 
-  // UI
+  // Buttons
   $('#btnInvite').onclick=()=>{ running=true; message=''; plan.trail.length=0; entered=null; ready=0; updateTranscript(); draw(); };
   $('#btnGoodbye').onclick=()=>{ if(!running) return; commit({id:'g',label:'GOODBYE', x:0,y:0}); running=false; };
-  $('#btnReset').onclick=()=>{ running=false; message=''; plan.trail.length=0; entered=null; ready=0; center(); updateTranscript(); draw(); };
-  $('#btnFix').onclick=()=>{
-    // Same close-letter preset as v4
-    planRpx = 20; plan.r = planRpx*DPR;
-    tileScale = 1.10; arcTight = 0.84; DWELL_MS = 650;
-    buildTiles(); draw();
-    $('#rngPlan').value = String(planRpx);
-    $('#rngTile').value = String(tileScale);
-    $('#rngArc').value  = String(arcTight);
-    $('#rngDwell').value= String(DWELL_MS);
-  };
-  // Sliders
-  $('#rngPlan').oninput=e=>{ planRpx = parseInt(e.target.value,10)||24; plan.r = planRpx*DPR; draw(); };
-  $('#rngTile').oninput=e=>{ tileScale = parseFloat(e.target.value)||1.20; buildTiles(); draw(); };
-  $('#rngArc').oninput=e=>{ arcTight = parseFloat(e.target.value)||0.88; buildTiles(); draw(); };
-  $('#rngDwell').oninput=e=>{ DWELL_MS = parseInt(e.target.value,10)||700; };
 
   // Init
   updateTranscript();
