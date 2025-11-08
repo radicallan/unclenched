@@ -1,25 +1,26 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Spirit Board — Mobile (iPhone)</title>
+<title>Spirit Board — Mobile (iPhone, Fixed)</title>
 <style>
   :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff}
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial}
-  /* prevent scroll bounce & gestures by default */
-  html,body{overscroll-behavior:none; touch-action:none}
+  /* Allow normal page interaction; we'll only suppress gestures on the canvas */
+  html,body{overscroll-behavior:auto; touch-action:auto}
   .wrap{display:flex;flex-direction:column;min-height:100vh}
   header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;background:#0f121a;border-bottom:1px solid #1b2330;position:sticky;top:0;z-index:10}
   header .sp{flex:1}
-  button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);padding:10px 12px;border-radius:12px;cursor:pointer}
+  button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);padding:10px 12px;border-radius:12px}
   button:active{transform:scale(0.98)}
   label{display:inline-flex;align-items:center;gap:6px}
   input[type="range"]{accent-color:#2de2ff}
   #status{color:#a9b3c6}
   #stage{position:relative;flex:1;min-height:50vh}
-  #cv{position:absolute;inset:0;display:block;width:100%;height:100%}
+  #cv{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none}
   #log{min-height:120px;max-height:38vh;overflow:auto;padding:10px;background:#0a0f16;border-top:1px solid #1b2330;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .small{font-size:13px;color:#97a1b1}
@@ -29,10 +30,10 @@
 <div class="wrap">
   <header>
     <div class="row" style="width:100%">
-      <button id="btnStart">Invite</button>
-      <button id="btnStop">Goodbye</button>
-      <button id="btnReset">Reset</button>
-      <button id="btnCenter">Center</button>
+      <button id="btnStart" type="button">Invite</button>
+      <button id="btnStop" type="button">Goodbye</button>
+      <button id="btnReset" type="button">Reset</button>
+      <button id="btnCenter" type="button">Center</button>
       <div class="sp"></div>
       <span id="status">Idle • 0 chars</span>
     </div>
@@ -41,9 +42,9 @@
       <label><input type="checkbox" id="chkSeal"> Seal</label>
       <label><input type="checkbox" id="chkShuffle"> Shuffle</label>
       <label>Gain <input type="range" id="rngGain" min="0.6" max="3.0" step="0.1" value="1.8"></label>
-      <button id="btnExport">Export</button>
+      <button id="btnExport" type="button">Export</button>
     </div>
-    <div class="small">Tip: rotate to landscape, rest one finger lightly, and keep eyes soft. Two-finger screen move is disabled so the board won't scroll.</div>
+    <div class="small">Tip: rotate to landscape, rest one finger lightly. Board won't scroll; buttons remain fully tappable.</div>
   </header>
 
   <div id="stage"><canvas id="cv"></canvas></div>
@@ -59,11 +60,6 @@
   const statusEl = $('#status'); const logEl = $('#log');
 
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-
-  // Prevent gestures/scroll on iOS
-  ['touchstart','touchmove','touchend','gesturestart','gesturechange','gestureend'].forEach(evt=>{
-    document.addEventListener(evt, e=>{ e.preventDefault(); }, {passive:false});
-  });
 
   // ----- State -----
   let running=false, blind=false, sealed=false, shuffled=false;
@@ -102,7 +98,7 @@
     const rect = cv.getBoundingClientRect();
     cv.width = Math.max(10, rect.width * DPR);
     cv.height = Math.max(10, rect.height * DPR);
-    plan.r = Math.max(20*DPR, Math.min(cv.width, cv.height)*0.05); // slightly larger for touch
+    plan.r = Math.max(20*DPR, Math.min(cv.width, cv.height)*0.05); // larger for touch
     centerPlanchette();
     draw();
   }
@@ -136,7 +132,7 @@
       const n=arr.length, a0=-Math.PI*0.8, a1=-Math.PI*0.2;
       for(let i=0;i<n;i++){
         const t=i/(n-1); const ang=a0+(a1-a0)*t; const x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
-        tiles.push({x,y,r:Math.min(W,H)*0.040,label:arr[i]}); // larger targets for touch
+        tiles.push({x,y,r:Math.min(W,H)*0.040,label:arr[i]});
         if(!blind){
           ctx.fillStyle='#cfd6e6';
           ctx.font=(Math.min(W,H)*0.05)+'px ui-monospace,Menlo,Consolas';
@@ -178,10 +174,8 @@
 
   function drawPlanchette(){
     const r=plan.r; const x=plan.x, y=plan.y;
-    // trail
     ctx.strokeStyle='rgba(122,225,255,0.22)'; ctx.lineWidth=2;
     ctx.beginPath(); for(let i=0;i<plan.trail.length;i++){ const p=plan.trail[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);} ctx.stroke();
-    // body
     ctx.fillStyle='rgba(16,24,36,0.92)'; ctx.strokeStyle='rgba(45,90,150,0.85)'; ctx.lineWidth=3;
     ctx.beginPath(); ctx.ellipse(x,y,r*1.1,r,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
     ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.arc(x,y,r*0.38,0,Math.PI*2); ctx.fill();
@@ -189,28 +183,29 @@
 
   function draw(){ drawBoard(); drawPlanchette(); }
 
-  // ----- Touch Input (no scrolling) -----
+  // ----- Touch Input (constrained to canvas only) -----
   function touchPoint(e){
     const t = e.changedTouches[0];
     const rect = cv.getBoundingClientRect();
     return { x:(t.clientX-rect.left)*DPR, y:(t.clientY-rect.top)*DPR };
   }
   cv.addEventListener('touchstart', e=>{
+    e.preventDefault();
     const p = touchPoint(e);
     target.x = clamp(p.x, 0, cv.width);
     target.y = clamp(p.y, 0, cv.height);
   }, {passive:false});
 
   cv.addEventListener('touchmove', e=>{
+    e.preventDefault();
     const p = touchPoint(e);
     const tx = (target.x || p.x);
     const ty = (target.y || p.y);
-    // low-pass towards finger; gain scales interpolation
     target.x = clamp(tx + (p.x - tx) * (0.40 * gain), 0, cv.width);
     target.y = clamp(ty + (p.y - ty) * (0.40 * gain), 0, cv.height);
   }, {passive:false});
 
-  cv.addEventListener('touchend', e=>{ tryCommit(true); }, {passive:false});
+  cv.addEventListener('touchend', e=>{ e.preventDefault(); tryCommit(true); }, {passive:false});
 
   // ----- Hit testing & dwell -----
   function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
@@ -260,7 +255,6 @@
     const dt = (t - lastT) || 16; lastT = t;
     const nx = (target.x || plan.x);
     const ny = (target.y || plan.y);
-    // smooth toward target + tiny organic wobble
     const wob1 = Math.sin((t+97)*0.006)*4;
     const wob2 = Math.cos((t+31)*0.004)*4;
     plan.x = clamp(plan.x + (nx + wob1 - plan.x) * 0.18, 0, cv.width);
@@ -269,7 +263,6 @@
       plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>900) plan.trail.shift();
       const k = hit(plan.x, plan.y);
       if(k){ dwellTimer += dt; } else { dwellTimer=0; }
-      // auto-commit path
       if(k && dwellTimer > BASE_DWELL + (consecutiveSame*180)) tryCommit(false);
     }
     draw();
@@ -291,6 +284,7 @@
     const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='spirit_board_mobile_session.json'; a.click();
   }
 
+  // Bind buttons/inputs (iOS needs explicit onclick handlers)
   $('#btnStart').onclick = start;
   $('#btnStop').onclick = stop;
   $('#btnReset').onclick = reset;
