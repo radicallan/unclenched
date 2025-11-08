@@ -3,92 +3,126 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Spirit Board — HOLD‑TO‑WRITE v4 (Close‑Letter Fix)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Spirit Board — HOLD‑TO‑WRITE v5 (Mobile Layout)</title>
 <style>
-  :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1}
+  :root{
+    --bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;
+    --header-h:44px;           /* compact top bar */
+    --footer-h:28svh;          /* transcript panel */
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+  }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial}
-  header{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid #1b2330;padding:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);padding:9px 12px;border-radius:12px;cursor:pointer}
-  #status{margin-left:auto;color:#a9b3c6}
-  #stage{height:66vh; position:relative}
-  #cv{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none}
-  .panel{border-top:1px solid #1b2330;background:#0a0f16;padding:10px}
-  .panel h3{margin:0 0 8px 0;font-size:14px;color:#cfe2ff}
-  textarea#ta{width:100%;min-height:18vh;max-height:34vh;background:#0b1018;color:#eaf2ff;border:1px solid #2a3a58;border-radius:10px;padding:10px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace}
-  label{display:inline-flex;align-items:center;gap:6px}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial;height:100%;}
+  .app{position:relative; min-height:100svh; min-height:100dvh;}
+  header{
+    position:fixed; inset:0 0 auto 0; height:var(--header-h);
+    display:flex; align-items:center; gap:8px; padding:4px 8px;
+    background:var(--panel); border-bottom:1px solid #1b2330; z-index:20;
+  }
+  button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);
+    padding:6px 10px;border-radius:10px;cursor:pointer;font-size:14px;line-height:1}
+  #status{margin-left:auto;color:#a9b3c6;font-size:12px}
+  #stageWrap{
+    position:fixed; left:0; right:0;
+    top:var(--header-h);
+    bottom:calc(var(--footer-h) + var(--safe-b));
+    /* ensure canvas fills */
+    display:block;
+  }
+  #cv{position:absolute; inset:0; width:100%; height:100%; display:block;
+    touch-action:none; -webkit-user-select:none; user-select:none}
+  footer{
+    position:fixed; left:0; right:0; bottom:0;
+    height:calc(var(--footer-h) + var(--safe-b));
+    background:#0a0f16; border-top:1px solid #1b2330; padding:8px 8px calc(8px + var(--safe-b)) 8px;
+    z-index:20;
+  }
+  .row{display:flex; gap:8px; align-items:center; margin-bottom:6px; flex-wrap:wrap}
+  .row label{display:inline-flex; align-items:center; gap:6px; color:#cfe2ff; font-size:12px}
   input[type="range"]{accent-color:#2de2ff}
+  textarea#ta{
+    width:100%; height:calc(100% - 40px);
+    background:#0b1018;color:#eaf2ff;border:1px solid #2a3a58;border-radius:10px;padding:10px;
+    resize:none; font-family:ui-monospace,Menlo,Consolas,monospace
+  }
+  .tiny{font-size:12px;color:#9fb1c9}
 </style>
 </head>
 <body>
-<header>
-  <button id="btnInvite">Invite</button>
-  <button id="btnGoodbye">Goodbye</button>
-  <button id="btnReset">Reset</button>
-  <button id="btnCenter">Center</button>
-  <button id="btnFix">Close‑Letter Fix</button>
-  <label><span>Planchette</span> <input id="rngPlan" type="range" min="16" max="44" step="1" value="24"></label>
-  <label><span>Tile size</span> <input id="rngTile" type="range" min="0.80" max="1.80" step="0.05" value="1.20"></label>
-  <label><span>Arc width</span> <input id="rngArc" type="range" min="0.70" max="0.92" step="0.01" value="0.88"></label>
-  <label><span>Dwell</span> <input id="rngDwell" type="range" min="400" max="1600" step="50" value="700"></label>
-  <span id="status">Idle • 0 chars</span>
-</header>
+<div class="app">
+  <header>
+    <button id="btnInvite">Invite</button>
+    <button id="btnGoodbye">Goodbye</button>
+    <button id="btnReset">Reset</button>
+    <button id="btnFix">Close‑Letter Fix</button>
+    <span id="status">Idle • 0 chars</span>
+  </header>
 
-<div id="stage"><canvas id="cv"></canvas></div>
+  <div id="stageWrap"><canvas id="cv"></canvas></div>
 
-<div class="panel">
-  <h3>Transcript</h3>
-  <textarea id="ta" readonly>(no text)</textarea>
+  <footer>
+    <div class="row">
+      <label>Planchette <input id="rngPlan" type="range" min="16" max="44" step="1" value="24"></label>
+      <label>Tile size <input id="rngTile" type="range" min="0.80" max="1.80" step="0.05" value="1.20"></label>
+      <label>Arc width <input id="rngArc" type="range" min="0.70" max="0.92" step="0.01" value="0.88"></label>
+      <label>Dwell <input id="rngDwell" type="range" min="400" max="1600" step="50" value="700"></label>
+      <span class="tiny" id="dims"></span>
+    </div>
+    <textarea id="ta" readonly>(no text)</textarea>
+  </footer>
 </div>
 
 <script>
 (function(){
   const $=s=>document.querySelector(s);
   const cv=$('#cv'), ctx=cv.getContext('2d',{alpha:true});
-  const ta=$('#ta'), statusEl=$('#status');
+  const ta=$('#ta'), statusEl=$('#status'), dims=$('#dims');
   const DPR=Math.min(2, window.devicePixelRatio||1);
   let W=0,H=0, running=false, message="";
-  // Controls (defaults lean small/tight for iPhone)
-  let DWELL_MS=700, tileScale=1.20, planRpx=24, arcTight=0.88; // arcTight controls how wide the letter arc is
+  // Controls (v4 defaults)
+  let DWELL_MS=700, tileScale=1.20, planRpx=24, arcTight=0.88;
   // State
   const plan={x:0,y:0,r:28,trail:[]};
   const tiles=[];
   let entered=null, ready=0;
-  const IN_FACTOR=1.22, OUT_FACTOR=1.60; // strong hysteresis
-  // Commit rules (no distance gate; only time + same-tile lock)
-  let lastCommit=null;
-  const MIN_GAP=220;              // minimal ms between any two commits
-  const REPEAT_CD=700;            // ms before same tile/letter can commit again
+  const IN_FACTOR=1.22, OUT_FACTOR=1.60;
+  // Commit rules (no distance gate; per‑tile lock + short time gap)
+  let lastCommit=null; const MIN_GAP=220, REPEAT_CD=700;
   let touching=false, mouseDown=false;
 
-  // Canvas sizing
+  // Layout helpers
+  function stageRectPx(){
+    const wrap = document.getElementById('stageWrap');
+    const r = wrap.getBoundingClientRect();
+    return {w: Math.max(50, Math.floor(r.width*DPR)), h: Math.max(50, Math.floor(r.height*DPR))};
+  }
   function sizeCanvas(){
-    const rect=cv.getBoundingClientRect();
-    const w=Math.max(50, Math.floor(rect.width*DPR));
-    const h=Math.max(50, Math.floor(rect.height*DPR));
-    if(cv.width!==w) cv.width=w;
-    if(cv.height!==h) cv.height=h;
+    const r = stageRectPx();
+    if(cv.width!==r.w) cv.width=r.w;
+    if(cv.height!==r.h) cv.height=r.h;
     W=cv.width; H=cv.height;
     plan.r = Math.max(16*DPR, planRpx*DPR);
     buildTiles(); if(plan.x===0 && plan.y===0) center();
     draw();
+    dims.textContent = Math.round(W/DPR)+'x'+Math.round(H/DPR)+'px';
   }
-  new ResizeObserver(sizeCanvas).observe($('#stage'));
-  window.addEventListener('orientationchange', ()=>setTimeout(sizeCanvas,300));
-  requestAnimationFrame(sizeCanvas);
+  // Handle 100vh quirks by re‑sizing on orientation/resize and after short delays
+  new ResizeObserver(sizeCanvas).observe(document.getElementById('stageWrap'));
+  window.addEventListener('orientationchange', ()=>{ setTimeout(sizeCanvas, 250); setTimeout(sizeCanvas, 800); });
+  window.addEventListener('resize', ()=>{ setTimeout(sizeCanvas, 150); });
+  setTimeout(sizeCanvas, 60); setTimeout(sizeCanvas, 300); setTimeout(sizeCanvas, 900);
 
   function center(){ plan.x=W*0.52; plan.y=H*0.62; draw(); }
 
-  // Layout: wider arc by default to spread letters apart (controls via arcTight)
-  // arcTight near 0.92 = narrower arc; 0.70 = very wide arc. We invert to use edges [-a..-b].
+  // Board layout
   const base = { r1:[...'ABCDEFGH'], r2:[...'IJKLMNOP'], r3:[...'QRSTUVWXYZ'], nums:[...'1234567890'], cor:['YES','NO','GOODBYE'] };
   function buildTiles(){
     tiles.length=0;
     const cx=W*0.52, cy=H*0.62, baseR=Math.min(W,H)*0.36;
-    const a0 = -Math.PI*(arcTight);   // e.g. -0.88π
-    const a1 = -Math.PI*(1.0-arcTight); // e.g. -0.12π => wider arc than before
-    const ring=(arr,r, idPrefix)=>{
+    const a0 = -Math.PI*(arcTight), a1 = -Math.PI*(1.0-arcTight);
+    const ring=(arr,r,idPrefix)=>{
       const n=arr.length;
       for(let i=0;i<n;i++){
         const t=i/(n-1), ang=a0+(a1-a0)*t, x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
@@ -109,7 +143,7 @@
     tiles.push({x:W*0.50,y:H*0.16,r:Math.min(W,H)*0.045*tileScale,label:c[2], id:'g'});
   }
 
-  // Draw board and planchette
+  // Draw board + planchette
   function drawBoard(){
     ctx.clearRect(0,0,W,H);
     const g=ctx.createRadialGradient(W*0.62,H*0.35,10, W*0.62,H*0.35, Math.max(W,H)*0.9);
@@ -131,7 +165,6 @@
       else { ctx.fillStyle='#9aa3b2'; ctx.font=fontCor; }
       ctx.fillText(t.label, t.x, t.y);
     }
-    // READY ring
     if(entered && entered.tile){
       const t=entered.tile, pct=ready;
       ctx.lineWidth=5;
@@ -149,9 +182,7 @@
   }
   function draw(){ drawBoard(); drawPlanchette(); }
 
-  // Helpers
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  function toCanvas(clientX,clientY){ const r=cv.getBoundingClientRect(); return {x:(clientX-r.left)*DPR,y:(clientY-r.top)*DPR}; }
+  // Hit & sticky
   function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
   function stickyHit(x,y){
     if(entered && entered.tile){
@@ -161,17 +192,15 @@
     return hit(x,y);
   }
 
+  // Commit gating
   function canCommit(tile, now){
     if(!entered || !entered.ready) return false;
     if(lastCommit){
-      // Block if same tile quickly
       if(lastCommit.id===tile.id && (now-lastCommit.t) < REPEAT_CD) return false;
-      // No distance check — allow very close sequential letters
       if((now - lastCommit.t) < MIN_GAP) return false;
     }
     return true;
   }
-
   function commit(tile){
     const now=performance.now();
     if(!canCommit(tile, now)) return;
@@ -190,7 +219,7 @@
     statusEl.textContent = (running?'Listening':'Idle') + ' • ' + (message.replace(/\s/g,'').length) + ' chars';
   }
 
-  // Animation loop with deterministic dwell
+  // Dwell loop
   let lastTs=performance.now();
   function tick(ts){
     const dt = (ts - lastTs) || 16; lastTs = ts;
@@ -215,14 +244,16 @@
   }
   requestAnimationFrame(tick);
 
+  // Coords helpers
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function toCanvas(clientX,clientY){ const r=cv.getBoundingClientRect(); return {x:(clientX-r.left)*DPR,y:(clientY-r.top)*DPR}; }
+
   // Touch
-  cv.addEventListener('touchstart', e=>{
-    e.preventDefault(); touching=true;
+  cv.addEventListener('touchstart', e=>{ e.preventDefault(); touching=true;
     const t=e.changedTouches[0], p=toCanvas(t.clientX,t.clientY);
     plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H); draw();
   }, {passive:false});
-  cv.addEventListener('touchmove', e=>{
-    e.preventDefault();
+  cv.addEventListener('touchmove', e=>{ e.preventDefault();
     const t=e.changedTouches[0], p=toCanvas(t.clientX,t.clientY);
     plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
     plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
@@ -239,9 +270,8 @@
   $('#btnInvite').onclick=()=>{ running=true; message=''; plan.trail.length=0; entered=null; ready=0; updateTranscript(); draw(); };
   $('#btnGoodbye').onclick=()=>{ if(!running) return; commit({id:'g',label:'GOODBYE', x:0,y:0}); running=false; };
   $('#btnReset').onclick=()=>{ running=false; message=''; plan.trail.length=0; entered=null; ready=0; center(); updateTranscript(); draw(); };
-  $('#btnCenter').onclick=()=>{ center(); draw(); };
   $('#btnFix').onclick=()=>{
-    // Preset tuned for close letters on iPhone
+    // Same close-letter preset as v4
     planRpx = 20; plan.r = planRpx*DPR;
     tileScale = 1.10; arcTight = 0.84; DWELL_MS = 650;
     buildTiles(); draw();
@@ -250,6 +280,7 @@
     $('#rngArc').value  = String(arcTight);
     $('#rngDwell').value= String(DWELL_MS);
   };
+  // Sliders
   $('#rngPlan').oninput=e=>{ planRpx = parseInt(e.target.value,10)||24; plan.r = planRpx*DPR; draw(); };
   $('#rngTile').oninput=e=>{ tileScale = parseFloat(e.target.value)||1.20; buildTiles(); draw(); };
   $('#rngArc').oninput=e=>{ arcTight = parseFloat(e.target.value)||0.88; buildTiles(); draw(); };
