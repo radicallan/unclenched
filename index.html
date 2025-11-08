@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Spirit Board — v9 Shared Planchette</title>
+<title>Spirit Board — v10 Ideomotor Physics</title>
 <style>
   :root{
     --ink:#eaf2ff; --muted:#9fb1c9;
@@ -77,23 +77,24 @@
   const ta=$('#ta');
   const DPR=Math.min(2, window.devicePixelRatio||1);
   let W=0,H=0, running=true, message="";
-  // Tuned defaults (same as aesthetic build)
+  // Timing + board
   const DWELL_MS=700, tileScale=1.15, planRpx=22, arcTight=0.86;
   const IN_FACTOR=1.22, OUT_FACTOR=1.60;
   const MIN_GAP=240, REPEAT_CD=700;
-
+  // Physics
+  const MASS=1.0, FRICTION=0.90;           // velocity damping per frame (~60 FPS)
+  const G_USER=0.010;                       // user force gain
+  const G_CONSENSUS=0.020;                  // extra gain when directions agree
+  const G_WELL=0.008;                       // letter attraction
+  const WELL_RADIUS=120;                    // influence radius in canvas pixels (before DPR)
+  const DRIFT_AMPL=0.35;                    // sub-pixel micro drift amplitude
+  const DRIFT_FREQ=0.16;                    // Hz
   // Shared planchette
-  const plan={x:0,y:0,r:Math.max(16*DPR, planRpx*DPR), trail:[]};
-  // Active touches map id -> {x,y}
+  const plan={x:0,y:0,r:Math.max(16*DPR, planRpx*DPR), trail:[], vx:0, vy:0};
+  // Touches id -> {x,y, vx, vy}
   const touches=new Map();
-  // Smoothing
-  let smoothX=0, smoothY=0, initialized=false;
-  const SMOOTH=0.22; // 0..1 higher = snappier
-
-  // Dwell / commit state (shared)
-  const tiles=[];
-  let entered=null, ready=0;
-  let lastCommit=null;
+  // Dwell / commit
+  const tiles=[]; let entered=null, ready=0; let lastCommit=null;
 
   // Canvas sizing
   function sizeCanvas(){
@@ -109,7 +110,7 @@
   window.addEventListener('resize', ()=>{ setTimeout(sizeCanvas, 150); });
   setTimeout(sizeCanvas, 60); setTimeout(sizeCanvas, 300); setTimeout(sizeCanvas, 900);
 
-  function center(){ plan.x=W*0.52; plan.y=H*0.62; smoothX=plan.x; smoothY=plan.y; initialized=true; draw(); }
+  function center(){ plan.x=W*0.52; plan.y=H*0.62; plan.vx=0; plan.vy=0; draw(); }
 
   // Layout
   function buildTiles(){
@@ -156,7 +157,6 @@
       ctx.fillText(t.label, t.x, t.y);
       ctx.shadowBlur=0;
     }
-    // READY ring
     if(entered && entered.tile){
       const t=entered.tile, pct=ready;
       ctx.lineWidth=5; ctx.strokeStyle = (pct>=1 ? 'rgba(157,246,178,0.95)' : 'rgba(122,225,255,0.75)');
@@ -165,18 +165,16 @@
   }
   function drawPlanchette(){
     const r=plan.r, x=plan.x, y=plan.y;
-    // trail
     ctx.strokeStyle='rgba(122,225,255,0.22)'; ctx.lineWidth=2;
     ctx.beginPath(); for(let i=0;i<plan.trail.length;i++){ const p=plan.trail[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);} ctx.stroke();
-    // body
     ctx.fillStyle='rgba(14,22,36,0.92)'; ctx.strokeStyle='rgba(70,140,220,0.85)'; ctx.lineWidth=3;
     ctx.beginPath(); ctx.ellipse(x,y,r*1.05,r*0.95,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
-    // window
     ctx.fillStyle='rgba(255,255,255,0.10)'; ctx.beginPath(); ctx.arc(x,y,r*0.36,0,Math.PI*2); ctx.fill();
   }
   function draw(){ drawBoard(); drawPlanchette(); }
 
-  // Hit helpers
+  // Helpers
+  function toCanvas(clientX,clientY){ const r=cv.getBoundingClientRect(); return {x:(clientX-r.left)*DPR, y:(clientY-r.top)*DPR}; }
   function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
   function stickyHit(x,y){
     if(entered && entered.tile){
@@ -186,7 +184,32 @@
     return hit(x,y);
   }
 
-  // Commit gating (close-letter fix)
+  // Consensus gain based on alignment of touch velocity directions
+  function consensusBoost(){
+    const vs=[];
+    for(const [,p] of touches){ if(p.vx||p.vy){ const m=Math.hypot(p.vx,p.vy); if(m>0.02) vs.push({x:p.vx/m, y:p.vy/m}); } }
+    if(vs.length<2) return 0;
+    // Mean resultant length as alignment measure
+    let sx=0, sy=0; for(const v of vs){ sx+=v.x; sy+=v.y; }
+    const R = Math.hypot(sx,sy)/vs.length; // 0..1
+    return R; // 0=no agreement, 1=perfect alignment
+  }
+
+  // Attraction field toward nearest tile (soft well)
+  function attractionForce(px,py){
+    let best=null, bd=1e9;
+    for(const t of tiles){
+      const dx=t.x-px, dy=t.y-py; const d=Math.hypot(dx,dy);
+      if(d<bd){ bd=d; best={t,dx,dy,d}; }
+    }
+    if(!best) return {fx:0,fy:0};
+    const R = WELL_RADIUS*DPR;
+    if(best.d>R) return {fx:0,fy:0};
+    const k = G_WELL * Math.exp(- (best.d*best.d)/(2*(0.45*R)*(0.45*R)) ); // Gaussian falloff
+    return {fx:k*best.dx, fy:k*best.dy};
+  }
+
+  // Transcript & commit
   function canCommit(tile, now){
     if(!entered || !entered.ready) return false;
     if(lastCommit){
@@ -208,87 +231,101 @@
   }
   function updateTranscript(){ ta.value=message||'(no text)'; ta.scrollTop=ta.scrollHeight; }
 
-  // Compute centroid of touches
-  function centroid(){
-    const n=touches.size; if(n===0) return null;
-    let sx=0, sy=0; for(const [,p] of touches){ sx+=p.x; sy+=p.y; }
-    return {x:sx/n, y:sy/n};
-  }
-  function toCanvas(clientX,clientY){
-    const r=cv.getBoundingClientRect();
-    return {x:(clientX-r.left)*DPR, y:(clientY-r.top)*DPR};
-  }
-
   // Animation
-  let lastTs=performance.now();
+  let lastTs=performance.now(); let driftPhase=0;
   function tick(ts){
     const dt=(ts-lastTs)||16; lastTs=ts;
-    // Update centroid → shared planchette
-    const c=centroid();
-    if(c){
-      if(!initialized){ smoothX=c.x; smoothY=c.y; initialized=true; }
-      // smoothing
-      smoothX = smoothX + (c.x - smoothX)*SMOOTH;
-      smoothY = smoothY + (c.y - smoothY)*SMOOTH;
-      plan.x=smoothX; plan.y=smoothY;
-      plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
-      // Dwell logic for shared planchette
-      const tile=stickyHit(plan.x, plan.y);
-      if(tile && (!entered || entered.tile!==tile)){
-        entered={tile, tEnter:ts, ready:false, didCommit:false}; ready=0;
-      }
-      if(tile){
-        ready = Math.min(1, (ts - entered.tEnter) / DWELL_MS);
-        entered.ready = ready >= 1;
-        if(entered.ready && !entered.didCommit) commit(tile);
-      }else{
-        entered=null; ready=0;
-      }
+    const dtSec = dt/1000;
+    // Estimate per-touch velocity & centroid
+    let cx=0, cy=0, n=0;
+    for(const [id,p] of touches){
+      if(p.px===undefined){ p.px=p.x; p.py=p.y; p.vx=0; p.vy=0; }
+      const vx=(p.x - p.px)/dt; const vy=(p.y - p.py)/dt;
+      p.vx = 0.6*p.vx + 0.4*vx; p.vy = 0.6*p.vy + 0.4*vy; // smooth
+      p.px=p.x; p.py=p.y;
+      cx+=p.x; cy+=p.y; n++;
+    }
+    let fx=0, fy=0;
+    if(n>0){
+      cx/=n; cy/=n;
+      // User force tends to pull planchette toward centroid (spring-like)
+      const ux = cx - plan.x, uy = cy - plan.y;
+      let gain = G_USER;
+      // Consensus adds gentle amplification
+      gain += G_CONSENSUS * consensusBoost();
+      fx += gain * ux;
+      fy += gain * uy;
+    } else {
+      // No touches: slow to a stop
+    }
+
+    // Attraction toward nearest tile (soft, short range)
+    const well = attractionForce(plan.x, plan.y);
+    fx += well.fx; fy += well.fy;
+
+    // Micro drift when almost still & at least one touch is down (ideomotor feel)
+    const totalSpeed = Math.hypot(plan.vx, plan.vy);
+    const touchDown = n>0;
+    if(touchDown && totalSpeed < 0.02){
+      driftPhase += dtSec * (2*Math.PI*DRIFT_FREQ);
+      fx += (DRIFT_AMPL*Math.cos(driftPhase))/1000;
+      fy += (DRIFT_AMPL*Math.sin(driftPhase))/1000;
+    }
+
+    // Integrate physics
+    plan.vx = plan.vx*FRICTION + (fx/MASS);
+    plan.vy = plan.vy*FRICTION + (fy/MASS);
+    plan.x += plan.vx * dt;
+    plan.y += plan.vy * dt;
+
+    // Keep inside
+    plan.x = Math.max(0, Math.min(W, plan.x));
+    plan.y = Math.max(0, Math.min(H, plan.y));
+
+    // Trail
+    plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
+
+    // Dwell/commit at current position
+    const tile=stickyHit(plan.x, plan.y);
+    if(tile && (!entered || entered.tile!==tile)){
+      entered={tile, tEnter:ts, ready:false, didCommit:false}; ready=0;
+    }
+    if(tile){
+      ready = Math.min(1, (ts - entered.tEnter) / DWELL_MS);
+      entered.ready = ready >= 1;
+      if(entered.ready && !entered.didCommit) commit(tile);
     }else{
-      // No touches: reset dwell
       entered=null; ready=0;
     }
+
     draw();
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 
-  // Touch handlers (multi-person)
+  // Touch handlers (multi-person shared planchette)
+  function toCanvas(clientX,clientY){ const r=cv.getBoundingClientRect(); return {x:(clientX-r.left)*DPR, y:(clientY-r.top)*DPR}; }
   cv.addEventListener('touchstart', e=>{
     e.preventDefault();
-    for(const t of e.changedTouches){
-      const p=toCanvas(t.clientX,t.clientY);
-      touches.set(t.identifier, p);
-    }
+    for(const t of e.changedTouches){ const p=toCanvas(t.clientX,t.clientY); touches.set(t.identifier, p); }
   }, {passive:false});
   cv.addEventListener('touchmove', e=>{
     e.preventDefault();
-    for(const t of e.changedTouches){
-      const p=toCanvas(t.clientX,t.clientY);
-      touches.set(t.identifier, p);
-    }
+    for(const t of e.changedTouches){ const p=toCanvas(t.clientX,t.clientY); touches.set(t.identifier, p); }
   }, {passive:false});
-  function endTouches(list){
-    for(const t of list){ touches.delete(t.identifier); }
-  }
+  function endTouches(list){ for(const t of list){ touches.delete(t.identifier); } }
   cv.addEventListener('touchend', e=>{ e.preventDefault(); endTouches(e.changedTouches); }, {passive:false});
   cv.addEventListener('touchcancel', e=>{ e.preventDefault(); endTouches(e.changedTouches); }, {passive:false});
-
-  // Mouse as another "finger" (desktop testing)
+  // Mouse for desktop
   let mouseDown=false;
-  cv.addEventListener('mousedown', e=>{
-    mouseDown=true; const p=toCanvas(e.clientX,e.clientY); touches.set('mouse', p);
-  });
-  cv.addEventListener('mousemove', e=>{
-    if(!mouseDown) return; const p=toCanvas(e.clientX,e.clientY); touches.set('mouse', p);
-  });
+  cv.addEventListener('mousedown', e=>{ mouseDown=true; touches.set('mouse', toCanvas(e.clientX,e.clientY)); });
+  cv.addEventListener('mousemove', e=>{ if(mouseDown) touches.set('mouse', toCanvas(e.clientX,e.clientY)); });
   cv.addEventListener('mouseup', e=>{ mouseDown=false; touches.delete('mouse'); });
 
   // Buttons
   $('#btnRefresh').onclick=()=>{
     running=true; message=''; ta.value='(no text)';
-    plan.trail.length=0; entered=null; ready=0; lastCommit=null;
-    smoothX=plan.x; smoothY=plan.y;
+    plan.trail.length=0; entered=null; ready=0; lastCommit=null; plan.vx=0; plan.vy=0;
   };
   $('#btnGoodbye').onclick=()=>{
     if(!running) return;
