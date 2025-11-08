@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Spirit Board — ULTRA‑SAFE</title>
+<title>Spirit Board — HOLD‑TO‑WRITE</title>
 <style>
   :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff;--good:#7bf59a;--warn:#ffd166;--bad:#ff6b6b}
   *{box-sizing:border-box}
@@ -18,16 +18,22 @@
   .panel{border-top:1px solid #1b2330;background:#0a0f16;padding:10px}
   .panel h3{margin:0 0 8px 0;font-size:14px;color:#cfe2ff}
   textarea#ta{width:100%;min-height:16vh;max-height:34vh;background:#0b1018;color:#eaf2ff;border:1px solid #2a3a58;border-radius:10px;padding:10px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .hud{position:fixed;right:10px;top:10px;display:flex;gap:8px;z-index:20}
+  .badge{background:#0f1726;border:1px solid #2a3a58;color:#cfe2ff;padding:4px 8px;border-radius:999px;font-size:12px}
+  .badge.green{border-color:#2f6;color:#cfffdf}
 </style>
 </head>
 <body>
-<div id="banner">Render error. Try tapping "Force Draw".</div>
+<div id="banner">Render error. Tap "Force Draw".</div>
 <header>
   <button id="btnStart">Invite</button>
   <button id="btnStop">Goodbye</button>
   <button id="btnReset">Reset</button>
   <button id="btnCenter">Center</button>
   <button id="btnForce">Force Draw</button>
+  <label style="margin-left:8px;"><input type="checkbox" id="chkRequire" checked> Require READY</label>
+  <label><span style="margin:0 6px 0 12px;">Dwell</span><input type="range" id="rngDwell" min="400" max="1600" step="50" value="800"></label>
+  <label><span style="margin:0 6px 0 12px;">Tile size</span><input type="range" id="rngTile" min="1.0" max="1.8" step="0.05" value="1.4"></label>
   <span id="status">Idle • 0 chars</span>
 </header>
 
@@ -38,18 +44,26 @@
   <textarea id="ta" readonly>(no text)</textarea>
 </div>
 
+<div class="hud">
+  <div id="badgeReady" class="badge">Ready: 0%</div>
+</div>
+
 <script>
 (function(){
   const $=s=>document.querySelector(s);
-  const banner=$('#banner');
-  const statusEl=$('#status');
-  const ta=$('#ta');
+  const banner=$('#banner'), statusEl=$('#status'), ta=$('#ta');
   const cv=$('#cv'); let ctx=null;
+  const badgeReady=$('#badgeReady');
   const DPR=Math.min(2, window.devicePixelRatio||1);
-  let W=0,H=0, running=false, message="", lastChars=0;
+  let W=0,H=0, running=false, message="";
   const plan={x:0,y:0,r:26,trail:[]};
   const tiles=[];
   const state={ lastError:null };
+  // READY logic
+  let needReady=true, DWELL_MS=800, tileScale=1.4;
+  let entered=null, dwellTimer=0, ready=0;
+  const IN_FACTOR=1.18, OUT_FACTOR=1.45; // sticky hysteresis
+  let lastCommit=null; const MIN_SPACE_FACTOR=1.65, MIN_GAP=520, REPEAT_CD=850;
 
   function showBanner(err){ state.lastError=err; banner.style.display='block'; banner.textContent='Render error: '+err; }
   function hideBanner(){ banner.style.display='none'; }
@@ -62,12 +76,12 @@
       if(cv.width!==w) cv.width=w;
       if(cv.height!==h) cv.height=h;
       W=cv.width; H=cv.height;
-      plan.r=Math.max(22*DPR, Math.min(W,H)*0.045);
       if(!ctx){ ctx=cv.getContext('2d',{alpha:true}); }
-      hideBanner();
+      plan.r=Math.max(22*DPR, Math.min(W,H)*0.045);
       buildTiles();
       if(plan.x===0 && plan.y===0) center();
       draw();
+      hideBanner();
     }catch(e){ showBanner(e.message||String(e)); }
   }
 
@@ -78,7 +92,6 @@
   window.addEventListener('orientationchange', ()=>{ setTimeout(sizeCanvas,300); });
   $('#btnForce').onclick=sizeCanvas;
 
-  // Build a simple layout
   function buildTiles(){
     tiles.length=0;
     const cx=W*0.52, cy=H*0.60, baseR=Math.min(W,H)*0.36;
@@ -87,15 +100,15 @@
       const n=arr.length, a0=-Math.PI*0.8, a1=-Math.PI*0.2;
       for(let i=0;i<n;i++){
         const t=i/(n-1), ang=a0+(a1-a0)*t, x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
-        tiles.push({x,y,r:Math.min(W,H)*0.042,label:arr[i]});
+        tiles.push({x,y,r:Math.min(W,H)*0.040*tileScale,label:arr[i]});
       }
     };
     ring(r1, baseR*0.70); ring(r2, baseR*0.86); ring(r3, baseR*1.02);
-    const nbY=cy+baseR*0.55, nr=Math.min(W,H)*0.042;
+    const nbY=cy+baseR*0.55, nr=Math.min(W,H)*0.040*tileScale;
     for(let i=0;i<nums.length;i++){ const x=(W*0.20)+i*(W*0.6/(nums.length-1)); tiles.push({x,y:nbY,r:nr,label:nums[i]}); }
-    tiles.push({x:W*0.18,y:H*0.18,r:Math.min(W,H)*0.055,label:'YES'});
-    tiles.push({x:W*0.82,y:H*0.18,r:Math.min(W,H)*0.055,label:'NO'});
-    tiles.push({x:W*0.50,y:H*0.18,r:Math.min(W,H)*0.055,label:'GOODBYE'});
+    tiles.push({x:W*0.18,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:'YES'});
+    tiles.push({x:W*0.82,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:'NO'});
+    tiles.push({x:W*0.50,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:'GOODBYE'});
   }
 
   function drawBoard(){
@@ -107,7 +120,7 @@
 
     ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
     for(let y=0;y<H;y+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
-    for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
+    for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(W,x+0.5); ctx.stroke(); }
 
     ctx.strokeStyle='rgba(200,210,230,0.10)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
     const cx=W*0.52, cy=H*0.60, baseR=Math.min(W,H)*0.36;
@@ -115,7 +128,6 @@
 
     ctx.textAlign='center'; ctx.textBaseline='middle';
     const fontBig=(Math.min(W,H)*0.05)+'px ui-monospace,Menlo,Consolas';
-    const fontNum=(Math.min(W,H)*0.045)+'px ui-monospace,Menlo,Consolas';
     const fontCor=(Math.min(W,H)*0.04)+'px ui-monospace,Menlo,Consolas';
 
     for(const t of tiles){
@@ -124,6 +136,14 @@
       else if(t.label==='NO'){ ctx.fillStyle='#ffb3b3'; ctx.font=fontCor; }
       else { ctx.fillStyle='#9aa3b2'; ctx.font=fontCor; }
       ctx.fillText(t.label, t.x, t.y);
+    }
+
+    // READY ring
+    if(entered && entered.tile){
+      const t=entered.tile;
+      ctx.lineWidth=5;
+      ctx.strokeStyle = (ready>=1 ? 'rgba(123,245,154,0.95)' : 'rgba(122,225,255,0.75)');
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.r*1.18, -Math.PI/2, (-Math.PI/2)+ready*2*Math.PI); ctx.stroke();
     }
   }
 
@@ -139,12 +159,35 @@
 
   function draw(){ try{ drawBoard(); drawPlanchette(); hideBanner(); }catch(e){ showBanner(e.message||String(e)); } }
 
-  // Simple hit test and commit
+  // Hit + sticky
   function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
-  function commit(lab){
-    if(lab==='GOODBYE'){ message += ' [GOODBYE]'; running=false; }
-    else if(lab==='YES' || lab==='NO'){ message += ` [${lab}]`; }
-    else if(lab && lab.length===1){ message += lab; }
+  function stickyHit(x,y){
+    if(entered && entered.tile){
+      const d=Math.hypot(x-entered.tile.x,y-entered.tile.y);
+      if(d <= entered.tile.r*OUT_FACTOR) return entered.tile;
+    }
+    return hit(x,y);
+  }
+
+  function canCommit(tile, now){
+    if(needReady && !(entered && entered.ready)) return false;
+    if(lastCommit){
+      const dist=Math.hypot(tile.x-lastCommit.x, tile.y-lastCommit.y);
+      if(dist < tile.r*MIN_SPACE_FACTOR) return false;
+      if(now - lastCommit.t < MIN_GAP) return false;
+      if(lastCommit.label===tile.label && (now-lastCommit.t) < REPEAT_CD) return false;
+    }
+    return true;
+  }
+
+  function commitTile(tile){
+    const now=Date.now(); if(!canCommit(tile, now)) return;
+    const lab=tile.label;
+    if(lab==='GOODBYE'){ message+=' [GOODBYE]'; running=false; }
+    else if(lab==='YES' || lab==='NO'){ message+= ` [${lab}]`; }
+    else if(lab.length===1){ message+=lab; }
+    lastCommit={label:lab, x:tile.x, y:tile.y, t:now};
+    if(entered) entered.didCommit = true; // lock this tile until we leave
     updateStatus();
   }
 
@@ -153,15 +196,39 @@
     statusEl.textContent = (running?'Listening':'Idle') + ' • ' + chars + ' chars';
     ta.value = message || '(no text)';
     ta.scrollTop = ta.scrollHeight;
+    badgeReady.textContent = 'Ready: ' + Math.round(ready*100) + '%';
+    badgeReady.classList.toggle('green', ready>=1);
   }
 
-  // Movement (touch + mouse)
+  // Coords helpers
   function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
   function toCanvasCoords(clientX,clientY){
     const r=cv.getBoundingClientRect();
     return { x: (clientX - r.left)*DPR, y: (clientY - r.top)*DPR };
   }
 
+  // Common per‑frame tile update
+  function updateTileProgress(dt){
+    const tile=stickyHit(plan.x, plan.y);
+    // Enter new tile
+    if(tile && (!entered || entered.tile!==tile)){
+      entered={tile, tEnter:performance.now(), ready:false, didCommit:false};
+      dwellTimer=0; ready=0;
+    }
+    // Progress or exit
+    if(tile){
+      dwellTimer += dt;
+      ready = Math.min(1, dwellTimer / DWELL_MS);
+      entered.ready = ready>=1;
+      // Auto‑commit when READY and not yet committed for this tile
+      if(entered.ready && !entered.didCommit) commitTile(tile);
+    }else{
+      entered=null; dwellTimer=0; ready=0;
+    }
+    updateStatus();
+  }
+
+  // Touch flow
   cv.addEventListener('touchstart', e=>{
     e.preventDefault();
     const t=e.changedTouches[0];
@@ -176,43 +243,41 @@
     const p=toCanvasCoords(t.clientX, t.clientY);
     plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
     plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
+    updateTileProgress(16); // approx frame step for simplicity
     draw();
   }, {passive:false});
 
-  cv.addEventListener('touchend', e=>{
-    e.preventDefault();
-    const t=e.changedTouches[0];
-    const p=toCanvasCoords(t.clientX, t.clientY);
-    const tile = hit(plan.x, plan.y);
-    if(tile){ commit(tile.label); }
-  }, {passive:false});
+  cv.addEventListener('touchend', e=>{ e.preventDefault(); /* nothing: hold-to-write commits already */ }, {passive:false});
 
+  // Mouse flow
+  let mouseDown=false;
   cv.addEventListener('mousedown', e=>{
+    mouseDown=true;
     const p=toCanvasCoords(e.clientX, e.clientY);
     plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
     draw();
   });
   cv.addEventListener('mousemove', e=>{
-    if(e.buttons!==1) return;
+    if(!mouseDown) return;
     const p=toCanvasCoords(e.clientX, e.clientY);
     plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
     plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
+    updateTileProgress(16);
     draw();
   });
-  cv.addEventListener('mouseup', e=>{
-    const tile = hit(plan.x, plan.y);
-    if(tile){ commit(tile.label); }
-  });
+  cv.addEventListener('mouseup', e=>{ mouseDown=false; });
 
   // Buttons
-  $('#btnStart').onclick=()=>{ running=true; message=''; plan.trail.length=0; updateStatus(); };
-  $('#btnStop').onclick=()=>{ if(!running) return; commit('GOODBYE'); running=false; };
-  $('#btnReset').onclick=()=>{ running=false; message=''; plan.trail.length=0; center(); updateStatus(); draw(); };
+  $('#btnStart').onclick=()=>{ running=true; message=''; plan.trail.length=0; entered=null; dwellTimer=0; ready=0; updateStatus(); draw(); };
+  $('#btnStop').onclick=()=>{ if(!running) return; commitTile({label:'GOODBYE', x:0,y:0,r:1}); running=false; };
+  $('#btnReset').onclick=()=>{ running=false; message=''; plan.trail.length=0; entered=null; dwellTimer=0; ready=0; center(); updateStatus(); draw(); };
   $('#btnCenter').onclick=()=>{ center(); };
+  $('#chkRequire').onchange=e=>{ needReady=e.target.checked; };
+  $('#rngDwell').oninput=e=>{ DWELL_MS=parseInt(e.target.value,10)||800; };
+  $('#rngTile').oninput=e=>{ tileScale=parseFloat(e.target.value)||1.4; buildTiles(); draw(); };
 
-  // First paint
+  // First paints & safety reflows
   updateStatus();
-  // In case the stage reports 0x0 at first, force another sizing shortly after load.
   setTimeout(sizeCanvas, 50);
   setTimeout(sizeCanvas, 250);
   setTimeout(sizeCanvas, 800);
