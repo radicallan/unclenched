@@ -4,36 +4,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Spirit Board — HOLD‑TO‑WRITE</title>
+<title>Spirit Board — HOLD‑TO‑WRITE v2</title>
 <style>
-  :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff;--good:#7bf59a;--warn:#ffd166;--bad:#ff6b6b}
+  :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1}
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial}
   header{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid #1b2330;padding:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);padding:9px 12px;border-radius:12px;cursor:pointer}
   #status{margin-left:auto;color:#a9b3c6}
-  #banner{display:none;padding:8px 12px;background:#3a0d12;color:#ffdddd;border-bottom:1px solid #5a1a22}
-  #stage{height:68vh; position:relative}
+  #stage{height:66vh; position:relative}
   #cv{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none}
   .panel{border-top:1px solid #1b2330;background:#0a0f16;padding:10px}
   .panel h3{margin:0 0 8px 0;font-size:14px;color:#cfe2ff}
-  textarea#ta{width:100%;min-height:16vh;max-height:34vh;background:#0b1018;color:#eaf2ff;border:1px solid #2a3a58;border-radius:10px;padding:10px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace}
-  .hud{position:fixed;right:10px;top:10px;display:flex;gap:8px;z-index:20}
-  .badge{background:#0f1726;border:1px solid #2a3a58;color:#cfe2ff;padding:4px 8px;border-radius:999px;font-size:12px}
-  .badge.green{border-color:#2f6;color:#cfffdf}
+  textarea#ta{width:100%;min-height:18vh;max-height:34vh;background:#0b1018;color:#eaf2ff;border:1px solid #2a3a58;border-radius:10px;padding:10px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace}
+  label{display:inline-flex;align-items:center;gap:6px}
+  input[type="range"]{accent-color:#2de2ff}
 </style>
 </head>
 <body>
-<div id="banner">Render error. Tap "Force Draw".</div>
 <header>
-  <button id="btnStart">Invite</button>
-  <button id="btnStop">Goodbye</button>
+  <button id="btnInvite">Invite</button>
+  <button id="btnGoodbye">Goodbye</button>
   <button id="btnReset">Reset</button>
   <button id="btnCenter">Center</button>
-  <button id="btnForce">Force Draw</button>
   <label style="margin-left:8px;"><input type="checkbox" id="chkRequire" checked> Require READY</label>
-  <label><span style="margin:0 6px 0 12px;">Dwell</span><input type="range" id="rngDwell" min="400" max="1600" step="50" value="800"></label>
-  <label><span style="margin:0 6px 0 12px;">Tile size</span><input type="range" id="rngTile" min="1.0" max="1.8" step="0.05" value="1.4"></label>
+  <label>Dwell <input id="rngDwell" type="range" min="400" max="1600" step="50" value="800"></label>
+  <label>Tile size <input id="rngTile" type="range" min="1.0" max="1.8" step="0.05" value="1.45"></label>
   <span id="status">Idle • 0 chars</span>
 </header>
 
@@ -44,92 +40,78 @@
   <textarea id="ta" readonly>(no text)</textarea>
 </div>
 
-<div class="hud">
-  <div id="badgeReady" class="badge">Ready: 0%</div>
-</div>
-
 <script>
 (function(){
   const $=s=>document.querySelector(s);
-  const banner=$('#banner'), statusEl=$('#status'), ta=$('#ta');
-  const cv=$('#cv'); let ctx=null;
-  const badgeReady=$('#badgeReady');
+  const cv=$('#cv'), ctx=cv.getContext('2d',{alpha:true});
+  const ta=$('#ta'), statusEl=$('#status');
   const DPR=Math.min(2, window.devicePixelRatio||1);
   let W=0,H=0, running=false, message="";
-  const plan={x:0,y:0,r:26,trail:[]};
+  let DWELL_MS=800, tileScale=1.45, needReady=true;
+  const plan={x:0,y:0,r:28,trail:[]};
   const tiles=[];
-  const state={ lastError:null };
-  // READY logic
-  let needReady=true, DWELL_MS=800, tileScale=1.4;
-  let entered=null, dwellTimer=0, ready=0;
-  const IN_FACTOR=1.18, OUT_FACTOR=1.45; // sticky hysteresis
+  let entered=null, ready=0;
+  const IN_FACTOR=1.20, OUT_FACTOR=1.50;
   let lastCommit=null; const MIN_SPACE_FACTOR=1.65, MIN_GAP=520, REPEAT_CD=850;
+  let touching=false, mouseDown=false;
 
-  function showBanner(err){ state.lastError=err; banner.style.display='block'; banner.textContent='Render error: '+err; }
-  function hideBanner(){ banner.style.display='none'; }
-
+  // Canvas sizing
   function sizeCanvas(){
-    try{
-      const rect=cv.getBoundingClientRect();
-      const w=Math.max(50, Math.floor(rect.width*DPR));
-      const h=Math.max(50, Math.floor(rect.height*DPR));
-      if(cv.width!==w) cv.width=w;
-      if(cv.height!==h) cv.height=h;
-      W=cv.width; H=cv.height;
-      if(!ctx){ ctx=cv.getContext('2d',{alpha:true}); }
-      plan.r=Math.max(22*DPR, Math.min(W,H)*0.045);
-      buildTiles();
-      if(plan.x===0 && plan.y===0) center();
-      draw();
-      hideBanner();
-    }catch(e){ showBanner(e.message||String(e)); }
+    const rect=cv.getBoundingClientRect();
+    const w=Math.max(50, Math.floor(rect.width*DPR));
+    const h=Math.max(50, Math.floor(rect.height*DPR));
+    if(cv.width!==w) cv.width=w;
+    if(cv.height!==h) cv.height=h;
+    W=cv.width; H=cv.height;
+    plan.r=Math.max(22*DPR, Math.min(W,H)*0.045);
+    buildTiles(); if(plan.x===0 && plan.y===0) center();
+    draw();
   }
+  new ResizeObserver(sizeCanvas).observe($('#stage'));
+  window.addEventListener('orientationchange', ()=>setTimeout(sizeCanvas,300));
+  requestAnimationFrame(sizeCanvas);
 
   function center(){ plan.x=W*0.52; plan.y=H*0.60; draw(); }
 
-  window.addEventListener('load', sizeCanvas);
-  window.addEventListener('resize', ()=>{ setTimeout(sizeCanvas,100); });
-  window.addEventListener('orientationchange', ()=>{ setTimeout(sizeCanvas,300); });
-  $('#btnForce').onclick=sizeCanvas;
-
+  // Layout
+  const base = { r1:[...'ABCDEFGH'], r2:[...'IJKLMNOP'], r3:[...'QRSTUVWXYZ'], nums:[...'1234567890'], cor:['YES','NO','GOODBYE'] };
   function buildTiles(){
     tiles.length=0;
     const cx=W*0.52, cy=H*0.60, baseR=Math.min(W,H)*0.36;
-    const r1=[...'ABCDEFGH'], r2=[...'IJKLMNOP'], r3=[...'QRSTUVWXYZ'], nums=[...'1234567890'];
     const ring=(arr,r)=>{
-      const n=arr.length, a0=-Math.PI*0.8, a1=-Math.PI*0.2;
+      const n=arr.length,a0=-Math.PI*0.8,a1=-Math.PI*0.2;
       for(let i=0;i<n;i++){
         const t=i/(n-1), ang=a0+(a1-a0)*t, x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
         tiles.push({x,y,r:Math.min(W,H)*0.040*tileScale,label:arr[i]});
       }
     };
-    ring(r1, baseR*0.70); ring(r2, baseR*0.86); ring(r3, baseR*1.02);
+    ring(base.r1, baseR*0.70); ring(base.r2, baseR*0.86); ring(base.r3, baseR*1.02);
     const nbY=cy+baseR*0.55, nr=Math.min(W,H)*0.040*tileScale;
-    for(let i=0;i<nums.length;i++){ const x=(W*0.20)+i*(W*0.6/(nums.length-1)); tiles.push({x,y:nbY,r:nr,label:nums[i]}); }
-    tiles.push({x:W*0.18,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:'YES'});
-    tiles.push({x:W*0.82,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:'NO'});
-    tiles.push({x:W*0.50,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:'GOODBYE'});
+    for(let i=0;i<base.nums.length;i++){
+      const x=(W*0.20)+i*(W*0.6/(base.nums.length-1));
+      tiles.push({x,y:nbY,r:nr,label:base.nums[i]});
+    }
+    const c=base.cor;
+    tiles.push({x:W*0.18,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:c[0]});
+    tiles.push({x:W*0.82,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:c[1]});
+    tiles.push({x:W*0.50,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:c[2]});
   }
 
+  // Draw board and planchette
   function drawBoard(){
-    if(!ctx) return;
     ctx.clearRect(0,0,W,H);
     const g=ctx.createRadialGradient(W*0.62,H*0.35,10, W*0.62,H*0.35, Math.max(W,H)*0.9);
     g.addColorStop(0,'rgba(255,255,255,0.06)'); g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-
     ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
     for(let y=0;y<H;y+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
     for(let x=0;x<W;x+=Math.max(24, 26*DPR)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(W,x+0.5); ctx.stroke(); }
-
     ctx.strokeStyle='rgba(200,210,230,0.10)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
     const cx=W*0.52, cy=H*0.60, baseR=Math.min(W,H)*0.36;
     [0.70,0.86,1.02].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
-
     ctx.textAlign='center'; ctx.textBaseline='middle';
     const fontBig=(Math.min(W,H)*0.05)+'px ui-monospace,Menlo,Consolas';
     const fontCor=(Math.min(W,H)*0.04)+'px ui-monospace,Menlo,Consolas';
-
     for(const t of tiles){
       if(t.label.length===1){ ctx.fillStyle='#cfd6e6'; ctx.font=fontBig; }
       else if(t.label==='YES'){ ctx.fillStyle='#7bf59a'; ctx.font=fontCor; }
@@ -137,18 +119,15 @@
       else { ctx.fillStyle='#9aa3b2'; ctx.font=fontCor; }
       ctx.fillText(t.label, t.x, t.y);
     }
-
     // READY ring
     if(entered && entered.tile){
-      const t=entered.tile;
+      const t=entered.tile, pct=ready;
       ctx.lineWidth=5;
-      ctx.strokeStyle = (ready>=1 ? 'rgba(123,245,154,0.95)' : 'rgba(122,225,255,0.75)');
-      ctx.beginPath(); ctx.arc(t.x, t.y, t.r*1.18, -Math.PI/2, (-Math.PI/2)+ready*2*Math.PI); ctx.stroke();
+      ctx.strokeStyle = (pct>=1 ? 'rgba(123,245,154,0.95)' : 'rgba(122,225,255,0.75)');
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.r*1.18, -Math.PI/2, (-Math.PI/2)+pct*2*Math.PI); ctx.stroke();
     }
   }
-
   function drawPlanchette(){
-    if(!ctx) return;
     const r=plan.r, x=plan.x, y=plan.y;
     ctx.strokeStyle='rgba(122,225,255,0.25)'; ctx.lineWidth=2;
     ctx.beginPath(); for(let i=0;i<plan.trail.length;i++){ const p=plan.trail[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);} ctx.stroke();
@@ -156,10 +135,11 @@
     ctx.beginPath(); ctx.ellipse(x,y,r*1.1,r,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
     ctx.fillStyle='rgba(255,255,255,0.10)'; ctx.beginPath(); ctx.arc(x,y,r*0.38,0,Math.PI*2); ctx.fill();
   }
+  function draw(){ drawBoard(); drawPlanchette(); }
 
-  function draw(){ try{ drawBoard(); drawPlanchette(); hideBanner(); }catch(e){ showBanner(e.message||String(e)); } }
-
-  // Hit + sticky
+  // Helpers
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function toCanvas(clientX,clientY){ const r=cv.getBoundingClientRect(); return {x:(clientX-r.left)*DPR,y:(clientY-r.top)*DPR}; }
   function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
   function stickyHit(x,y){
     if(entered && entered.tile){
@@ -180,107 +160,81 @@
     return true;
   }
 
-  function commitTile(tile){
-    const now=Date.now(); if(!canCommit(tile, now)) return;
+  function commit(tile){
+    const now=performance.now();
+    if(!canCommit(tile, now)) return;
     const lab=tile.label;
     if(lab==='GOODBYE'){ message+=' [GOODBYE]'; running=false; }
-    else if(lab==='YES' || lab==='NO'){ message+= ` [${lab}]`; }
+    else if(lab==='YES' || lab==='NO'){ message+=` [${lab}]`; }
     else if(lab.length===1){ message+=lab; }
     lastCommit={label:lab, x:tile.x, y:tile.y, t:now};
-    if(entered) entered.didCommit = true; // lock this tile until we leave
-    updateStatus();
+    if(entered) entered.didCommit=true;
+    updateTranscript();
   }
 
-  function updateStatus(){
-    const chars = (message.replace(/\s/g,'').length);
-    statusEl.textContent = (running?'Listening':'Idle') + ' • ' + chars + ' chars';
+  function updateTranscript(){
     ta.value = message || '(no text)';
     ta.scrollTop = ta.scrollHeight;
-    badgeReady.textContent = 'Ready: ' + Math.round(ready*100) + '%';
-    badgeReady.classList.toggle('green', ready>=1);
+    statusEl.textContent = (running?'Listening':'Idle') + ' • ' + (message.replace(/\s/g,'').length) + ' chars';
   }
 
-  // Coords helpers
-  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-  function toCanvasCoords(clientX,clientY){
-    const r=cv.getBoundingClientRect();
-    return { x: (clientX - r.left)*DPR, y: (clientY - r.top)*DPR };
-  }
-
-  // Common per‑frame tile update
-  function updateTileProgress(dt){
-    const tile=stickyHit(plan.x, plan.y);
-    // Enter new tile
-    if(tile && (!entered || entered.tile!==tile)){
-      entered={tile, tEnter:performance.now(), ready:false, didCommit:false};
-      dwellTimer=0; ready=0;
-    }
-    // Progress or exit
-    if(tile){
-      dwellTimer += dt;
-      ready = Math.min(1, dwellTimer / DWELL_MS);
-      entered.ready = ready>=1;
-      // Auto‑commit when READY and not yet committed for this tile
-      if(entered.ready && !entered.didCommit) commitTile(tile);
+  // Animation loop with deterministic dwell
+  let lastTs=performance.now();
+  function tick(ts){
+    const dt = (ts - lastTs) || 16; lastTs = ts;
+    if(touching || mouseDown){
+      const prev = entered ? entered.tile : null;
+      const tile = stickyHit(plan.x, plan.y);
+      if(tile && (!entered || entered.tile!==tile)){
+        entered = { tile, tEnter: ts, ready:false, didCommit:false };
+        ready = 0;
+      }
+      if(tile){
+        ready = Math.min(1, (ts - entered.tEnter) / DWELL_MS);
+        entered.ready = ready >= 1;
+        if(entered.ready && !entered.didCommit) commit(tile);
+      }else{
+        entered = null; ready = 0;
+      }
     }else{
-      entered=null; dwellTimer=0; ready=0;
+      entered = null; ready = 0;
     }
-    updateStatus();
-  }
-
-  // Touch flow
-  cv.addEventListener('touchstart', e=>{
-    e.preventDefault();
-    const t=e.changedTouches[0];
-    const p=toCanvasCoords(t.clientX, t.clientY);
-    plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
     draw();
-  }, {passive:false});
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 
+  // Touch
+  cv.addEventListener('touchstart', e=>{
+    e.preventDefault(); touching=true;
+    const t=e.changedTouches[0], p=toCanvas(t.clientX,t.clientY);
+    plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H); draw();
+  }, {passive:false});
   cv.addEventListener('touchmove', e=>{
     e.preventDefault();
-    const t=e.changedTouches[0];
-    const p=toCanvasCoords(t.clientX, t.clientY);
+    const t=e.changedTouches[0], p=toCanvas(t.clientX,t.clientY);
     plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
     plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
-    updateTileProgress(16); // approx frame step for simplicity
-    draw();
   }, {passive:false});
+  cv.addEventListener('touchend', e=>{ e.preventDefault(); touching=false; }, {passive:false});
+  cv.addEventListener('touchcancel', e=>{ e.preventDefault(); touching=false; }, {passive:false});
 
-  cv.addEventListener('touchend', e=>{ e.preventDefault(); /* nothing: hold-to-write commits already */ }, {passive:false});
-
-  // Mouse flow
-  let mouseDown=false;
-  cv.addEventListener('mousedown', e=>{
-    mouseDown=true;
-    const p=toCanvasCoords(e.clientX, e.clientY);
-    plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
-    draw();
-  });
-  cv.addEventListener('mousemove', e=>{
-    if(!mouseDown) return;
-    const p=toCanvasCoords(e.clientX, e.clientY);
-    plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H);
-    plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift();
-    updateTileProgress(16);
-    draw();
-  });
+  // Mouse
+  cv.addEventListener('mousedown', e=>{ mouseDown=true; const p=toCanvas(e.clientX,e.clientY); plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H); });
+  cv.addEventListener('mousemove', e=>{ if(!mouseDown) return; const p=toCanvas(e.clientX,e.clientY); plan.x=clamp(p.x,0,W); plan.y=clamp(p.y,0,H); plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>600) plan.trail.shift(); });
   cv.addEventListener('mouseup', e=>{ mouseDown=false; });
 
-  // Buttons
-  $('#btnStart').onclick=()=>{ running=true; message=''; plan.trail.length=0; entered=null; dwellTimer=0; ready=0; updateStatus(); draw(); };
-  $('#btnStop').onclick=()=>{ if(!running) return; commitTile({label:'GOODBYE', x:0,y:0,r:1}); running=false; };
-  $('#btnReset').onclick=()=>{ running=false; message=''; plan.trail.length=0; entered=null; dwellTimer=0; ready=0; center(); updateStatus(); draw(); };
-  $('#btnCenter').onclick=()=>{ center(); };
-  $('#chkRequire').onchange=e=>{ needReady=e.target.checked; };
+  // UI
+  $('#btnInvite').onclick=()=>{ running=true; message=''; plan.trail.length=0; entered=null; ready=0; updateTranscript(); draw(); };
+  $('#btnGoodbye').onclick=()=>{ if(!running) return; commit({label:'GOODBYE', x:0,y:0}); running=false; };
+  $('#btnReset').onclick=()=>{ running=false; message=''; plan.trail.length=0; entered=null; ready=0; center(); updateTranscript(); draw(); };
+  $('#btnCenter').onclick=()=>{ center(); draw(); };
   $('#rngDwell').oninput=e=>{ DWELL_MS=parseInt(e.target.value,10)||800; };
-  $('#rngTile').oninput=e=>{ tileScale=parseFloat(e.target.value)||1.4; buildTiles(); draw(); };
+  $('#rngTile').oninput=e=>{ tileScale=parseFloat(e.target.value)||1.45; buildTiles(); draw(); };
+  $('#chkRequire').onchange=e=>{ needReady=e.target.checked; };
 
-  // First paints & safety reflows
-  updateStatus();
-  setTimeout(sizeCanvas, 50);
-  setTimeout(sizeCanvas, 250);
-  setTimeout(sizeCanvas, 800);
+  // Init
+  updateTranscript();
 })();
 </script>
 </body>
