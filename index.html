@@ -1,50 +1,51 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Spirit Board — Assist Mode</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Spirit Board — Mobile (iPhone)</title>
 <style>
-  :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff;--good:#7bf59a;--warn:#ffd166;--bad:#ff6b6b}
+  :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff}
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial}
-  .wrap{display:flex;flex-direction:column;height:100%}
-  header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;background:#0f121a;border-bottom:1px solid #1b2330}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial}
+  /* prevent scroll bounce & gestures by default */
+  html,body{overscroll-behavior:none; touch-action:none}
+  .wrap{display:flex;flex-direction:column;min-height:100vh}
+  header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;background:#0f121a;border-bottom:1px solid #1b2330;position:sticky;top:0;z-index:10}
   header .sp{flex:1}
-  button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer}
+  button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);padding:10px 12px;border-radius:12px;cursor:pointer}
+  button:active{transform:scale(0.98)}
   label{display:inline-flex;align-items:center;gap:6px}
-  select, input[type="range"]{accent-color:#2de2ff;background:#0f1726;color:var(--ink);border:1px solid #2a3a58;border-radius:8px;padding:6px 8px}
+  input[type="range"]{accent-color:#2de2ff}
   #status{color:#a9b3c6}
-  #stage{position:relative;flex:1}
+  #stage{position:relative;flex:1;min-height:50vh}
   #cv{position:absolute;inset:0;display:block;width:100%;height:100%}
-  #log{height:120px;overflow:auto;padding:8px;background:#0a0f16;border-top:1px solid #1b2330;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+  #log{min-height:120px;max-height:38vh;overflow:auto;padding:10px;background:#0a0f16;border-top:1px solid #1b2330;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .small{font-size:13px;color:#97a1b1}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <button id="btnStart">Invite</button>
-    <button id="btnStop">Goodbye</button>
-    <button id="btnReset">Reset</button>
-    <button id="btnCenter">Center</button>
-    <label><input type="checkbox" id="chkBlind"> Blind</label>
-    <label><input type="checkbox" id="chkSeal"> Seal</label>
-    <label><input type="checkbox" id="chkShuffle"> Shuffle</label>
-    <label><input type="checkbox" id="chkHiSens"> High-sensitivity</label>
-    <label><input type="checkbox" id="chkAutospace" checked> Auto-space</label>
-    <label>Assist
-      <select id="selAssist">
-        <option value="off">Off</option>
-        <option value="bigram" selected>Bigram Bias</option>
-        <option value="lexicon">Lexicon Snap</option>
-      </select>
-    </label>
-    <label>Sensitivity <input type="range" id="rngGain" min="0.6" max="3.0" step="0.1" value="1.8"></label>
-    <div class="sp"></div>
-    <button id="btnExport">Export JSON</button>
-    <span id="status">Idle • 0 chars</span>
+    <div class="row" style="width:100%">
+      <button id="btnStart">Invite</button>
+      <button id="btnStop">Goodbye</button>
+      <button id="btnReset">Reset</button>
+      <button id="btnCenter">Center</button>
+      <div class="sp"></div>
+      <span id="status">Idle • 0 chars</span>
+    </div>
+    <div class="row" style="width:100%">
+      <label><input type="checkbox" id="chkBlind"> Blind</label>
+      <label><input type="checkbox" id="chkSeal"> Seal</label>
+      <label><input type="checkbox" id="chkShuffle"> Shuffle</label>
+      <label>Gain <input type="range" id="rngGain" min="0.6" max="3.0" step="0.1" value="1.8"></label>
+      <button id="btnExport">Export</button>
+    </div>
+    <div class="small">Tip: rotate to landscape, rest one finger lightly, and keep eyes soft. Two-finger screen move is disabled so the board won't scroll.</div>
   </header>
+
   <div id="stage"><canvas id="cv"></canvas></div>
   <div id="log">(nothing yet)</div>
 </div>
@@ -56,56 +57,28 @@
   const DPR = Math.min(2, window.devicePixelRatio || 1);
   const cv = $('#cv'); const ctx = cv.getContext('2d');
   const statusEl = $('#status'); const logEl = $('#log');
+
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  const lerp=(a,b,t)=>a+(b-a)*t;
+
+  // Prevent gestures/scroll on iOS
+  ['touchstart','touchmove','touchend','gesturestart','gesturechange','gestureend'].forEach(evt=>{
+    document.addEventListener(evt, e=>{ e.preventDefault(); }, {passive:false});
+  });
 
   // ----- State -----
-  let running=false, blind=false, sealed=false, shuffled=false, hiSens=false, pointerLocked=false, autospace=true;
+  let running=false, blind=false, sealed=false, shuffled=false;
   let gain=1.8, message="", dwellTimer=0, lastT=performance.now();
-  let plan = { x:0, y:0, r:28, trail:[], dwell:0 };
+  let plan = { x:0, y:0, r:28, trail:[] };
   let target = { x:0, y:0 };
   const tiles=[];
 
-  // Warmup phase (YES/NO only for first N seconds)
-  const WARMUP_MS = 12000;
-  let startTs = 0;
-
-  // Commit gating (anti-repeat + stillness)
-  const BASE_DWELL = 620;            // ms base dwell
+  // Commit gating
+  const BASE_DWELL = 640;            // ms base dwell
   const REPEAT_COOLDOWN = 900;       // ms min before same tile can repeat
   const REPEAT_EXTRA_DWELL = 450;    // ms extra dwell to intentionally repeat
   const EXIT_DISTANCE_FACTOR = 1.2;  // must exit this many radii away before repeat allowed
-  const SPEED_BUF_N = 8;             // frames
-  const SPEED_THRESHOLD = 0.35;      // px/ms mean speed to be "still"
   let lastCommit = null;
   let consecutiveSame = 0;
-  const speedBuf = [];
-
-  // Assist
-  let assistMode = 'bigram'; // off | bigram | lexicon
-  const BIGRAM = (()=>{
-    const list = ['TH','HE','IN','ER','AN','RE','ED','ON','ES','ST','EN','AT','TO','NT','HA','ND','OU','EA','NG','AS','OR','TI','IS','ET','IT','AR','TE','SE','HI','OF'];
-    const map = {}; list.forEach((b,i)=>{ map[b]= (list.length - i); }); // higher = more common
-    return map;
-  })();
-  const SMALL_LEXICON = new Set([
-    'YES','NO','HELLO','GOODBYE','PLEASE','THANK','YOU','WHO','WHAT','WHEN','WHERE','WHY','HOW','LOVE','PEACE','LIGHT','TRUTH','SAFE','HELP','ALLAN','ELI'
-  ]);
-
-  // Audio cues
-  let ctxAudio = null, osc = null;
-  function beep(freq=660, dur=0.06){
-    try{
-      if(!ctxAudio) ctxAudio = new (window.AudioContext||window.webkitAudioContext)();
-      const o = ctxAudio.createOscillator();
-      const g = ctxAudio.createGain();
-      o.frequency.value = freq; o.type='sine';
-      g.gain.setValueAtTime(0.0001, ctxAudio.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.05, ctxAudio.currentTime+0.005);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctxAudio.currentTime+dur);
-      o.connect(g).connect(ctxAudio.destination); o.start(); o.stop(ctxAudio.currentTime+dur);
-    }catch(e){}
-  }
 
   // Layout
   const baseLayout = {
@@ -129,16 +102,17 @@
     const rect = cv.getBoundingClientRect();
     cv.width = Math.max(10, rect.width * DPR);
     cv.height = Math.max(10, rect.height * DPR);
-    plan.r = Math.max(20*DPR, Math.min(cv.width, cv.height)*0.04);
+    plan.r = Math.max(20*DPR, Math.min(cv.width, cv.height)*0.05); // slightly larger for touch
     centerPlanchette();
     draw();
   }
   window.addEventListener('resize', sizeCanvas);
+  window.addEventListener('orientationchange', ()=>setTimeout(sizeCanvas, 250));
   requestAnimationFrame(sizeCanvas);
 
   function centerPlanchette(){
     plan.x = cv.width * 0.52;
-    plan.y = cv.height * 0.58;
+    plan.y = cv.height * 0.60;
     target.x = plan.x; target.y = plan.y;
   }
 
@@ -150,11 +124,11 @@
     g.addColorStop(0,'rgba(255,255,255,0.05)'); g.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
     ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1;
-    for(let y=0;y<H;y+=Math.max(22,DPR*24)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
-    for(let x=0;x<W;x+=Math.max(22,DPR*24)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
+    for(let y=0;y<H;y+=Math.max(24,DPR*26)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
+    for(let x=0;x<W;x+=Math.max(24,DPR*26)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
 
     tiles.length=0;
-    const cx=W*0.52, cy=H*0.58, baseR=Math.min(W,H)*0.36;
+    const cx=W*0.52, cy=H*0.60, baseR=Math.min(W,H)*0.36;
     ctx.strokeStyle='rgba(200,210,230,0.08)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
     [0.70,0.86,1.02].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
 
@@ -162,13 +136,13 @@
       const n=arr.length, a0=-Math.PI*0.8, a1=-Math.PI*0.2;
       for(let i=0;i<n;i++){
         const t=i/(n-1); const ang=a0+(a1-a0)*t; const x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
-        tiles.push({x,y,r:Math.min(W,H)*0.032,label:arr[i]});
+        tiles.push({x,y,r:Math.min(W,H)*0.040,label:arr[i]}); // larger targets for touch
         if(!blind){
           ctx.fillStyle='#cfd6e6';
-          ctx.font=(Math.min(W,H)*0.035)+'px ui-monospace,Menlo,Consolas';
+          ctx.font=(Math.min(W,H)*0.05)+'px ui-monospace,Menlo,Consolas';
           ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(arr[i],x,y);
         } else {
-          ctx.fillStyle='rgba(180,190,210,0.12)'; ctx.beginPath(); ctx.arc(x,y,Math.min(W,H)*0.006,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle='rgba(180,190,210,0.16)'; ctx.beginPath(); ctx.arc(x,y,Math.min(W,H)*0.009,0,Math.PI*2); ctx.fill();
         }
       }
     };
@@ -178,14 +152,14 @@
     drawRing(layout.ring3, baseR*1.02);
 
     // numbers
-    const nbY=cy+baseR*0.55, nbR=Math.min(W,H)*0.032;
+    const nbY=cy+baseR*0.55, nbR=Math.min(W,H)*0.040;
     for(let i=0;i<layout.numbers.length;i++){
       const x=(W*0.20)+i*(W*0.6/(layout.numbers.length-1));
       tiles.push({x,y:nbY,r:nbR,label:layout.numbers[i]});
       if(!blind){
-        ctx.fillStyle='#aab3c7'; ctx.font=(Math.min(W,H)*0.03)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(layout.numbers[i],x,nbY);
+        ctx.fillStyle='#aab3c7'; ctx.font=(Math.min(W,H)*0.045)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(layout.numbers[i],x,nbY);
       } else {
-        ctx.fillStyle='rgba(180,190,210,0.12)'; ctx.beginPath(); ctx.arc(x,nbY,Math.min(W,H)*0.006,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='rgba(180,190,210,0.16)'; ctx.beginPath(); ctx.arc(x,nbY,Math.min(W,H)*0.009,0,Math.PI*2); ctx.fill();
       }
     }
 
@@ -193,11 +167,11 @@
     const c=layout.corners;
     const corners=[{x:W*0.18,y:H*0.18,l:c[0],col:'#7bf59a'},{x:W*0.82,y:H*0.18,l:c[1],col:'#ffb3b3'},{x:W*0.50,y:H*0.18,l:c[2],col:'#9aa3b2'}];
     for(const k of corners){
-      tiles.push({x:k.x,y:k.y,r:Math.min(W,H)*0.042,label:k.l});
+      tiles.push({x:k.x,y:k.y,r:Math.min(W,H)*0.052,label:k.l});
       if(!blind){
-        ctx.fillStyle=k.col; ctx.font=(Math.min(W,H)*0.028)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(k.l,k.x,k.y);
+        ctx.fillStyle=k.col; ctx.font=(Math.min(W,H)*0.04)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(k.l,k.x,k.y);
       } else {
-        ctx.strokeStyle='rgba(200,210,230,0.12)'; ctx.strokeRect(k.x-14,k.y-9,28,18);
+        ctx.strokeStyle='rgba(200,210,230,0.16)'; ctx.strokeRect(k.x-18,k.y-12,36,24);
       }
     }
   }
@@ -215,92 +189,33 @@
 
   function draw(){ drawBoard(); drawPlanchette(); }
 
-  // ----- Input -----
-  function onPointer(e){
-    if(pointerLocked) return; // pointer-lock handled separately
+  // ----- Touch Input (no scrolling) -----
+  function touchPoint(e){
+    const t = e.changedTouches[0];
     const rect = cv.getBoundingClientRect();
-    const px = (e.clientX - rect.left) * DPR;
-    const py = (e.clientY - rect.top) * DPR;
-    const tx = (target.x || px);
-    const ty = (target.y || py);
-    target.x = clamp(tx + (px - tx) * (0.35 * gain), 0, cv.width);
-    target.y = clamp(ty + (py - ty) * (0.35 * gain), 0, cv.height);
+    return { x:(t.clientX-rect.left)*DPR, y:(t.clientY-rect.top)*DPR };
   }
-  cv.addEventListener('pointermove', onPointer);
-  cv.addEventListener('pointerdown', e=>{ cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointerup', e=>{ tryCommit(true); });
+  cv.addEventListener('touchstart', e=>{
+    const p = touchPoint(e);
+    target.x = clamp(p.x, 0, cv.width);
+    target.y = clamp(p.y, 0, cv.height);
+  }, {passive:false});
 
-  // Optional high-sensitivity (pointer lock) — clamped.
-  function enablePointerLock(){
-    if(pointerLocked || !cv.requestPointerLock) return;
-    cv.requestPointerLock();
-  }
-  document.addEventListener('pointerlockchange', ()=>{
-    pointerLocked = (document.pointerLockElement === cv);
-  });
-  document.addEventListener('mousemove', (e)=>{
-    if(!pointerLocked) return;
-    const dx = (e.movementX||0) * DPR * gain;
-    const dy = (e.movementY||0) * DPR * gain;
-    target.x = clamp((target.x||plan.x) + dx, 0, cv.width);
-    target.y = clamp((target.y||plan.y) + dy, 0, cv.height);
-  });
+  cv.addEventListener('touchmove', e=>{
+    const p = touchPoint(e);
+    const tx = (target.x || p.x);
+    const ty = (target.y || p.y);
+    // low-pass towards finger; gain scales interpolation
+    target.x = clamp(tx + (p.x - tx) * (0.40 * gain), 0, cv.width);
+    target.y = clamp(ty + (p.y - ty) * (0.40 * gain), 0, cv.height);
+  }, {passive:false});
+
+  cv.addEventListener('touchend', e=>{ tryCommit(true); }, {passive:false});
 
   // ----- Hit testing & dwell -----
   function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
-
-  // Local neighbourhood search for assist
-  function nearbyTiles(x,y,rangeFactor=1.35){
-    const R = Math.min(cv.width, cv.height) * 0.065 * rangeFactor;
-    const out=[];
-    for(const t of tiles){
-      const d = Math.hypot(x - t.x, y - t.y);
-      if(d <= R){ out.push({tile:t, d}); }
-    }
-    out.sort((a,b)=>a.d-b.d);
-    return out;
-  }
-
-  function bigramWeight(prev, next){
-    if(!prev || !next) return 0;
-    const key = (prev+next).toUpperCase();
-    return BIGRAM[key] ? BIGRAM[key] : 0;
-  }
-
-  function chooseAssistedTile(primary){
-    if(assistMode==='off') return primary;
-    const prev = lastCommit && lastCommit.label && lastCommit.label.length===1 ? lastCommit.label : null;
-    const nb = nearbyTiles(plan.x, plan.y, 1.5);
-    if(nb.length===0) return primary;
-    let best = {score:-1e9, tile:primary};
-    for(const {tile, d} of nb){
-      let score = -d; // prefer closeness
-      if(assistMode==='bigram' && prev){
-        score += bigramWeight(prev, tile.label) * 4.0; // bigram bonus
-      }
-      if(assistMode==='lexicon'){
-        // small bias toward forming dictionary words by preferring vowels/consonant alternation and HELLO/LOVE/etc.
-        const maybe = (message + (tile.label.length===1? tile.label : '')).toUpperCase();
-        for(const w of SMALL_LEXICON){
-          if(w.startsWith(maybe)) score += 6.0;
-        }
-        // gentle bias to vowels after consonant & vice versa
-        const isV = 'AEIOUY'.includes(tile.label);
-        const prevIsV = prev ? 'AEIOUY'.includes(prev) : null;
-        if(prev && prevIsV!==null && isV!==prevIsV) score += 1.5;
-      }
-      // avoid repeating same unless intentional (score penalty)
-      if(lastCommit && lastCommit.label===tile.label) score -= 3.0;
-      if(score>best.score) best={score, tile};
-    }
-    // don't jump far away from where we were dwelling
-    const maxJump = Math.min(cv.width, cv.height)*0.12;
-    if(Math.hypot(best.tile.x - primary.x, best.tile.y - primary.y) > maxJump) return primary;
-    return best.tile;
-  }
-
   function canRepeatSameTile(tile, now){
-    if(!lastCommit || lastCommit.label!==tile.label) return true; // not a repeat
+    if(!lastCommit || lastCommit.label!==tile.label) return true;
     const dist = Math.hypot(plan.x - lastCommit.x, plan.y - lastCommit.y);
     const exited = dist >= tile.r * EXIT_DISTANCE_FACTOR;
     const cooldownOk = (now - lastCommit.t) >= REPEAT_COOLDOWN;
@@ -308,26 +223,12 @@
     return exited && cooldownOk && extraDwellOk;
   }
 
-  function meanSpeed(){ if(speedBuf.length===0) return 0; const s=speedBuf.reduce((a,b)=>a+b,0)/speedBuf.length; return s; }
-
   function tryCommit(force){
-    let tile = hit(plan.x, plan.y);
+    const tile = hit(plan.x, plan.y);
     if(!tile) return;
     const now = Date.now();
-    const ms = meanSpeed();
     const dwellEnough = dwellTimer >= BASE_DWELL + (consecutiveSame>0 ? Math.min(600, consecutiveSame*200) : 0);
-    if(force){ if(!dwellEnough) return; }
-    if(ms > SPEED_THRESHOLD) return; // stillness gate
-
-    // Warmup phase: only YES/NO allowed
-    if(startTs && (now - startTs) < WARMUP_MS){
-      if(!(tile.label==='YES' || tile.label==='NO')) return;
-    }
-
-    // Assist selection: allow nearby flip if more plausible
-    const assisted = chooseAssistedTile(tile);
-    tile = assisted || tile;
-
+    if(force && !dwellEnough) return;
     if(lastCommit && lastCommit.label===tile.label && !canRepeatSameTile(tile, now)) return;
     commit(tile, now);
     dwellTimer = 0;
@@ -336,11 +237,11 @@
   function commit(tile, now){
     if(!running) return;
     const lab = tile.label;
-    if(lab==='YES' || lab==='NO'){ message += ` [${lab}]`; consecutiveSame=0; beep(520,0.05); }
-    else if(lab==='GOODBYE'){ message += ' [GOODBYE]'; consecutiveSame=0; beep(420,0.08); stop(); }
+    if(lab==='YES' || lab==='NO'){ message += ` [${lab}]`; consecutiveSame=0; }
+    else if(lab==='GOODBYE'){ message += ' [GOODBYE]'; consecutiveSame=0; stop(); }
     else if(lab.length===1){
       if(lastCommit && lastCommit.label===lab) consecutiveSame++; else consecutiveSame=0;
-      message += lab; beep(660,0.03);
+      message += lab;
     }
     lastCommit = {label: lab, x: plan.x, y: plan.y, t: now};
     updateLog();
@@ -357,26 +258,19 @@
   function tick(){
     const t = performance.now();
     const dt = (t - lastT) || 16; lastT = t;
-    const vx = ((target.x||plan.x) - plan.x) / dt;
-    const vy = ((target.y||plan.y) - plan.y) / dt;
-    const sp = Math.hypot(vx,vy);
-    speedBuf.push(sp); if(speedBuf.length>SPEED_BUF_N) speedBuf.shift();
-
-    // gentle noise + smoothing
-    const n1 = Math.sin((t+97)*0.006)*0.5, n2 = Math.cos((t+31)*0.004)*0.5;
-    const nx = (target.x || plan.x) + n1*6;
-    const ny = (target.y || plan.y) + n2*6;
-    plan.x = clamp(plan.x + (nx - plan.x) * 0.14, 0, cv.width);
-    plan.y = clamp(plan.y + (ny - plan.y) * 0.14, 0, cv.height);
-
+    const nx = (target.x || plan.x);
+    const ny = (target.y || plan.y);
+    // smooth toward target + tiny organic wobble
+    const wob1 = Math.sin((t+97)*0.006)*4;
+    const wob2 = Math.cos((t+31)*0.004)*4;
+    plan.x = clamp(plan.x + (nx + wob1 - plan.x) * 0.18, 0, cv.width);
+    plan.y = clamp(plan.y + (ny + wob2 - plan.y) * 0.18, 0, cv.height);
     if(running){
-      plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>1200) plan.trail.shift();
+      plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>900) plan.trail.shift();
       const k = hit(plan.x, plan.y);
-      if(k){ dwellTimer += dt; tryCommit(false); } else { dwellTimer=0; }
-      // autospace: if idle >2.2s since last commit, add a space
-      if(autospace && lastCommit && (Date.now()-lastCommit.t)>2200){
-        if(message && !message.endsWith(' ')){ message += ' '; updateLog(); }
-      }
+      if(k){ dwellTimer += dt; } else { dwellTimer=0; }
+      // auto-commit path
+      if(k && dwellTimer > BASE_DWELL + (consecutiveSame*180)) tryCommit(false);
     }
     draw();
     requestAnimationFrame(tick);
@@ -384,32 +278,17 @@
   requestAnimationFrame(tick);
 
   // ----- Controls -----
-  function start(){
-    if(running) return;
-    running=true; message=""; plan.trail.length=0; plan.dwell=0; lastCommit=null; consecutiveSame=0; speedBuf.length=0; startTs=Date.now(); updateLog();
-    if(hiSens) enablePointerLock();
-  }
-  function stop(){
-    if(!running) return;
-    running=false;
-    if(pointerLocked && document.exitPointerLock) document.exitPointerLock();
-    if(blind || sealed){ logEl.textContent = message || '(no text)'; }
-    updateLog();
-  }
-  function reset(){
-    running=false; message=""; plan.trail.length=0; dwellTimer=0; lastCommit=null; consecutiveSame=0; centerPlanchette(); draw(); updateLog();
-  }
+  function start(){ if(running) return; running=true; message=""; plan.trail.length=0; lastCommit=null; consecutiveSame=0; updateLog(); }
+  function stop(){ if(!running) return; running=false; if(blind || sealed){ logEl.textContent = message || '(no text)'; } updateLog(); }
+  function reset(){ running=false; message=""; plan.trail.length=0; dwellTimer=0; lastCommit=null; consecutiveSame=0; centerPlanchette(); draw(); updateLog(); }
   function exportJSON(){
     const body = {
-      ts: Date.now(),
-      blind, sealed, shuffled, hiSens, gain, assistMode,
-      message,
+      ts: Date.now(), blind, sealed, shuffled, gain, message,
       trail: plan.trail.slice(-400),
-      tiles: tiles.map(t=>({x:t.x,y:t.y,r:t.r,label:t.label})),
-      params: {BASE_DWELL, REPEAT_COOLDOWN, REPEAT_EXTRA_DWELL, EXIT_DISTANCE_FACTOR, SPEED_THRESHOLD, WARMUP_MS}
+      tiles: tiles.map(t=>({x:t.x,y:t.y,r:t.r,label:t.label}))
     };
     const blob = new Blob([JSON.stringify(body,null,2)], {type:'application/json'});
-    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='spirit_board_assist_session.json'; a.click();
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='spirit_board_mobile_session.json'; a.click();
   }
 
   $('#btnStart').onclick = start;
@@ -420,10 +299,7 @@
   $('#chkBlind').onchange = (e)=>{ blind = e.target.checked; updateLog(); draw(); };
   $('#chkSeal').onchange = (e)=>{ sealed = e.target.checked; updateLog(); };
   $('#chkShuffle').onchange = (e)=>{ shuffled = e.target.checked; refreshLayout(); draw(); };
-  $('#chkHiSens').onchange = (e)=>{ hiSens = e.target.checked; if(!hiSens && pointerLocked && document.exitPointerLock) document.exitPointerLock(); };
-  $('#chkAutospace').onchange = (e)=>{ autospace = e.target.checked; };
   $('#rngGain').oninput = (e)=>{ gain = parseFloat(e.target.value||'1.8'); };
-  $('#selAssist').onchange = (e)=>{ assistMode = e.target.value; };
 
   // Boot
   refreshLayout();
