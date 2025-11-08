@@ -1,355 +1,433 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Spirit Board — Planchette (Trackpad)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spirit Board — Assist Mode</title>
 <style>
-  :root{
-    --bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#9aa3b2;--accent:#7ae1ff;--good:#7bf59a;--warn:#ffd166;--bad:#ff6b6b;
-  }
+  :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1;--accent:#7ae1ff;--good:#7bf59a;--warn:#ffd166;--bad:#ff6b6b}
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial;background:var(--bg);color:var(--ink)}
-  .wrap{display:grid;grid-template-columns:1fr 360px;gap:14px;height:100%;padding:14px}
-  .stage{position:relative;border-radius:16px;background:radial-gradient(1200px 800px at 65% 35%,#0f141f,#090c12 55%);overflow:hidden}
-  .side{display:flex;flex-direction:column;gap:12px}
-  .card{background:var(--panel);border:1px solid #1b2330;border-radius:14px;padding:12px 14px}
-  h1{font-size:16px;margin:0 0 4px 0}
-  h2{font-size:15px;margin:0 0 6px 0}
-  p{margin:6px 0;color:var(--muted)}
-  button{appearance:none;border:1px solid #253146;background:#0f1622;color:var(--ink);padding:10px 14px;border-radius:12px;cursor:pointer}
-  button.primary{background:linear-gradient(180deg,#162338,#0e1727);border-color:#253a5b}
-  button.good{background:#0f1f15;border-color:#1f3a27;color:var(--good)}
-  button.warn{background:#1d1608;border-color:#3c2f14;color:var(--warn)}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  .kbd{font-family:ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border:1px solid #2a3140;border-bottom-width:2px;border-radius:6px;background:#0b1018;color:#b9c1d0}
-  canvas{position:absolute;inset:0;display:block;width:100%;height:100%;}
-  /* Ensure pointer events hit the input layer (board) not the FX overlay */
-  #fx{pointer-events:none}
-  #board{pointer-events:auto}
-  .hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;align-items:center;z-index:10}
-  .chip{background:#0e1420;border:1px solid #1e2a3f;color:#a9b3c6;padding:6px 10px;border-radius:999px}
-  .chip strong{color:var(--ink)}
-  .toast{position:absolute;left:50%;top:18px;transform:translateX(-50%);background:#0c1118;border:1px solid #1b2433;padding:10px 14px;border-radius:12px;color:var(--ink);opacity:0;pointer-events:none;transition:.3s ease;z-index:12}
-  .toast.show{opacity:1;top:26px}
-  .transcript{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0a0f16;border:1px solid #1b2330;border-radius:10px;padding:10px;max-height:180px;overflow:auto;white-space:pre-wrap}
-  .badge{border:1px solid #2a2f3c;background:#11141c;padding:4px 8px;border-radius:8px;color:#b8bfcc}
-  .switch{display:inline-flex;align-items:center;gap:8px}
-  .switch input{accent-color:#2de2ff}
-  footer{color:#7e8798;text-align:center}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial}
+  .wrap{display:flex;flex-direction:column;height:100%}
+  header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;background:#0f121a;border-bottom:1px solid #1b2330}
+  header .sp{flex:1}
+  button{appearance:none;border:1px solid #2a3a58;background:#0f1726;color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer}
+  label{display:inline-flex;align-items:center;gap:6px}
+  select, input[type="range"]{accent-color:#2de2ff;background:#0f1726;color:var(--ink);border:1px solid #2a3a58;border-radius:8px;padding:6px 8px}
+  #status{color:#a9b3c6}
+  #stage{position:relative;flex:1}
+  #cv{position:absolute;inset:0;display:block;width:100%;height:100%}
+  #log{height:120px;overflow:auto;padding:8px;background:#0a0f16;border-top:1px solid #1b2330;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="stage" id="stage">
-      <div class="hud">
-        <span class="chip">Mode: <strong id="hudMode">Idle</strong></span>
-        <span class="chip">Layout: <strong id="hudLayout">Classic</strong></span>
-        <span class="chip">Blind: <strong id="hudBlind">Off</strong></span>
-        <span class="chip">Confidence: <strong id="hudConf">—</strong></span>
-      </div>
-      <div id="toast" class="toast">—</div>
-      <canvas id="board"></canvas>
-      <canvas id="fx"></canvas>
-    </div>
-
-    <div class="side">
-      <div class="card">
-        <h1>Spirit Board — Trackpad Planchette</h1>
-        <p>Place one finger lightly on your trackpad and let the planchette follow. Don’t steer — just keep light contact. The board captures **ideomotor** micro‑movements and resolves answers by dwell.</p>
-        <div class="row" style="margin-top:6px">
-          <span class="kbd">Space</span> start/stop &nbsp; <span class="kbd">Esc</span> reset &nbsp; <span class="kbd">B</span> toggle blind &nbsp; <span class="kbd">S</span> shuffle
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Session</h2>
-        <div class="row">
-          <button class="primary" id="btnStart">Invite</button>
-          <button id="btnStop">Goodbye</button>
-          <button id="btnReset">Reset</button>
-        </div>
-        <p class="row" style="margin-top:8px">
-          <label class="switch"><input type="checkbox" id="chkBlind"> Blind mode</label>
-          <label class="switch"><input type="checkbox" id="chkShuffle"> Shuffle letters</label>
-          <label class="switch"><input type="checkbox" id="chkSeal"> Seal transcript</label>
-        </p>
-        <div class="row">
-          <button id="btnExport">Export JSON</button>
-          <span class="badge" id="badgeLen">0 chars</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Transcript</h2>
-        <div class="transcript" id="log">(nothing yet)</div>
-      </div>
-
-      <div class="card">
-        <h2>How it works (experiment)</h2>
-        <p>• The planchette follows your pointer with slight smoothing and noise. <br/>• When its window dwells over a tile, that symbol is recorded. <br/>• In <em>Blind</em> mode the board hides symbols or shuffles them; you only see the text after you stop — a better test of ideomotor effects.</p>
-      </div>
-
-      <footer>Private, client‑side. No data leaves your browser.</footer>
-    </div>
-  </div>
+<div class="wrap">
+  <header>
+    <button id="btnStart">Invite</button>
+    <button id="btnStop">Goodbye</button>
+    <button id="btnReset">Reset</button>
+    <button id="btnCenter">Center</button>
+    <label><input type="checkbox" id="chkBlind"> Blind</label>
+    <label><input type="checkbox" id="chkSeal"> Seal</label>
+    <label><input type="checkbox" id="chkShuffle"> Shuffle</label>
+    <label><input type="checkbox" id="chkHiSens"> High-sensitivity</label>
+    <label><input type="checkbox" id="chkAutospace" checked> Auto-space</label>
+    <label>Assist
+      <select id="selAssist">
+        <option value="off">Off</option>
+        <option value="bigram" selected>Bigram Bias</option>
+        <option value="lexicon">Lexicon Snap</option>
+      </select>
+    </label>
+    <label>Sensitivity <input type="range" id="rngGain" min="0.6" max="3.0" step="0.1" value="1.8"></label>
+    <div class="sp"></div>
+    <button id="btnExport">Export JSON</button>
+    <span id="status">Idle • 0 chars</span>
+  </header>
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <div id="log">(nothing yet)</div>
+</div>
 
 <script>
 (function(){
-  // ======== Utilities ========
+  // ----- Helpers -----
   const $=s=>document.querySelector(s);
-  const toast=(t,d=1400)=>{const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),d)};
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  const cv = $('#cv'); const ctx = cv.getContext('2d');
+  const statusEl = $('#status'); const logEl = $('#log');
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
-  const rand=(a,b)=>Math.random()*(b-a)+a;
-  const hash32 = (s)=>{let h=2166136261>>>0; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0};
 
-  // ======== Canvas & Layout ========
-  const board = document.getElementById('board');
-  const fx = document.getElementById('fx');
-  const ctx = board.getContext('2d');
-  const gfx = fx.getContext('2d');
-  // Helper to centre planchette/target on the board
-  function centerPlanchette(){
-    // robust centre: use canvas size if DOM rect not ready
-    const br = board.getBoundingClientRect();
-    const w = br.width>0? br.width*DPR : board.width;
-    const h = br.height>0? br.height*DPR : board.height;
-    const cx = w * 0.52;
-    const cy = h * 0.58;
-    target.x = cx; target.y = cy;
-    plan.x = cx; plan.y = cy;
-  }
-  const DPR = Math.min(2, window.devicePixelRatio||1);
-  function resize(){
-    const r = board.parentElement.getBoundingClientRect();
-    const w = Math.max(10, r.width*DPR), h = Math.max(10, r.height*DPR);
-    [board,fx].forEach(c=>{ c.width = w; c.height = h; c.style.width=r.width+'px'; c.style.height=r.height+'px';});
-    drawBoard();
-    if(!state.running){ centerPlanchette(); drawFX(0); }
-  }
-  try{ const ro=new ResizeObserver(()=>resize()); ro.observe(document.getElementById('stage')); }catch(e){});
-    drawBoard();
-    // Keep the planchette centred when not actively running
-    if(!state.running){ centerPlanchette(); drawFX(0); }
-  }
-  window.addEventListener('resize', resize);
+  // ----- State -----
+  let running=false, blind=false, sealed=false, shuffled=false, hiSens=false, pointerLocked=false, autospace=true;
+  let gain=1.8, message="", dwellTimer=0, lastT=performance.now();
+  let plan = { x:0, y:0, r:28, trail:[], dwell:0 };
+  let target = { x:0, y:0 };
+  const tiles=[];
 
-  // ======== Board Model ========
-  const symbolsClassic = {
+  // Warmup phase (YES/NO only for first N seconds)
+  const WARMUP_MS = 12000;
+  let startTs = 0;
+
+  // Commit gating (anti-repeat + stillness)
+  const BASE_DWELL = 620;            // ms base dwell
+  const REPEAT_COOLDOWN = 900;       // ms min before same tile can repeat
+  const REPEAT_EXTRA_DWELL = 450;    // ms extra dwell to intentionally repeat
+  const EXIT_DISTANCE_FACTOR = 1.2;  // must exit this many radii away before repeat allowed
+  const SPEED_BUF_N = 8;             // frames
+  const SPEED_THRESHOLD = 0.35;      // px/ms mean speed to be "still"
+  let lastCommit = null;
+  let consecutiveSame = 0;
+  const speedBuf = [];
+
+  // Assist
+  let assistMode = 'bigram'; // off | bigram | lexicon
+  const BIGRAM = (()=>{
+    const list = ['TH','HE','IN','ER','AN','RE','ED','ON','ES','ST','EN','AT','TO','NT','HA','ND','OU','EA','NG','AS','OR','TI','IS','ET','IT','AR','TE','SE','HI','OF'];
+    const map = {}; list.forEach((b,i)=>{ map[b]= (list.length - i); }); // higher = more common
+    return map;
+  })();
+  const SMALL_LEXICON = new Set([
+    'YES','NO','HELLO','GOODBYE','PLEASE','THANK','YOU','WHO','WHAT','WHEN','WHERE','WHY','HOW','LOVE','PEACE','LIGHT','TRUTH','SAFE','HELP','ALLAN','ELI'
+  ]);
+
+  // Audio cues
+  let ctxAudio = null, osc = null;
+  function beep(freq=660, dur=0.06){
+    try{
+      if(!ctxAudio) ctxAudio = new (window.AudioContext||window.webkitAudioContext)();
+      const o = ctxAudio.createOscillator();
+      const g = ctxAudio.createGain();
+      o.frequency.value = freq; o.type='sine';
+      g.gain.setValueAtTime(0.0001, ctxAudio.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.05, ctxAudio.currentTime+0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctxAudio.currentTime+dur);
+      o.connect(g).connect(ctxAudio.destination); o.start(); o.stop(ctxAudio.currentTime+dur);
+    }catch(e){}
+  }
+
+  // Layout
+  const baseLayout = {
     ring1:[...'ABCDEFGH'],
     ring2:[...'IJKLMNOP'],
     ring3:[...'QRSTUVWXYZ'],
     numbers:[...'1234567890'],
     corners:['YES','NO','GOODBYE']
   };
-  let layoutShuffle=false, blind=false;
-  let layout = JSON.parse(JSON.stringify(symbolsClassic));
-  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()* (i+1))|0; [a[i],a[j]]=[a[j],a[i]] } }
-  function makeLayout(){
-    layout = JSON.parse(JSON.stringify(symbolsClassic));
-    if(layoutShuffle){ shuffle(layout.ring1); shuffle(layout.ring2); shuffle(layout.ring3); shuffle(layout.numbers); }
-    $('#hudLayout').textContent = layoutShuffle? 'Shuffled' : 'Classic';
-    $('#hudBlind').textContent = blind? 'On':'Off';
+  let layout = JSON.parse(JSON.stringify(baseLayout));
+  function shuffleArr(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]]; } }
+  function refreshLayout(){
+    layout = JSON.parse(JSON.stringify(baseLayout));
+    if(shuffled){
+      shuffleArr(layout.ring1); shuffleArr(layout.ring2); shuffleArr(layout.ring3); shuffleArr(layout.numbers);
+    }
   }
 
-  // Ring geometry cache
-  const tiles=[]; // {x,y,r,label}
+  // ----- Sizing -----
+  function sizeCanvas(){
+    const rect = cv.getBoundingClientRect();
+    cv.width = Math.max(10, rect.width * DPR);
+    cv.height = Math.max(10, rect.height * DPR);
+    plan.r = Math.max(20*DPR, Math.min(cv.width, cv.height)*0.04);
+    centerPlanchette();
+    draw();
+  }
+  window.addEventListener('resize', sizeCanvas);
+  requestAnimationFrame(sizeCanvas);
 
+  function centerPlanchette(){
+    plan.x = cv.width * 0.52;
+    plan.y = cv.height * 0.58;
+    target.x = plan.x; target.y = plan.y;
+  }
+
+  // ----- Drawing -----
   function drawBoard(){
-    // safety: if canvas not sized yet, bail
-    if(board.width<20||board.height<20){ return; }
-    ctx.clearRect(0,0,board.width, board.height);
-    const W=board.width, H=board.height;
-    // background halo
-    const grad = ctx.createRadialGradient(W*0.62,H*0.35,10, W*0.62,H*0.35, Math.max(W,H)*0.9);
-    grad.addColorStop(0,'rgba(255,255,255,0.05)'); grad.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
-    // subtle grid so the board never looks empty (esp. in Blind mode)
-    ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1; for(let y=0;y<H;y+=Math.max(20,DPR*24)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); } for(let x=0;x<W;x+=Math.max(20,DPR*24)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
+    const W=cv.width, H=cv.height;
+    ctx.clearRect(0,0,W,H);
+    const g=ctx.createRadialGradient(W*0.62,H*0.35,10, W*0.62,H*0.35, Math.max(W,H)*0.9);
+    g.addColorStop(0,'rgba(255,255,255,0.05)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1;
+    for(let y=0;y<H;y+=Math.max(22,DPR*24)){ ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(W,y+0.5); ctx.stroke(); }
+    for(let x=0;x<W;x+=Math.max(22,DPR*24)){ ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,H); ctx.stroke(); }
 
     tiles.length=0;
-    const cx=W*0.52, cy=H*0.58; // board center
-    const baseR = Math.min(W,H)*0.36;
+    const cx=W*0.52, cy=H*0.58, baseR=Math.min(W,H)*0.36;
+    ctx.strokeStyle='rgba(200,210,230,0.08)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
+    [0.70,0.86,1.02].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
 
-    const drawRing=(chars,r,visible=true)=>{
-      const n = chars.length; const a0=-Math.PI*0.8, a1=-Math.PI*0.2;
+    const drawRing=(arr,r)=>{
+      const n=arr.length, a0=-Math.PI*0.8, a1=-Math.PI*0.2;
       for(let i=0;i<n;i++){
-        const t = i/(n-1); const ang= a0 + (a1-a0)*t;
-        const x = cx + Math.cos(ang)*r, y = cy + Math.sin(ang)*r;
-        tiles.push({x,y,r:Math.min(W,H)*0.03,label:chars[i],type:'char'});
-        if(visible && !blind){ ctx.fillStyle='#cfd6e6'; ctx.font=(Math.min(W,H)*0.035)+'px ui-monospace,Menlo,Consolas'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(chars[i],x,y); }
+        const t=i/(n-1); const ang=a0+(a1-a0)*t; const x=cx+Math.cos(ang)*r, y=cy+Math.sin(ang)*r;
+        tiles.push({x,y,r:Math.min(W,H)*0.032,label:arr[i]});
+        if(!blind){
+          ctx.fillStyle='#cfd6e6';
+          ctx.font=(Math.min(W,H)*0.035)+'px ui-monospace,Menlo,Consolas';
+          ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(arr[i],x,y);
+        } else {
+          ctx.fillStyle='rgba(180,190,210,0.12)'; ctx.beginPath(); ctx.arc(x,y,Math.min(W,H)*0.006,0,Math.PI*2); ctx.fill();
+        }
+      }
+    };
+
+    drawRing(layout.ring1, baseR*0.70);
+    drawRing(layout.ring2, baseR*0.86);
+    drawRing(layout.ring3, baseR*1.02);
+
+    // numbers
+    const nbY=cy+baseR*0.55, nbR=Math.min(W,H)*0.032;
+    for(let i=0;i<layout.numbers.length;i++){
+      const x=(W*0.20)+i*(W*0.6/(layout.numbers.length-1));
+      tiles.push({x,y:nbY,r:nbR,label:layout.numbers[i]});
+      if(!blind){
+        ctx.fillStyle='#aab3c7'; ctx.font=(Math.min(W,H)*0.03)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(layout.numbers[i],x,nbY);
+      } else {
+        ctx.fillStyle='rgba(180,190,210,0.12)'; ctx.beginPath(); ctx.arc(x,nbY,Math.min(W,H)*0.006,0,Math.PI*2); ctx.fill();
       }
     }
 
-    drawRing(layout.ring1, baseR*0.70, true);
-    drawRing(layout.ring2, baseR*0.86, true);
-    drawRing(layout.ring3, baseR*1.02, true);
-
-    // Numbers along bottom
-    const nb = layout.numbers; const nbY = cy + baseR*0.55; const nbW = Math.min(W,H)*0.03;
-    for(let i=0;i<nb.length;i++){
-      const x = (W*0.20) + i*(W*0.6/ (nb.length-1));
-      tiles.push({x,y:nbY,r:nbW,label:nb[i],type:'num'});
-      if(!blind){ ctx.fillStyle='#aab3c7'; ctx.font=(Math.min(W,H)*0.03)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(nb[i],x,nbY); }
-    }
-
-    // Corners
-    const c = layout.corners;
-    const cSpec=[{x:W*0.18,y:H*0.18,l:c[0],col:'#7bf59a'},{x:W*0.82,y:H*0.18,l:c[1],col:'#ffb3b3'},{x:W*0.5,y:H*0.18,l:c[2],col:'#9aa3b2'}];
-    for(const k of cSpec){ tiles.push({x:k.x,y:k.y,r:Math.min(W,H)*0.04,label:k.l,type:'corner'});
-      if(!blind){ ctx.fillStyle=k.col; ctx.font=(Math.min(W,H)*0.028)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(k.l,k.x,k.y); }
+    // corners
+    const c=layout.corners;
+    const corners=[{x:W*0.18,y:H*0.18,l:c[0],col:'#7bf59a'},{x:W*0.82,y:H*0.18,l:c[1],col:'#ffb3b3'},{x:W*0.50,y:H*0.18,l:c[2],col:'#9aa3b2'}];
+    for(const k of corners){
+      tiles.push({x:k.x,y:k.y,r:Math.min(W,H)*0.042,label:k.l});
+      if(!blind){
+        ctx.fillStyle=k.col; ctx.font=(Math.min(W,H)*0.028)+'px ui-monospace,Menlo'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(k.l,k.x,k.y);
+      } else {
+        ctx.strokeStyle='rgba(200,210,230,0.12)'; ctx.strokeRect(k.x-14,k.y-9,28,18);
+      }
     }
   }
 
-  // ======== Planchette Physics ========
-  const plan = {x:0,y:0,vx:0,vy:0, size: 54, trail:[], dwell:{tile:null,t:0}};
-  const state = {running:false, sealed:false, startedAt:null, lastMove:performance.now(), microJitter:0, decisions:[], message:"", pointerLocked:false};
-  let gain = 1.8; // movement amplification
+  function drawPlanchette(){
+    const r=plan.r; const x=plan.x, y=plan.y;
+    // trail
+    ctx.strokeStyle='rgba(122,225,255,0.22)'; ctx.lineWidth=2;
+    ctx.beginPath(); for(let i=0;i<plan.trail.length;i++){ const p=plan.trail[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);} ctx.stroke();
+    // body
+    ctx.fillStyle='rgba(16,24,36,0.92)'; ctx.strokeStyle='rgba(45,90,150,0.85)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.ellipse(x,y,r*1.1,r,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.beginPath(); ctx.arc(x,y,r*0.38,0,Math.PI*2); ctx.fill();
+  }
 
-  function resetAll(){ state.running=false; state.sealed=false; state.startedAt=null; state.decisions.length=0; state.message=""; plan.trail.length=0; plan.dwell={tile:null,t:0}; $('#log').textContent='(nothing yet)'; $('#badgeLen').textContent='0 chars'; $('#hudMode').textContent='Idle'; $('#hudConf').textContent='—'; centerPlanchette(); drawBoard(); drawFX(0); }
+  function draw(){ drawBoard(); drawPlanchette(); }
 
-  // pointer input → smoothed target
-  let target={x:0,y:0};
+  // ----- Input -----
   function onPointer(e){
-    if(state.pointerLocked) return; // when locked we use movementX/Y
-    const rect=board.getBoundingClientRect();
-    const px=(e.clientX-rect.left)*DPR, py=(e.clientY-rect.top)*DPR;
-    const t=performance.now();
-    const dt=t-state.lastMove; state.lastMove=t;
-    const dx=(px-(target.x||px))*gain, dy=(py-(target.y||py))*gain;
-    const speed=Math.hypot(dx,dy)/(dt||16);
-    state.microJitter = lerp(state.microJitter, Math.min(1, speed/50), 0.12);
-    target.x = (target.x||px)+dx; target.y = (target.y||py)+dy;
+    if(pointerLocked) return; // pointer-lock handled separately
+    const rect = cv.getBoundingClientRect();
+    const px = (e.clientX - rect.left) * DPR;
+    const py = (e.clientY - rect.top) * DPR;
+    const tx = (target.x || px);
+    const ty = (target.y || py);
+    target.x = clamp(tx + (px - tx) * (0.35 * gain), 0, cv.width);
+    target.y = clamp(ty + (py - ty) * (0.35 * gain), 0, cv.height);
   }
-  board.addEventListener('pointermove', onPointer);
-  // high frequency raw updates where supported
-  board.addEventListener('pointerrawupdate', onPointer);
-  board.addEventListener('pointerenter', onPointer);
-  board.addEventListener('pointerdown', e=>{board.setPointerCapture(e.pointerId)});
-  board.addEventListener('pointerup', e=>{tryDwellCommit(true)});
-  // Pointer lock for ultra sensitivity
-  function enablePointerLock(){ if(state.pointerLocked) return; if(board.requestPointerLock){ board.requestPointerLock(); }}
-  document.addEventListener('pointerlockchange', ()=>{ state.pointerLocked = document.pointerLockElement === board; });
+  cv.addEventListener('pointermove', onPointer);
+  cv.addEventListener('pointerdown', e=>{ cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointerup', e=>{ tryCommit(true); });
+
+  // Optional high-sensitivity (pointer lock) — clamped.
+  function enablePointerLock(){
+    if(pointerLocked || !cv.requestPointerLock) return;
+    cv.requestPointerLock();
+  }
+  document.addEventListener('pointerlockchange', ()=>{
+    pointerLocked = (document.pointerLockElement === cv);
+  });
   document.addEventListener('mousemove', (e)=>{
-    if(!state.pointerLocked) return;
-    const t=performance.now(); const dt=t-state.lastMove; state.lastMove=t;
-    const dx=(e.movementX||0)*DPR*gain, dy=(e.movementY||0)*DPR*gain;
-    target.x = clamp((target.x||plan.x)+dx, 0, board.width);
-    target.y = clamp((target.y||plan.y)+dy, 0, board.height);
-    const speed=Math.hypot(dx,dy)/(dt||16);
-    state.microJitter = lerp(state.microJitter, Math.min(1, speed/40), 0.15);
+    if(!pointerLocked) return;
+    const dx = (e.movementX||0) * DPR * gain;
+    const dy = (e.movementY||0) * DPR * gain;
+    target.x = clamp((target.x||plan.x) + dx, 0, cv.width);
+    target.y = clamp((target.y||plan.y) + dy, 0, cv.height);
   });
 
-  function stepPhysics(dt){
-    const kFollow = 0.12; // smoothing factor
-    const noise = (n)=> (Math.sin((performance.now()+n*97)*0.006 + n)*0.8 + Math.cos((performance.now()+n*31)*0.004))*0.4;
-    // amplify tiny involuntary drift
-    const amp = 0.6 + state.microJitter*0.9;
-    const nx = target.x + noise(1)*8*amp, ny = target.y + noise(2)*8*amp;
-    plan.x = lerp(plan.x||nx, nx, kFollow);
-    plan.y = lerp(plan.y||ny, ny, kFollow);
-    // conf is simply inverse of plan speed jitter (for vibe only)
-    const conf = clamp(1 - (Math.abs(noise(1))+Math.abs(noise(2)))/2, 0, 1);
-    $('#hudConf').textContent = (conf*100|0)+'%';
+  // ----- Hit testing & dwell -----
+  function hit(x,y){ for(const t of tiles){ if(Math.hypot(x-t.x,y-t.y)<=t.r) return t; } return null; }
+
+  // Local neighbourhood search for assist
+  function nearbyTiles(x,y,rangeFactor=1.35){
+    const R = Math.min(cv.width, cv.height) * 0.065 * rangeFactor;
+    const out=[];
+    for(const t of tiles){
+      const d = Math.hypot(x - t.x, y - t.y);
+      if(d <= R){ out.push({tile:t, d}); }
+    }
+    out.sort((a,b)=>a.d-b.d);
+    return out;
   }
 
-  // ======== Detection & Transcript ========
-  function drawFX(dt){
-    const W=fx.width,H=fx.height; gfx.clearRect(0,0,W,H);
-    // trail
-    gfx.strokeStyle='rgba(122,225,255,0.25)'; gfx.lineWidth=2; gfx.beginPath();
-    for(let i=0;i<plan.trail.length;i++){ const p=plan.trail[i]; if(i===0) gfx.moveTo(p.x,p.y); else gfx.lineTo(p.x,p.y);} gfx.stroke();
-    // planchette
-    const r=plan.size*DPR*0.5; const x=plan.x, y=plan.y;
-    // body
-    gfx.fillStyle='rgba(15,22,34,0.9)'; gfx.strokeStyle='rgba(45,90,150,0.8)'; gfx.lineWidth=3; gfx.beginPath(); gfx.ellipse(x,y,r*1.1,r,0,0,Math.PI*2); gfx.fill(); gfx.stroke();
-    // peephole
-    gfx.fillStyle='rgba(255,255,255,0.06)'; gfx.beginPath(); gfx.arc(x,y,r*0.35,0,Math.PI*2); gfx.fill();
+  function bigramWeight(prev, next){
+    if(!prev || !next) return 0;
+    const key = (prev+next).toUpperCase();
+    return BIGRAM[key] ? BIGRAM[key] : 0;
   }
 
-  function loop(){
-    const t=performance.now(); stepPhysics(16); if(state.running){ plan.trail.push({x:plan.x,y:plan.y,t}); if(plan.trail.length>1200) plan.trail.shift(); checkDwell(16);} drawFX(16); requestAnimationFrame(loop);
+  function chooseAssistedTile(primary){
+    if(assistMode==='off') return primary;
+    const prev = lastCommit && lastCommit.label && lastCommit.label.length===1 ? lastCommit.label : null;
+    const nb = nearbyTiles(plan.x, plan.y, 1.5);
+    if(nb.length===0) return primary;
+    let best = {score:-1e9, tile:primary};
+    for(const {tile, d} of nb){
+      let score = -d; // prefer closeness
+      if(assistMode==='bigram' && prev){
+        score += bigramWeight(prev, tile.label) * 4.0; // bigram bonus
+      }
+      if(assistMode==='lexicon'){
+        // small bias toward forming dictionary words by preferring vowels/consonant alternation and HELLO/LOVE/etc.
+        const maybe = (message + (tile.label.length===1? tile.label : '')).toUpperCase();
+        for(const w of SMALL_LEXICON){
+          if(w.startsWith(maybe)) score += 6.0;
+        }
+        // gentle bias to vowels after consonant & vice versa
+        const isV = 'AEIOUY'.includes(tile.label);
+        const prevIsV = prev ? 'AEIOUY'.includes(prev) : null;
+        if(prev && prevIsV!==null && isV!==prevIsV) score += 1.5;
+      }
+      // avoid repeating same unless intentional (score penalty)
+      if(lastCommit && lastCommit.label===tile.label) score -= 3.0;
+      if(score>best.score) best={score, tile};
+    }
+    // don't jump far away from where we were dwelling
+    const maxJump = Math.min(cv.width, cv.height)*0.12;
+    if(Math.hypot(best.tile.x - primary.x, best.tile.y - primary.y) > maxJump) return primary;
+    return best.tile;
   }
 
-  function hitTest(x,y){ for(const tile of tiles){ if(Math.hypot(x-tile.x,y-tile.y) <= tile.r) return tile; } return null }
-
-  function checkDwell(dt){
-    const tile = hitTest(plan.x, plan.y);
-    if(tile && tile!==plan.dwell.tile){ plan.dwell={tile,t:0}; }
-    if(tile){ plan.dwell.t += dt; if(plan.dwell.t>600){ commit(tile); plan.dwell={tile:null,t:0}; } }
+  function canRepeatSameTile(tile, now){
+    if(!lastCommit || lastCommit.label!==tile.label) return true; // not a repeat
+    const dist = Math.hypot(plan.x - lastCommit.x, plan.y - lastCommit.y);
+    const exited = dist >= tile.r * EXIT_DISTANCE_FACTOR;
+    const cooldownOk = (now - lastCommit.t) >= REPEAT_COOLDOWN;
+    const extraDwellOk = dwellTimer >= (BASE_DWELL + REPEAT_EXTRA_DWELL);
+    return exited && cooldownOk && extraDwellOk;
   }
 
-  function tryDwellCommit(force=false){ const tile = hitTest(plan.x,plan.y); if(force && tile){ commit(tile); plan.dwell={tile:null,t:0}; }}
+  function meanSpeed(){ if(speedBuf.length===0) return 0; const s=speedBuf.reduce((a,b)=>a+b,0)/speedBuf.length; return s; }
 
-  function commit(tile){ if(!state.running) return; const lab = tile.label; state.decisions.push({t:Date.now(),label:lab,x:tile.x,y:tile.y});
-    if(lab==='YES'||lab==='NO'){ state.message += ' ['+lab+']'; }
-    else if(lab==='GOODBYE'){ state.message += ' [GOODBYE]'; stopSession(); }
-    else{ state.message += (lab.length===1? lab : ''); }
-    $('#log').textContent = blind? '(sealed — stop to reveal)': state.message; $('#badgeLen').textContent = (state.message.replace(/\s/g,'').length)+' chars';
-    pulse();
+  function tryCommit(force){
+    let tile = hit(plan.x, plan.y);
+    if(!tile) return;
+    const now = Date.now();
+    const ms = meanSpeed();
+    const dwellEnough = dwellTimer >= BASE_DWELL + (consecutiveSame>0 ? Math.min(600, consecutiveSame*200) : 0);
+    if(force){ if(!dwellEnough) return; }
+    if(ms > SPEED_THRESHOLD) return; // stillness gate
+
+    // Warmup phase: only YES/NO allowed
+    if(startTs && (now - startTs) < WARMUP_MS){
+      if(!(tile.label==='YES' || tile.label==='NO')) return;
+    }
+
+    // Assist selection: allow nearby flip if more plausible
+    const assisted = chooseAssistedTile(tile);
+    tile = assisted || tile;
+
+    if(lastCommit && lastCommit.label===tile.label && !canRepeatSameTile(tile, now)) return;
+    commit(tile, now);
+    dwellTimer = 0;
   }
 
-  function pulse(){ gfx.save(); gfx.strokeStyle='rgba(122,225,255,0.6)'; gfx.lineWidth=6; gfx.beginPath(); gfx.arc(plan.x,plan.y,plan.size*DPR*0.58,0,Math.PI*2); gfx.stroke(); gfx.restore(); }
-
-  // ======== Session control ========
-  function startSession(){
-    if(state.running) return;
-    state.running=true; state.startedAt=Date.now();
-    $('#hudMode').textContent='Listening';
-    centerPlanchette();
-    if($('#chkHiSens').checked) enablePointerLock();
-    toast('Begin. Keep a light touch and don\'t steer.');
+  function commit(tile, now){
+    if(!running) return;
+    const lab = tile.label;
+    if(lab==='YES' || lab==='NO'){ message += ` [${lab}]`; consecutiveSame=0; beep(520,0.05); }
+    else if(lab==='GOODBYE'){ message += ' [GOODBYE]'; consecutiveSame=0; beep(420,0.08); stop(); }
+    else if(lab.length===1){
+      if(lastCommit && lastCommit.label===lab) consecutiveSame++; else consecutiveSame=0;
+      message += lab; beep(660,0.03);
+    }
+    lastCommit = {label: lab, x: plan.x, y: plan.y, t: now};
+    updateLog();
   }
-  function stopSession(){
-    if(!state.running) return;
-    state.running=false; $('#hudMode').textContent='Stopped';
-    if(state.pointerLocked && document.exitPointerLock){ document.exitPointerLock(); }
-    if(blind){ blind=false; $('#chkBlind').checked=false; $('#hudBlind').textContent='Off'; drawBoard(); $('#log').textContent=state.message||'(no text)'; toast('Reveal'); }
-  }}
-  function hardReset(){ resetAll(); toast('Reset'); }
 
-  // ======== Export / Seal ========
+  function updateLog(){
+    if(sealed && running){ logEl.textContent = '(sealed)'; }
+    else if(blind && running){ logEl.textContent = '(sealed — stop to reveal)'; }
+    else { logEl.textContent = message || '(no text)'; }
+    statusEl.textContent = (running?'Listening':'Idle') + ' • ' + (message.replace(/\s/g,'').length) + ' chars';
+  }
+
+  // ----- Loop -----
+  function tick(){
+    const t = performance.now();
+    const dt = (t - lastT) || 16; lastT = t;
+    const vx = ((target.x||plan.x) - plan.x) / dt;
+    const vy = ((target.y||plan.y) - plan.y) / dt;
+    const sp = Math.hypot(vx,vy);
+    speedBuf.push(sp); if(speedBuf.length>SPEED_BUF_N) speedBuf.shift();
+
+    // gentle noise + smoothing
+    const n1 = Math.sin((t+97)*0.006)*0.5, n2 = Math.cos((t+31)*0.004)*0.5;
+    const nx = (target.x || plan.x) + n1*6;
+    const ny = (target.y || plan.y) + n2*6;
+    plan.x = clamp(plan.x + (nx - plan.x) * 0.14, 0, cv.width);
+    plan.y = clamp(plan.y + (ny - plan.y) * 0.14, 0, cv.height);
+
+    if(running){
+      plan.trail.push({x:plan.x,y:plan.y}); if(plan.trail.length>1200) plan.trail.shift();
+      const k = hit(plan.x, plan.y);
+      if(k){ dwellTimer += dt; tryCommit(false); } else { dwellTimer=0; }
+      // autospace: if idle >2.2s since last commit, add a space
+      if(autospace && lastCommit && (Date.now()-lastCommit.t)>2200){
+        if(message && !message.endsWith(' ')){ message += ' '; updateLog(); }
+      }
+    }
+    draw();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // ----- Controls -----
+  function start(){
+    if(running) return;
+    running=true; message=""; plan.trail.length=0; plan.dwell=0; lastCommit=null; consecutiveSame=0; speedBuf.length=0; startTs=Date.now(); updateLog();
+    if(hiSens) enablePointerLock();
+  }
+  function stop(){
+    if(!running) return;
+    running=false;
+    if(pointerLocked && document.exitPointerLock) document.exitPointerLock();
+    if(blind || sealed){ logEl.textContent = message || '(no text)'; }
+    updateLog();
+  }
+  function reset(){
+    running=false; message=""; plan.trail.length=0; dwellTimer=0; lastCommit=null; consecutiveSame=0; centerPlanchette(); draw(); updateLog();
+  }
   function exportJSON(){
     const body = {
-      startedAt: state.startedAt,
-      endedAt: Date.now(),
-      layout: layoutShuffle? 'shuffled':'classic',
-      blind,
-      sealed: state.sealed,
-      message: state.message,
-      decisions: state.decisions,
+      ts: Date.now(),
+      blind, sealed, shuffled, hiSens, gain, assistMode,
+      message,
       trail: plan.trail.slice(-400),
-      hash: hash32(JSON.stringify(state.message)+'/'+state.startedAt)
+      tiles: tiles.map(t=>({x:t.x,y:t.y,r:t.r,label:t.label})),
+      params: {BASE_DWELL, REPEAT_COOLDOWN, REPEAT_EXTRA_DWELL, EXIT_DISTANCE_FACTOR, SPEED_THRESHOLD, WARMUP_MS}
     };
-    const blob=new Blob([JSON.stringify(body,null,2)],{type:'application/json'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`spiritboard_${body.startedAt}.json`; a.click();
+    const blob = new Blob([JSON.stringify(body,null,2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='spirit_board_assist_session.json'; a.click();
   }
 
-  // ======== Bind UI ========
-  $('#btnStart').onclick=()=>startSession();
-  $('#btnStop').onclick=()=>stopSession();
-  $('#btnReset').onclick=()=>hardReset();
-  $('#btnExport').onclick=()=>exportJSON();
-  $('#chkBlind').onchange=(e)=>{ blind=e.target.checked; $('#hudBlind').textContent=blind? 'On':'Off'; drawBoard(); if(blind){ $('#log').textContent='(sealed — stop to reveal)'; }}
-  $('#chkShuffle').onchange=(e)=>{ layoutShuffle=e.target.checked; makeLayout(); drawBoard(); }
-  $('#chkSeal').onchange=(e)=>{ state.sealed=e.target.checked; }
-  $('#chkHiSens').onchange=(e)=>{ if(state.running && e.target.checked) enablePointerLock(); else if(!e.target.checked && document.exitPointerLock){ document.exitPointerLock(); }}
-  $('#rngGain').oninput=(e)=>{ gain = parseFloat(e.target.value||'1.8'); }
+  $('#btnStart').onclick = start;
+  $('#btnStop').onclick = stop;
+  $('#btnReset').onclick = reset;
+  $('#btnCenter').onclick = ()=>{ centerPlanchette(); draw(); };
+  $('#btnExport').onclick = exportJSON;
+  $('#chkBlind').onchange = (e)=>{ blind = e.target.checked; updateLog(); draw(); };
+  $('#chkSeal').onchange = (e)=>{ sealed = e.target.checked; updateLog(); };
+  $('#chkShuffle').onchange = (e)=>{ shuffled = e.target.checked; refreshLayout(); draw(); };
+  $('#chkHiSens').onchange = (e)=>{ hiSens = e.target.checked; if(!hiSens && pointerLocked && document.exitPointerLock) document.exitPointerLock(); };
+  $('#chkAutospace').onchange = (e)=>{ autospace = e.target.checked; };
+  $('#rngGain').oninput = (e)=>{ gain = parseFloat(e.target.value||'1.8'); };
+  $('#selAssist').onchange = (e)=>{ assistMode = e.target.value; };
 
-  window.addEventListener('keydown',e=>{
-    if(e.key===' '){ e.preventDefault(); state.running? stopSession(): startSession(); }
-    if(e.key==='Escape'){ hardReset(); }
-    if(e.key.toLowerCase()==='b'){ blind=!blind; $('#chkBlind').checked=blind; $('#hudBlind').textContent=blind? 'On':'Off'; drawBoard(); if(blind) $('#log').textContent='(sealed — stop to reveal)'; }
-    if(e.key.toLowerCase()==='s'){ layoutShuffle=!layoutShuffle; $('#chkShuffle').checked=layoutShuffle; makeLayout(); drawBoard(); toast(layoutShuffle? 'Shuffled layout':'Classic layout'); }
-  });
-
-  // ======== Boot ========
-  makeLayout(); resize(); centerPlanchette(); resetAll(); // ensure FX overlay never steals events
-  try{ document.getElementById('fx').style.pointerEvents='none'; }catch(e){}
-  loop();
-})();
-</script>
+  // Boot
+  refreshLayout();
+  centerPlanchette(); draw(); updateLog();
+})();</script>
 </body>
 </html>
-
