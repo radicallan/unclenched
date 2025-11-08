@@ -24,6 +24,9 @@
   .row{display:flex;gap:10px;flex-wrap:wrap}
   .kbd{font-family:ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border:1px solid #2a3140;border-bottom-width:2px;border-radius:6px;background:#0b1018;color:#b9c1d0}
   canvas{position:absolute;inset:0;display:block;width:100%;height:100%;}
+  /* Ensure pointer events hit the input layer (board) not the FX overlay */
+  #fx{pointer-events:none}
+  #board{pointer-events:auto}
   .hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;align-items:center;z-index:10}
   .chip{background:#0e1420;border:1px solid #1e2a3f;color:#a9b3c6;padding:6px 10px;border-radius:999px}
   .chip strong{color:var(--ink)}
@@ -296,7 +299,9 @@
   });
 
   // ======== Boot ========
-  makeLayout(); resize(); centerPlanchette(); resetAll(); loop();
+  makeLayout(); resize(); centerPlanchette(); resetAll(); // ensure FX overlay never steals events
+  try{ document.getElementById('fx').style.pointerEvents='none'; }catch(e){}
+  loop();
 })();
 </script>
 </body>
