@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Spirit Board — SAFE (Mobile‑First)</title>
+<title>Spirit Board — SAFE v2 (Mobile‑First)</title>
 <style>
   :root{--bg:#0b0d12;--panel:#0f121a;--ink:#e7ebf2;--muted:#96a0b1}
   *{box-sizing:border-box}
@@ -15,12 +15,14 @@
   #stage{height:70vh; position:relative}
   #cv{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none;-webkit-user-select:none;user-select:none}
   #log{min-height:20vh;max-height:30vh;overflow:auto;padding:10px;background:#0a0f16;border-top:1px solid #1b2330;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .opt{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   label{display:inline-flex;align-items:center;gap:6px}
   input[type="range"]{accent-color:#2de2ff}
   .toast{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#101826;border:1px solid #29405f;color:#eaf4ff;padding:8px 12px;border-radius:10px;opacity:0;transition:opacity .2s}
   .toast.show{opacity:1}
+  .hud{position:fixed;right:10px;top:10px;display:flex;gap:8px;z-index:20}
+  .badge{background:#0f1726;border:1px solid #2a3a58;color:#cfe2ff;padding:4px 8px;border-radius:999px;font-size:12px}
+  .badge.green{border-color:#2f6; color:#cfffdf}
 </style>
 </head>
 <body>
@@ -31,14 +33,16 @@
   <button id="btnCenter">Center</button>
   <div class="opt">
     <label><input id="chkRequire" type="checkbox" checked> Require READY</label>
+    <label><input id="chkExit" type="checkbox"> Commit on Exit</label>
     <label>Dwell <input id="rngDwell" type="range" min="500" max="1400" step="50" value="800"></label>
-    <label>Tile size <input id="rngTile" type="range" min="1.0" max="1.6" step="0.05" value="1.3"></label>
+    <label>Tile size <input id="rngTile" type="range" min="1.0" max="1.6" step="0.05" value="1.35"></label>
   </div>
   <span id="status">Idle • 0 chars</span>
 </header>
 
 <div id="stage"><canvas id="cv"></canvas></div>
 <div id="log">(nothing yet)</div>
+<div class="hud"><div id="badgeReady" class="badge">Ready: 0%</div></div>
 <div id="toast" class="toast">Committed</div>
 
 <script>
@@ -46,27 +50,29 @@
   const $=s=>document.querySelector(s);
   const DPR = Math.min(2, window.devicePixelRatio||1);
   const cv=$('#cv'), ctx=cv.getContext('2d',{alpha:true});
-  const statusEl=$('#status'), logEl=$('#log'), toastEl=$('#toast');
+  const statusEl=$('#status'), logEl=$('#log'), toastEl=$('#toast'), badgeReady=$('#badgeReady');
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+  // State
   let running=false, message="", lastT=performance.now();
-  let needReady=true, DWELL_MS=800, tileScale=1.3;
+  let needReady=true, commitOnExit=false, DWELL_MS=800, tileScale=1.35;
   let plan={x:0,y:0,r:28,trail:[]}, target={x:0,y:0}, tiles=[];
   let entered=null, dwellTimer=0, ready=0, lastCommit=null;
-  let pressCand=null; const DBL_MS=380;
+  let pressCand=null; const DBL_MS=450;
   const MIN_SPACE_FACTOR=1.6, MIN_GAP=550, REPEAT_CD=900;
   const IN_FACTOR=1.18, OUT_FACTOR=1.45; // sticky hysteresis
 
-  // ---- Sizing (robust) ----
+  // ---- Canvas sizing ----
   function sizeCanvas(){
     const rect = cv.getBoundingClientRect();
     const w = Math.max(10, Math.floor(rect.width * DPR));
     const h = Math.max(10, Math.floor(rect.height * DPR));
-    if(cv.width!==w || cv.height!==h){ cv.width=w; cv.height=h; draw(); }
+    if(cv.width!==w || cv.height!==h){ cv.width=w; cv.height=h; }
     plan.r = Math.max(22*DPR, Math.min(cv.width, cv.height)*0.05);
     center();
+    buildTiles(); draw();
   }
   function center(){ plan.x=cv.width*0.52; plan.y=cv.height*0.60; target.x=plan.x; target.y=plan.y; }
-
   new ResizeObserver(sizeCanvas).observe($('#stage'));
   window.addEventListener('orientationchange', ()=>setTimeout(sizeCanvas, 300));
   requestAnimationFrame(sizeCanvas);
@@ -94,7 +100,7 @@
     tiles.push({x:W*0.50,y:H*0.18,r:Math.min(W,H)*0.052*tileScale,label:c[2]});
   }
 
-  // ---- Drawing ----
+  // ---- Draw ----
   function drawBoard(){
     const W=cv.width,H=cv.height,cx=W*0.52,cy=H*0.60,baseR=Math.min(W,H)*0.36;
     ctx.clearRect(0,0,W,H);
@@ -108,25 +114,23 @@
     ctx.strokeStyle='rgba(200,210,230,0.08)'; ctx.lineWidth=Math.max(1, Math.min(W,H)*0.002);
     [0.70,0.86,1.02].forEach(m=>{ ctx.beginPath(); ctx.arc(cx,cy,baseR*m,0,Math.PI*2); ctx.stroke(); });
 
-    ctx.fillStyle='#cfd6e6';
     ctx.textAlign='center'; ctx.textBaseline='middle';
     const fontBig=(Math.min(W,H)*0.05)+'px ui-monospace,Menlo,Consolas';
     const fontNum=(Math.min(W,H)*0.045)+'px ui-monospace,Menlo,Consolas';
     const fontCor=(Math.min(W,H)*0.04)+'px ui-monospace,Menlo,Consolas';
 
-    // Draw letters
-    const drawLabel=(t, font, col)=>{ ctx.fillStyle=col; ctx.font=font; ctx.fillText(t.label, t.x, t.y); }
     for(const t of tiles){
-      if(t.label.length===1) drawLabel(t, fontBig, '#cfd6e6');
-      else if(t.label==='YES') drawLabel(t, fontCor, '#7bf59a');
-      else if(t.label==='NO') drawLabel(t, fontCor, '#ffb3b3');
-      else drawLabel(t, fontCor, '#9aa3b2');
+      if(t.label.length===1){ ctx.fillStyle='#cfd6e6'; ctx.font=fontBig; }
+      else if(t.label==='YES'){ ctx.fillStyle='#7bf59a'; ctx.font=fontCor; }
+      else if(t.label==='NO'){ ctx.fillStyle='#ffb3b3'; ctx.font=fontCor; }
+      else { ctx.fillStyle='#9aa3b2'; ctx.font=fontCor; }
+      ctx.fillText(t.label, t.x, t.y);
     }
 
     // Ready ring
     if(entered && entered.tile){
       const t=entered.tile; ctx.lineWidth=5;
-      ctx.strokeStyle = (ready>=1 ? 'rgba(123,245,154,0.9)' : 'rgba(122,225,255,0.7)');
+      ctx.strokeStyle = (ready>=1 ? 'rgba(123,245,154,0.95)' : 'rgba(122,225,255,0.75)');
       ctx.beginPath(); ctx.arc(t.x, t.y, t.r*1.18, -Math.PI/2, (-Math.PI/2)+ready*2*Math.PI); ctx.stroke();
     }
   }
@@ -140,13 +144,13 @@
   }
   function draw(){ drawBoard(); drawPlanchette(); }
 
-  // ---- Touch input (canvas only) ----
+  // ---- Touch (canvas only) ----
   function tPoint(e){ const t=e.changedTouches[0], rect=cv.getBoundingClientRect(); return {x:(t.clientX-rect.left)*DPR, y:(t.clientY-rect.top)*DPR, time:e.timeStamp}; }
   cv.addEventListener('touchstart', e=>{ e.preventDefault(); const p=tPoint(e); target.x=clamp(p.x,0,cv.width); target.y=clamp(p.y,0,cv.height); pressStart(p); }, {passive:false});
   cv.addEventListener('touchmove', e=>{ e.preventDefault(); const p=tPoint(e); const tx=(target.x||p.x), ty=(target.y||p.y); target.x=clamp(tx+(p.x-tx)*0.34,0,cv.width); target.y=clamp(ty+(p.y-ty)*0.34,0,cv.height); }, {passive:false});
   cv.addEventListener('touchend', e=>{ e.preventDefault(); const p=tPoint(e); pressEnd(p); }, {passive:false});
 
-  // ---- Hit test + sticky ----
+  // ---- Sticky hit ----
   function stickyHit(x,y){
     if(entered && entered.tile){
       const d=Math.hypot(x-entered.tile.x,y-entered.tile.y);
@@ -158,7 +162,7 @@
 
   // ---- Commit gating ----
   function canCommit(tile, now){
-    if(needReady && !(entered && ready>=1)) return false;
+    if(needReady && !(entered && entered.ready)) return false;
     if(lastCommit){
       const dist=Math.hypot(tile.x-lastCommit.x, tile.y-lastCommit.y);
       if(dist < tile.r*MIN_SPACE_FACTOR) return false;
@@ -173,14 +177,15 @@
     else if(lab==='YES' || lab==='NO'){ message+= ` [${lab}]`; }
     else if(lab.length===1){ message+=lab; }
     lastCommit={label:lab, x:tile.x, y:tile.y, t:now};
-    updateLog();
-    toast(lab);
+    updateLog(); toast(lab);
     ready=0; dwellTimer=0; entered.ready=false;
   }
 
-  // ---- Press (double‑tap) ----
+  // ---- Press (double‑tap) using *current entered tile* ----
   function pressStart(p){
-    const t = stickyHit(plan.x, plan.y); if(!t){ pressCand=null; return; }
+    // Always use the highlighted tile for commit attempts
+    const t = entered ? entered.tile : stickyHit(plan.x, plan.y);
+    if(!t){ pressCand=null; return; }
     if(pressCand && pressCand.tile===t && (p.time - pressCand.tDown) < DBL_MS){
       const now=Date.now(); if(canCommit(t, now)) commit(t, now); pressCand=null; return;
     }
@@ -201,9 +206,16 @@
       if(tile && (!entered || entered.tile!==tile)){ entered={tile, tEnter:performance.now(), ready:false}; dwellTimer=0; ready=0; }
       if(tile){
         dwellTimer += dt; ready = Math.min(1, dwellTimer / DWELL_MS); entered.ready = ready>=1;
+        if(commitOnExit && entered.ready){
+          // commit as soon as we leave the tile
+          const inside = stickyHit(plan.x, plan.y) === tile;
+          if(!inside){ const now=Date.now(); if(canCommit(tile, now)) commit(tile, now); }
+        }
       }else{
         entered=null; dwellTimer=0; ready=0;
       }
+      badgeReady.textContent = 'Ready: ' + Math.round(ready*100) + '%';
+      badgeReady.classList.toggle('green', ready>=1);
     }
     draw();
     requestAnimationFrame(tick);
@@ -219,13 +231,12 @@
   $('#btnReset').onclick=()=>{ running=false; message=''; plan.trail.length=0; lastCommit=null; entered=null; dwellTimer=0; ready=0; center(); draw(); updateLog(); };
   $('#btnCenter').onclick=()=>{ center(); draw(); };
   $('#chkRequire').onchange=e=>{ needReady = e.target.checked; };
+  $('#chkExit').onchange=e=>{ commitOnExit = e.target.checked; };
   $('#rngDwell').oninput=e=>{ DWELL_MS = parseInt(e.target.value,10) || 800; };
-  $('#rngTile').oninput=e=>{ tileScale = parseFloat(e.target.value)||1.3; draw(); };
+  $('#rngTile').oninput=e=>{ tileScale = parseFloat(e.target.value)||1.35; buildTiles(); draw(); };
 
-  // Build and first paint
-  buildTiles(); draw(); updateLog();
-  // Rebuild tiles on resize (fonts depend on canvas size)
-  new ResizeObserver(()=>{ buildTiles(); draw(); }).observe(cv);
+  // Init
+  updateLog();
 })();
 </script>
 </body>
