@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ORACLE PRO v6.0 — Rescue Mode</title>
+  <title>ORACLE PRO – Sensor Channel v1.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
-      --bg: #05050a;
-      --bg-soft: #0b0b15;
-      --bg-softer: #111120;
+      --bg: #04040a;
+      --bg-soft: #0a0a16;
       --accent: #7b5cff;
       --accent-soft: rgba(123, 92, 255, 0.2);
-      --accent-strong: #b79dff;
+      --accent-strong: #cab4ff;
       --text: #f5f5ff;
       --text-soft: #b5b7d0;
-      --border-subtle: rgba(255, 255, 255, 0.06);
       --danger: #ff4f7b;
-      --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.6);
       --radius-xl: 24px;
       --radius-pill: 999px;
-      --transition-fast: 150ms ease-out;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.8);
+      --transition-fast: 140ms ease-out;
     }
 
     * {
@@ -32,23 +31,22 @@
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
         "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #181848 0, #05050a 55%);
+      background: radial-gradient(circle at top, #191940 0, #04040a 60%);
       color: var(--text);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 18px;
     }
 
     .shell {
       width: 100%;
-      max-width: 980px;
-      background: linear-gradient(145deg, rgba(255,255,255,0.02), transparent);
-      border-radius: 32px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 24px;
+      max-width: 780px;
+      background: linear-gradient(140deg, rgba(255, 255, 255, 0.03), transparent);
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 18px 18px 14px;
       box-shadow: var(--shadow-soft);
-      backdrop-filter: blur(28px);
       position: relative;
       overflow: hidden;
     }
@@ -58,11 +56,11 @@
       position: absolute;
       inset: -40%;
       background:
-        radial-gradient(circle at 0% 0%, rgba(123, 92, 255, 0.18), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(255, 79, 123, 0.12), transparent 60%);
-      opacity: 0.7;
-      pointer-events: none;
+        radial-gradient(circle at 0% 0%, rgba(123, 92, 255, 0.2), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(255, 79, 123, 0.12), transparent 65%);
       mix-blend-mode: screen;
+      opacity: 0.8;
+      pointer-events: none;
     }
 
     .shell-inner {
@@ -72,10 +70,16 @@
 
     header {
       display: flex;
-      align-items: flex-start;
       justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 20px;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 640px) {
+      header {
+        flex-direction: column;
+      }
     }
 
     .title-block {
@@ -87,18 +91,17 @@
     .badge-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 4px;
+      gap: 6px;
+      margin-bottom: 2px;
     }
 
     .badge {
-      font-size: 11px;
+      font-size: 10px;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 4px 10px;
+      padding: 3px 9px;
       border-radius: var(--radius-pill);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(0, 0, 0, 0.4);
       color: var(--text-soft);
     }
@@ -110,24 +113,24 @@
     }
 
     h1 {
-      font-size: 22px;
-      letter-spacing: 0.09em;
+      font-size: 18px;
       text-transform: uppercase;
-      color: var(--text);
+      letter-spacing: 0.18em;
     }
 
     .subtitle {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-soft);
+      max-width: 380px;
     }
 
     .status-pill {
-      font-size: 11px;
-      padding: 5px 12px;
+      font-size: 10px;
+      padding: 5px 11px;
       border-radius: var(--radius-pill);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(3, 190, 140, 0.12);
-      color: #89f5d2;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(6, 34, 26, 0.9);
+      color: #9bf4d3;
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -138,103 +141,115 @@
       width: 7px;
       height: 7px;
       border-radius: 999px;
-      background: #89f5d2;
-      box-shadow: 0 0 10px rgba(137, 245, 210, 0.9);
+      background: #9bf4d3;
+      box-shadow: 0 0 10px rgba(155, 244, 211, 0.9);
     }
 
     main {
       display: grid;
-      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
-      gap: 18px;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr);
+      gap: 14px;
     }
 
-    @media (max-width: 780px) {
-      .shell {
-        padding: 18px;
-        border-radius: 24px;
-      }
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+    @media (max-width: 720px) {
       main {
         grid-template-columns: 1fr;
       }
     }
 
-    /* Left: question + reading */
     .panel {
-      background: radial-gradient(circle at top left, rgba(255,255,255,0.04), transparent 50%);
       border-radius: var(--radius-xl);
-      padding: 18px 18px 16px;
       border: 1px solid var(--border-subtle);
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 8px;
-      gap: 16px;
+      padding: 14px;
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.04), transparent 65%);
     }
 
     .panel-title {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--text-soft);
-    }
-
-    .panel-sub {
       font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    label {
-      display: block;
-      font-size: 12px;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
       color: var(--text-soft);
       margin-bottom: 6px;
     }
 
-    .input-row {
+    .big-word-wrap {
       display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
     }
 
-    .input-row textarea {
-      flex: 1;
+    .pulse-circle {
+      width: 180px;
+      height: 180px;
+      max-width: 70vw;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background:
+        radial-gradient(circle at 30% 10%, rgba(255, 255, 255, 0.12), transparent 60%),
+        radial-gradient(circle at 50% 100%, rgba(2, 4, 28, 1), #02020b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-      max-height: 140px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(3, 4, 20, 0.9);
-      color: var(--text);
-      padding: 10px 12px;
-      font-size: 13px;
-      line-height: 1.35;
-      outline: none;
-      box-shadow: inset 0 0 0 1px transparent;
-      transition: border-color var(--transition-fast),
-        box-shadow var(--transition-fast),
-        background var(--transition-fast);
+    .pulse-circle::after {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(123, 92, 255, 0.4), transparent 65%),
+        radial-gradient(circle at 100% 100%, rgba(255, 79, 123, 0.3), transparent 55%);
+      mix-blend-mode: soft-light;
+      opacity: 0.65;
+      pointer-events: none;
     }
 
-    textarea::placeholder {
-      color: rgba(181, 183, 208, 0.7);
-    }
-
-    textarea:focus {
+    .pulse-circle.active {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(123, 92, 255, 0.6);
-      background: rgba(3, 4, 20, 0.98);
+      box-shadow: 0 0 0 1px rgba(123, 92, 255, 0.5),
+        0 18px 45px rgba(0, 0, 0, 0.95);
+    }
+
+    .big-word {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      text-align: center;
+      padding-left: 0.3em; /* account for letter-spacing */
+    }
+
+    .big-word-empty {
+      font-size: 13px;
+      color: var(--text-soft);
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    .mode-hint {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-align: center;
+    }
+
+    .mode-hint span {
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(5, 5, 28, 0.9);
+    }
+
+    .controls-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
     }
 
     button {
@@ -244,19 +259,17 @@
     }
 
     .primary-btn {
-      align-self: flex-end;
-      padding: 10px 14px;
-      border-radius: 18px;
+      padding: 9px 16px;
+      border-radius: 999px;
       background: linear-gradient(135deg, var(--accent), #ff4f7b);
       color: white;
-      font-size: 12px;
-      letter-spacing: 0.14em;
+      font-size: 11px;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      white-space: nowrap;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.9);
       transition: transform var(--transition-fast),
         box-shadow var(--transition-fast),
         filter var(--transition-fast),
@@ -264,161 +277,78 @@
     }
 
     .primary-btn span.symbol {
-      font-size: 14px;
-      transform: translateY(-1px);
+      font-size: 13px;
     }
 
     .primary-btn:hover {
       transform: translateY(-1px);
-      filter: brightness(1.05);
-      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.85);
+      filter: brightness(1.04);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 1);
     }
 
     .primary-btn:active {
       transform: translateY(0);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.9);
+    }
+
+    .primary-btn.secondary {
+      background: rgba(10, 10, 30, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.85);
+      letter-spacing: 0.16em;
     }
 
     .primary-btn:disabled {
-      opacity: 0.6;
+      opacity: 0.7;
       cursor: wait;
     }
 
-    .reading-block {
-      margin-top: 8px;
-      border-radius: 18px;
-      background: linear-gradient(
-        135deg,
-        rgba(2, 5, 26, 0.85),
-        rgba(8, 10, 35, 0.95)
-      );
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      padding: 10px 12px 11px;
+    .metrics {
+      margin-top: 10px;
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr);
-      gap: 12px;
-      align-items: center;
-    }
-
-    @media (max-width: 640px) {
-      .reading-block {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .words-row {
-      display: flex;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 6px;
-      justify-content: center;
-      align-items: stretch;
-    }
-
-    .word-card {
-      flex: 1;
-      border-radius: 14px;
-      padding: 10px 6px 8px;
-      text-align: center;
-      background: radial-gradient(
-          circle at top,
-          rgba(123, 92, 255, 0.25),
-          transparent 65%
-        ),
-        radial-gradient(circle at bottom, rgba(2, 4, 30, 0.9), #020316);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .word-card::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        135deg,
-        transparent 0,
-        rgba(255, 255, 255, 0.06) 40%,
-        transparent 100%
-      );
-      mix-blend-mode: soft-light;
-      opacity: 0.9;
-      pointer-events: none;
-    }
-
-    .word-label {
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: rgba(227, 225, 255, 0.65);
-      margin-bottom: 4px;
-    }
-
-    .word-text {
-      font-size: 17px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #ffffff;
-      white-space: nowrap;
-    }
-
-    .interpretation {
-      font-size: 12px;
+      font-size: 10px;
       color: var(--text-soft);
-      line-height: 1.5;
     }
 
-    .interpretation strong {
-      color: var(--accent-strong);
-      font-weight: 500;
+    .metric-pill {
+      border-radius: var(--radius-pill);
+      padding: 4px 8px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(6, 7, 28, 0.95);
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      align-items: baseline;
     }
 
-    .hint-row {
-      margin-top: 6px;
+    .metric-label {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .metric-value {
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    /* History */
+    .history-header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .history-label {
       font-size: 11px;
-      color: rgba(181, 183, 208, 0.8);
-    }
-
-    .hint-row span.key {
-      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(4, 6, 30, 0.9);
-    }
-
-    /* Right: history */
-    .side-panel {
-      background: radial-gradient(circle at top right, rgba(255,255,255,0.04), transparent 60%);
-      border-radius: var(--radius-xl);
-      padding: 14px 14px 10px;
-      border: 1px solid var(--border-subtle);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .side-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .side-title {
-      font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.18em;
       color: var(--text-soft);
     }
 
-    .side-meta {
-      font-size: 11px;
+    .history-meta {
+      font-size: 10px;
       color: rgba(181, 183, 208, 0.9);
     }
 
@@ -434,78 +364,57 @@
       font-size: 11px;
       color: var(--text-soft);
       opacity: 0.8;
-      padding: 4px 0 2px;
+      padding: 2px 0;
     }
 
     .history-item {
       border-radius: 12px;
-      padding: 7px 8px 6px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      background: rgba(7, 7, 22, 0.9);
-      margin-bottom: 4px;
+      padding: 6px 7px;
+      margin-bottom: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(6, 7, 25, 0.96);
     }
 
-    .history-top {
+    .history-top-row {
       display: flex;
       justify-content: space-between;
       gap: 8px;
       align-items: baseline;
-      margin-bottom: 2px;
     }
 
     .history-time {
       font-size: 10px;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
       color: rgba(181, 183, 208, 0.85);
       white-space: nowrap;
-      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     }
 
-    .history-question {
+    .history-word {
       font-size: 11px;
-      color: var(--text);
-      opacity: 0.9;
-    }
-
-    .history-words {
-      font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.16em;
-      color: rgba(181, 183, 208, 0.95);
-      margin-top: 3px;
+      color: var(--text);
     }
 
-    .history-words span.tag {
-      padding: 1px 7px;
-      border-radius: 999px;
-      background: rgba(12, 12, 36, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-    }
-
-    .history-note {
-      font-size: 10px;
-      color: rgba(181, 183, 208, 0.8);
-      margin-top: 3px;
+    .history-energy {
+      font-size: 9px;
+      color: rgba(181, 183, 208, 0.85);
+      margin-top: 2px;
     }
 
     footer {
-      margin-top: 12px;
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      font-size: 10px;
-      color: rgba(181, 183, 208, 0.7);
       gap: 10px;
-    }
-
-    .foot-left {
-      display: flex;
-      gap: 12px;
+      font-size: 9px;
+      color: rgba(181, 183, 208, 0.75);
       flex-wrap: wrap;
     }
 
     .foot-pill {
-      padding: 3px 8px;
-      border-radius: 999px;
+      padding: 3px 7px;
+      border-radius: var(--radius-pill);
       border: 1px solid rgba(255, 255, 255, 0.14);
       background: rgba(5, 6, 26, 0.9);
     }
@@ -527,186 +436,286 @@
       <header>
         <div class="title-block">
           <div class="badge-row">
-            <div class="badge accent">ORACLE PRO v6.0</div>
-            <div class="badge">Rescue Mode</div>
+            <div class="badge accent">ORACLE PRO</div>
+            <div class="badge">Sensor Channel v1.0</div>
           </div>
-          <h1>Resonance &amp; Lexical Field Scanner</h1>
+          <h1>Lexical Field Receiver</h1>
           <p class="subtitle">
-            Ask a focused question, then let the field collapse into three signal-words.
+            Uses device motion + ambient sound as chaotic inputs to select words
+            from a fixed bank. Interpretation is up to you.
           </p>
         </div>
-        <div class="status-pill" aria-live="polite">
+        <div class="status-pill" id="session-status">
           <span class="status-dot"></span>
-          Channel idle · ready
+          Idle · waiting to start
         </div>
       </header>
 
       <main>
-        <!-- LEFT: Question & Reading -->
-        <section class="panel" aria-label="Oracle input and reading">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Input</div>
-              <div class="panel-sub">Phrase it like a real situation, not a yes/no quiz.</div>
+        <!-- LEFT: Live word + controls -->
+        <section class="panel">
+          <div class="panel-title">Live channel</div>
+
+          <div class="big-word-wrap">
+            <div class="pulse-circle" id="pulse">
+              <div class="big-word-empty" id="big-word-empty">
+                Tap <strong>Start session</strong> and keep the device nearby.
+              </div>
+              <div class="big-word" id="big-word" style="display:none;">---</div>
+            </div>
+
+            <div class="mode-hint">
+              Word every <span id="interval-label">3s</span> · bank size
+              <span id="bank-size">0</span>
             </div>
           </div>
 
-          <label for="oracle-question">Focus / situation</label>
-          <div class="input-row">
-            <textarea
-              id="oracle-question"
-              placeholder="Example: &quot;Guidance on how to handle the job interview and my nerves around it.&quot;"
-            ></textarea>
-            <button id="generate-btn" class="primary-btn" type="button">
+          <div class="controls-row">
+            <button class="primary-btn" id="toggle-btn" type="button">
               <span class="symbol">◎</span>
-              <span>Generate&nbsp;reading</span>
+              <span id="toggle-label">Start session</span>
             </button>
           </div>
 
-          <div class="reading-block" aria-live="polite">
-            <div class="words-row" id="words-row">
-              <div class="word-card">
-                <div class="word-label">Signal 01</div>
-                <div class="word-text" id="word-1">—</div>
-              </div>
-              <div class="word-card">
-                <div class="word-label">Signal 02</div>
-                <div class="word-text" id="word-2">—</div>
-              </div>
-              <div class="word-card">
-                <div class="word-label">Signal 03</div>
-                <div class="word-text" id="word-3">—</div>
-              </div>
+          <div class="metrics">
+            <div class="metric-pill">
+              <span class="metric-label">Motion</span>
+              <span class="metric-value" id="motion-value">0.00</span>
             </div>
-            <div class="interpretation" id="interpretation">
-              Type a situation above and press <strong>Generate reading</strong>.
-              You'll get three words: treat them like a digital tarot spread and notice
-              what they poke at in you.
+            <div class="metric-pill">
+              <span class="metric-label">Rotation</span>
+              <span class="metric-value" id="rotation-value">0.00</span>
             </div>
-          </div>
-
-          <div class="hint-row">
-            <div>
-              Press <span class="key">Ctrl</span> + <span class="key">Enter</span> to re-cast.
+            <div class="metric-pill">
+              <span class="metric-label">Audio</span>
+              <span class="metric-value" id="audio-value">0.00</span>
             </div>
-            <div>Same question + new cast = checking the pattern, not “right vs wrong”.</div>
           </div>
         </section>
 
         <!-- RIGHT: History -->
-        <aside class="side-panel" aria-label="Recent readings">
-          <div class="side-header">
-            <div class="side-title">Recent casts</div>
-            <div class="side-meta" id="history-meta">0 stored · latest at —</div>
+        <section class="panel">
+          <div class="history-header">
+            <div class="history-label">Word stream</div>
+            <div class="history-meta" id="history-meta">0 entries · latest —</div>
           </div>
           <ul class="history-list" id="history-list">
             <li class="history-empty" id="history-empty">
-              No casts yet. Your last 10 questions + words will show here.
+              Once the channel is running, each word + a crude “energy” mix from
+              the sensors will show here.
             </li>
           </ul>
-        </aside>
+        </section>
       </main>
 
       <footer>
-        <div class="foot-left">
-          <div class="foot-pill">Self-reflection tool · not a promise machine</div>
-          <div class="foot-pill">For experimentation &amp; pattern-spotting only</div>
+        <div class="foot-pill">
+          Experimental tool. Sensors just provide noise; meaning is user-generated.
         </div>
         <div class="foot-right">
-          The “meaning” happens in how <strong>you</strong> feel when you look at the words,
-          not inside the code.
+          If you like the idea of “energy” nudging the noise, treat this
+          as a <strong>ritual interface</strong>, not proof.
         </div>
       </footer>
     </div>
   </div>
 
   <script>
-    // --- CORE WORDSET ---
-    // You can freely edit / extend this list.
-    const CORE_WORDS = [
-      "ABOUT", "ABOVE", "ACROSS", "ACCEPT", "ACCESS", "ACTION", "ADAPT",
-      "AFTER", "AGAIN", "AGAINST", "ALIGN", "ALLOW", "ALONE", "ALREADY",
-      "ALWAYS", "AMOUNT", "ANCHOR", "ANSWER", "ANYONE", "ANYTHING",
-      "APPEAR", "APPLY", "AROUND", "ASK", "ASSIST", "ATTEND", "AWARE",
-      "BALANCE", "BEGIN", "BELOW", "BETWEEN", "BOLD", "BREAK", "BRIDGE",
-      "BUILD", "CALM", "CHANGE", "CHOOSE", "CIRCLE", "CLARIFY", "CLOSE",
-      "COMFORT", "COMMIT", "COMMON", "COMPLETE", "CONNECT", "CONTAIN",
-      "COURAGE", "CREATE", "DECIDE", "DEEPEN", "DELAY", "DETAIL", "DIRECT",
-      "DISTANCE", "DOUBT", "EASY", "ECHO", "EDGE", "EFFORT", "EMERGE",
-      "EMOTION", "ENERGY", "ENOUGH", "ENTER", "EQUAL", "ESSENTIAL",
-      "EVIDENCE", "EXACT", "EXPAND", "EXPERIENCE", "EXPOSE", "FAITH",
-      "FOCUS", "FOLLOW", "FORCE", "FORWARD", "FRAME", "FREQUENCY",
-      "GATHER", "GENTLE", "GROUND", "GROW", "HABIT", "HIDDEN", "HOLD",
-      "HONEST", "IMPACT", "INSIDE", "INTEND", "INVITE", "JUDGEMENT",
-      "KEEP", "KIND", "KNOW", "LEARN", "LEAVE", "LIMIT", "LISTEN",
-      "MEASURE", "MEET", "MOVE", "NEAR", "NOTICE", "OFFER", "OPEN",
-      "ORDER", "OVER", "OWN", "PAUSE", "PATTERN", "PEACE", "POSSIBLE",
-      "POWER", "PRESENT", "PRESSURE", "PROTECT", "PULL", "PURPOSE",
-      "QUESTION", "QUIET", "RECEIVE", "REPEAT", "RESIST", "RESOLVE",
-      "REST", "RISK", "RITUAL", "SAY", "SEE", "SHIFT", "SHOW", "SIGNAL",
-      "SILENCE", "SIMPLE", "SPACE", "SPEAK", "STAND", "STAY", "STEP",
-      "STILL", "STRENGTH", "TENSION", "THROUGH", "TOWARD", "TRUST",
-      "TRUTH", "UNDER", "UNDERSTAND", "UNTIL", "VALUE", "WAIT", "WARMTH",
-      "WITHIN", "WITHOUT", "WORTH"
+    // -------------------------------
+    // WORD BANK – edit this as you like
+    // -------------------------------
+    const WORD_BANK = [
+      "ABOUT","ABOVE","ACCEPT","ACCESS","ACTION","ADAPT","AFTER","AGAIN",
+      "AGAINST","ALIGN","ALONE","ALREADY","ALWAYS","ANCHOR","ANSWER","ASK",
+      "ATTEND","AWARE","BALANCE","BEGIN","BELIEVE","BELOW","BOUNDARY","BREAK",
+      "BRIDGE","CALM","CARE","CHANGE","CHOOSE","CIRCLE","CLARIFY","CLOSE",
+      "COMFORT","COMMIT","COMPLETE","CONNECT","CROSS","DECIDE","DEEP","DELAY",
+      "DISTANCE","DOUBT","EASY","ECHO","EDGE","EMERGE","EMOTION","ENERGY",
+      "ENOUGH","ENTER","EVIDENCE","EXACT","EXPAND","EXPOSE","FAITH","FEAR",
+      "FIELD","FOCUS","FOLLOW","FORCE","FORWARD","FRAME","FREQUENCY","GATHER",
+      "GENTLE","GROUND","GUIDE","GROW","HABIT","HIDDEN","HOLD","HONEST",
+      "IMPACT","INSIDE","INTEND","INVITE","JUDGE","KEEP","KIND","KNOW",
+      "LEARN","LEAVE","LIGHT","LIMIT","LISTEN","MEASURE","MEET","MOVE",
+      "NEAR","NOISE","NOTICE","OFFER","OPEN","ORDER","OVER","OWN","PAUSE",
+      "PATTERN","PEACE","POSSIBLE","POWER","PRESENT","PRESSURE","PROTECT",
+      "PULL","PURPOSE","QUESTION","QUIET","RECEIVE","REPEAT","RESIST",
+      "RESOLVE","REST","RISK","RITUAL","SAY","SEE","SHIFT","SHOW","SIGNAL",
+      "SILENCE","SIMPLE","SPACE","SPEAK","SPIRIT","STAND","STAY","STEP",
+      "STILL","STRENGTH","TENSION","THIN","THROUGH","TOWARD","TRUST","TRUTH",
+      "UNDER","UNDERSTAND","UNSEEN","UNTIL","VALUE","VOICE","WAIT","WARMTH",
+      "WITHIN","WITHOUT","WORTH"
     ];
 
-    const questionInput = document.getElementById("oracle-question");
-    const generateBtn = document.getElementById("generate-btn");
-    const wordEls = [
-      document.getElementById("word-1"),
-      document.getElementById("word-2"),
-      document.getElementById("word-3")
-    ];
-    const interpretationEl = document.getElementById("interpretation");
+    const INTERVAL_MS = 3000; // word every 3 seconds
+
+    // UI elements
+    const bankSizeEl = document.getElementById("bank-size");
+    const intervalLabelEl = document.getElementById("interval-label");
+    const bigWordEl = document.getElementById("big-word");
+    const bigWordEmptyEl = document.getElementById("big-word-empty");
+    const pulseEl = document.getElementById("pulse");
+    const toggleBtn = document.getElementById("toggle-btn");
+    const toggleLabel = document.getElementById("toggle-label");
+    const motionValueEl = document.getElementById("motion-value");
+    const rotationValueEl = document.getElementById("rotation-value");
+    const audioValueEl = document.getElementById("audio-value");
     const historyListEl = document.getElementById("history-list");
     const historyEmptyEl = document.getElementById("history-empty");
     const historyMetaEl = document.getElementById("history-meta");
+    const sessionStatusEl = document.getElementById("session-status");
 
+    bankSizeEl.textContent = WORD_BANK.length.toString();
+    intervalLabelEl.textContent = (INTERVAL_MS / 1000).toFixed(0) + "s";
+
+    // Sensor state
+    let lastMotionMagnitude = 0;
+    let lastRotationMagnitude = 0;
+    let lastAudioLevel = 0;
+
+    let motionListenerActive = false;
+    let audioStream = null;
+    let audioAnalyser = null;
+    let audioDataArray = null;
+
+    let running = false;
+    let tickTimer = null;
     let history = [];
 
-    function randomInt(max) {
-      return Math.floor(Math.random() * max);
+    function setStatus(text, active) {
+      sessionStatusEl.textContent = text;
+      if (active) {
+        sessionStatusEl.style.background = "rgba(5, 40, 28, 0.9)";
+        sessionStatusEl.style.color = "#9bf4d3";
+      } else {
+        sessionStatusEl.style.background = "rgba(40, 10, 16, 0.9)";
+        sessionStatusEl.style.color = "#ffb9c9";
+      }
     }
 
-    function pickUniqueWords(count) {
-      const words = [];
-      const used = new Set();
-      const total = CORE_WORDS.length;
+    function updateMetricsDisplay() {
+      motionValueEl.textContent = lastMotionMagnitude.toFixed(2);
+      rotationValueEl.textContent = lastRotationMagnitude.toFixed(2);
+      audioValueEl.textContent = lastAudioLevel.toFixed(2);
+    }
 
-      while (words.length < count && words.length < total) {
-        const idx = randomInt(total);
-        const word = CORE_WORDS[idx];
-        if (!used.has(word)) {
-          used.add(word);
-          words.push(word);
-        }
+    // Motion handler
+    function handleDeviceMotion(event) {
+      const acc = event.accelerationIncludingGravity || event.acceleration;
+      const rot = event.rotationRate;
+
+      if (acc) {
+        const ax = acc.x || 0;
+        const ay = acc.y || 0;
+        const az = acc.z || 0;
+        lastMotionMagnitude = Math.sqrt(ax * ax + ay * ay + az * az);
       }
-      return words;
+
+      if (rot) {
+        const alpha = rot.alpha || 0;
+        const beta = rot.beta || 0;
+        const gamma = rot.gamma || 0;
+        lastRotationMagnitude = Math.sqrt(alpha * alpha + beta * beta + gamma * gamma) / 100;
+      }
+
+      updateMetricsDisplay();
+    }
+
+    function startMotionListener() {
+      if (motionListenerActive) return;
+
+      function enableListener() {
+        window.addEventListener("devicemotion", handleDeviceMotion);
+        motionListenerActive = true;
+      }
+
+      // iOS permission
+      if (typeof DeviceMotionEvent !== "undefined" &&
+          typeof DeviceMotionEvent.requestPermission === "function") {
+        DeviceMotionEvent.requestPermission()
+          .then(state => {
+            if (state === "granted") {
+              enableListener();
+            }
+          })
+          .catch(() => {
+            // ignore – will just not have motion
+          });
+      } else if (typeof DeviceMotionEvent !== "undefined") {
+        enableListener();
+      }
+    }
+
+    // Audio level via Web Audio
+    async function startAudio() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return;
+      }
+
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(audioStream);
+        audioAnalyser = audioContext.createAnalyser();
+        audioAnalyser.fftSize = 256;
+        const bufferLength = audioAnalyser.frequencyBinCount;
+        audioDataArray = new Uint8Array(bufferLength);
+        source.connect(audioAnalyser);
+
+        function audioLoop() {
+          if (!audioAnalyser) return;
+          audioAnalyser.getByteTimeDomainData(audioDataArray);
+          let sum = 0;
+          for (let i = 0; i < audioDataArray.length; i++) {
+            const v = (audioDataArray[i] - 128) / 128; // -1..1
+            sum += v * v;
+          }
+          const rms = Math.sqrt(sum / audioDataArray.length); // 0..1-ish
+          lastAudioLevel = rms * 5; // scale it a bit
+          updateMetricsDisplay();
+          requestAnimationFrame(audioLoop);
+        }
+        audioLoop();
+      } catch (err) {
+        // mic denied or error; we just won't have audio
+      }
+    }
+
+    function stopAudio() {
+      if (audioStream) {
+        audioStream.getTracks().forEach(t => t.stop());
+      }
+      audioStream = null;
+      audioAnalyser = null;
+      audioDataArray = null;
+    }
+
+    function stopMotion() {
+      if (motionListenerActive) {
+        window.removeEventListener("devicemotion", handleDeviceMotion);
+        motionListenerActive = false;
+      }
+    }
+
+    // Word selection: mix sensors + time into a pseudo-random index
+    function selectWord() {
+      const time = Date.now();
+      const combo =
+        (lastMotionMagnitude * 17.3) +
+        (lastRotationMagnitude * 31.7) +
+        (lastAudioLevel * 47.9) +
+        (time % 1000);
+
+      const raw = Math.abs(Math.floor(combo * 3.14159));
+      const idx = WORD_BANK.length > 0 ? raw % WORD_BANK.length : 0;
+      return WORD_BANK[idx] || "---";
     }
 
     function formatTime(date) {
       return date.toLocaleTimeString(undefined, {
         hour: "2-digit",
-        minute: "2-digit"
+        minute: "2-digit",
+        second: "2-digit"
       });
-    }
-
-    function generateInterpretation(words, question) {
-      if (!words || words.length === 0) return "";
-
-      const lower = words.map(w => w.toLowerCase());
-      const base =
-        `The field collapsed around ` +
-        `${lower[0]}, ${lower[1]} and ${lower[2]}.`;
-
-      const angle = question
-        ? ` In relation to “${question}”, notice where these themes are already alive: what you keep circling, avoiding, or feeling pulled toward.`
-        : ` Notice where these themes are already alive in what you keep circling, avoiding, or feeling pulled toward today.`;
-
-      const nudge =
-        ` If one of the words annoys you or feels “off”, that tension is part of the reading—sit with it before you recast.`;
-
-      return base + angle + nudge;
     }
 
     function renderHistory() {
@@ -714,10 +723,9 @@
       if (history.length === 0) {
         historyListEl.appendChild(historyEmptyEl);
         historyEmptyEl.style.display = "block";
-        historyMetaEl.textContent = "0 stored · latest at —";
+        historyMetaEl.textContent = "0 entries · latest —";
         return;
       }
-
       historyEmptyEl.style.display = "none";
 
       history.forEach(entry => {
@@ -725,89 +733,109 @@
         li.className = "history-item";
 
         const top = document.createElement("div");
-        top.className = "history-top";
+        top.className = "history-top-row";
 
-        const q = document.createElement("div");
-        q.className = "history-question";
-        q.textContent = entry.question || "No question (free cast)";
+        const w = document.createElement("div");
+        w.className = "history-word";
+        w.textContent = entry.word;
 
-        const time = document.createElement("time");
-        time.className = "history-time";
-        time.textContent = entry.timeLabel;
+        const t = document.createElement("time");
+        t.className = "history-time";
+        t.textContent = entry.timeLabel;
 
-        top.appendChild(q);
-        top.appendChild(time);
+        top.appendChild(w);
+        top.appendChild(t);
 
-        const words = document.createElement("div");
-        words.className = "history-words";
-        const tag = document.createElement("span");
-        tag.className = "tag";
-        tag.textContent = entry.words.join(" · ");
-        words.appendChild(tag);
-
-        const note = document.createElement("div");
-        note.className = "history-note";
-        note.textContent = entry.question
-          ? "Glance back after today and see which word actually hit."
-          : "Free-cast: see what this ended up matching in your day.";
+        const energy = document.createElement("div");
+        energy.className = "history-energy";
+        energy.textContent =
+          `motion ${entry.motion.toFixed(2)} · rotation ${entry.rotation.toFixed(2)} · audio ${entry.audio.toFixed(2)}`;
 
         li.appendChild(top);
-        li.appendChild(words);
-        li.appendChild(note);
-
+        li.appendChild(energy);
         historyListEl.appendChild(li);
       });
 
       const latest = history[0];
       historyMetaEl.textContent =
-        `${history.length} stored · latest at ${latest.timeLabel}`;
+        `${history.length} entries · latest ${latest.timeLabel}`;
     }
 
-    function castOracle() {
-      if (generateBtn.disabled) return;
+    function tick() {
+      if (!running) return;
+      const word = selectWord();
 
-      generateBtn.disabled = true;
+      bigWordEl.textContent = word;
+      bigWordEl.style.display = "block";
+      bigWordEmptyEl.style.display = "none";
 
-      const question = questionInput.value.trim();
-      const words = pickUniqueWords(3);
-
-      // Visual update
-      words.forEach((w, idx) => {
-        wordEls[idx].textContent = w || "—";
-      });
-
-      const text = generateInterpretation(words, question);
-      interpretationEl.textContent = text;
-
-      // History (store newest at top, keep max 10)
       const now = new Date();
       history.unshift({
+        word,
         time: now,
         timeLabel: formatTime(now),
-        question,
-        words
+        motion: lastMotionMagnitude,
+        rotation: lastRotationMagnitude,
+        audio: lastAudioLevel
       });
-      if (history.length > 10) history = history.slice(0, 10);
-
+      if (history.length > 80) {
+        history = history.slice(0, 80);
+      }
       renderHistory();
-
-      // Small delay so the disabled state is perceptible
-      setTimeout(() => {
-        generateBtn.disabled = false;
-      }, 250);
     }
 
-    generateBtn.addEventListener("click", castOracle);
+    async function startSession() {
+      if (running) return;
+      running = true;
 
-    questionInput.addEventListener("keydown", event => {
-      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
-        event.preventDefault();
-        castOracle();
+      toggleBtn.disabled = true;
+      toggleLabel.textContent = "Starting…";
+      setStatus("Starting · requesting sensors", true);
+      pulseEl.classList.add("active");
+
+      // Start sensor listeners
+      startMotionListener();
+      await startAudio(); // if this fails, we just have 0 audio
+
+      toggleBtn.disabled = false;
+      toggleLabel.textContent = "Stop session";
+      toggleBtn.classList.remove("secondary");
+      setStatus("Channel running · sensors mixed into word selection", true);
+
+      tick(); // immediate first word
+      tickTimer = setInterval(tick, INTERVAL_MS);
+    }
+
+    function stopSession() {
+      if (!running) return;
+      running = false;
+
+      if (tickTimer) {
+        clearInterval(tickTimer);
+        tickTimer = null;
+      }
+      stopAudio();
+      stopMotion();
+
+      pulseEl.classList.remove("active");
+      toggleLabel.textContent = "Start session";
+      toggleBtn.classList.add("secondary");
+      setStatus("Stopped · sensor listeners released", false);
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      if (running) {
+        stopSession();
+      } else {
+        startSession();
       }
     });
 
-    // Initial render
+    // Initial UI state
+    toggleBtn.classList.add("secondary");
+    setStatus("Idle · waiting to start", false);
     renderHistory();
+    updateMetricsDisplay();
   </script>
 </body>
 </html>
