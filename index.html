@@ -1,236 +1,814 @@
-
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<title>ORACLE PRO v5.2 — Rescue Mode</title>
-<style>
-  :root{ --ink:#eaf2ff; --muted:#9fb1c9; --good:#8ef5c1; --warn:#ffd68a; --bad:#ff9b9b; }
-  *{box-sizing:border-box} html,body{margin:0;height:100%;background:#0a0f18;color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  header{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid rgba(120,160,220,.18);background:linear-gradient(180deg,#101829,#0b111e)}
-  h1{font-size:16px;margin:0}
-  button{appearance:none;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;color:#eaf2ff;background:linear-gradient(180deg,#2b79c2,#1a4a7f);font-weight:600}
-  .ghost{background:linear-gradient(180deg,#1a263f,#121c33);border:1px solid rgba(120,160,220,.22)}
-  main{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;padding:12px}
-  .card{border:1px solid rgba(120,160,220,.18);border-radius:14px;background:rgba(14,20,32,.7);padding:12px;min-height:120px}
-  canvas{display:block;width:100%;height:120px;background:linear-gradient(180deg,#0b1220,#0a0f18)}
-  .pill{font-size:12px;color:var(--muted)}
-  textarea{width:100%;height:190px;background:linear-gradient(180deg,#0b1220,#0a0f18);border:1px solid rgba(120,160,220,.18);border-radius:12px;color:#eaf2ff;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace}
-  .log{height:140px;overflow:auto;border:1px solid rgba(120,160,220,.18);border-radius:10px;padding:6px;background:rgba(10,14,24,.6);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#cfe3ff}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .cands{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-  .tag{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid rgba(120,160,220,.25);background:rgba(18,26,42,.6);color:#dfe8ff}
-  .tag.top{border-color:#9fd;color:#9fd}
-  @media (max-width: 900px){ main{grid-template-columns:1fr} }
-</style>
-</head>
-<body>
-<header>
-  <h1>ORACLE PRO v5.2 — Rescue Mode</h1>
-  <div class="row">
-    <button id="btnStart">Enable Mic</button>
-    <button id="btnCal" class="ghost">Calibrate (10s)</button>
-    <button id="btnQuick" class="ghost">QuickStart (lenient)</button>
-    <button id="btnExport" class="ghost">Export Log</button>
-    <button id="btnSafari" class="ghost">Safari Fix</button>
-  </div>
-</header>
-<div id="msg" style="padding:10px" class="pill"></div>
-<main>
-  <div class="card">
-    <div class="row"><span class="pill">Energy & Spectrum</span><span id="status" class="pill" style="margin-left:auto">Idle</span></div>
-    <canvas id="meter"></canvas>
-    <canvas id="spec"></canvas>
-    <div id="diag" class="pill" style="margin-top:6px"></div>
-  </div>
-  <div class="card">
-    <div class="row"><span class="pill">Top Candidates</span></div>
-    <div id="cands" class="cands"></div>
-    <div class="row" style="margin-top:8px"><span class="pill">Transcript</span></div>
-    <textarea id="ta" readonly>(no text)</textarea>
-    <div class="row" style="margin-top:8px"><span class="pill">Log</span></div>
-    <div id="log" class="log"></div>
-  </div>
-</main>
-
-<script>
-(() => {
-  const CORE = ["ABOUT", "ABOVE", "ACCEPT", "ACCESS", "ACTION", "ACTIVE", "ADVICE", "AFTER", "AGAIN", "AGAINST", "AGREE", "ALLOW", "ALMOST", "ALONE", "ALONG", "ALSO", "ALWAYS", "AMOUNT", "ANALYSE", "ANSWER", "ANYONE", "ANYTHING", "APPEAR", "APPLY", "AREA", "AROUND", "ARRIVE", "ASK", "ASSESS", "ASSIST", "ATTEND", "AWARE", "AWAY", "BALANCE", "BASIC", "BEAR", "BECOME", "BEFORE", "BEGIN", "BELIEVE", "BELONG", "BELOW", "BENEFIT", "BETWEEN", "BEYOND", "BLACK", "BLOOD", "BLUE", "BOARD", "BODY", "BOLD", "BOOK", "BOTH", "BOTTOM", "BRAIN", "BRANCH", "BRAND", "BRAVE", "BREAD", "BREAK", "BREATH", "BRIDGE", "BRIGHT", "BRING", "BROTHER", "BROWN", "BUILD", "BURN", "BUSINESS", "BUSY", "BUY", "CALL", "CALM", "CAMERA", "CANCEL", "CAPABLE", "CARBON", "CARE", "CAREER", "CAREFUL", "CARRY", "CASE", "CASH", "CAUSE", "CEILING", "CENTER", "CENTRE", "CERTAIN", "CHAIR", "CHANCE", "CHANGE", "CHARGE", "CHART", "CHECK", "CHOICE", "CHOOSE", "CIRCLE", "CITY", "CLAIM", "CLASS", "CLEAN", "CLEAR", "CLIENT", "CLIMATE", "CLIMB", "CLOCK", "CLOSE", "CLOUD", "CLUB", "CLUE", "COACH", "COAST", "CODE", "COFFEE", "COLD", "COLLECT", "COLOUR", "COMBINE", "COMFORT", "COMMON", "COMPANY", "COMPARE", "COMPETE", "COMPLETE", "COMPLEX", "COMPLY", "CONNECT", "CONSENT", "CONSIDER", "CONTACT", "CONTAIN", "CONTENT", "CONTEXT", "CONTINUE", "CONTRACT", "CONTROL", "CONVERT", "COOK", "COOL", "COPY", "CORNER", "CORRECT", "COST", "COULD", "COUNCIL", "COUNT", "COUNTRY", "COUPLE", "COURSE", "COVER", "CREATE", "CREDIT", "CREW", "CRISIS", "CRITERIA", "CROSS", "CROWD", "CULTURE", "CURRENT", "CUSTOMER", "CYCLE", "DAILY", "DAMAGE", "DANGER", "DARK", "DATA", "DATE", "DAY", "DEAL", "DEAR", "DEATH", "DEBATE", "DEBT", "DECIDE", "DECISION", "DECLINE", "DEEP", "DEFAULT", "DEFEND", "DEFINE", "DEGREE", "DELAY", "DELIVER", "DEMAND", "DENY", "DEPART", "DEPEND", "DESCRIBE", "DESIGN", "DESIRE", "DESPITE", "DETAIL", "DETECT", "DEVELOP", "DEVICE", "DIFFER", "DIRECT", "DISABLE", "DISCOVER", "DISCUSS", "DISEASE", "DISMISS", "DISPLAY", "DISTANCE", "DISTINCT", "DIVIDE", "DOCTOR", "DOCUMENT", "DOOR", "DOUBLE", "DOUBT", "DOWN", "DRAFT", "DRAW", "DREAM", "DRESS", "DRINK", "DRIVE", "DROP", "DRY", "DURING", "DUTY", "EACH", "EARLY", "EARN", "EARTH", "EAST", "EASY", "EAT", "EFFECT", "EFFORT", "EITHER", "EMAIL", "EMERGE", "EMOTION", "EMPLOY", "ENABLE", "ENCOURAGE", "END", "ENEMY", "ENERGY", "ENJOY", "ENOUGH", "ENSURE", "ENTER", "ENTIRE", "ENTRY", "ENVIRONMENT", "EQUAL", "EQUIP", "ERROR", "ESCAPE", "ESPECIALLY", "ESSENTIAL", "ESTABLISH", "ESTATE", "ESTIMATE", "EVEN", "EVENING", "EVENT", "EVERY", "EVIDENCE", "EXACT", "EXAMPLE", "EXCEED", "EXCEPT", "EXCHANGE", "EXERCISE", "EXIST", "EXIT", "EXPECT", "EXPENSE", "EXPERIENCE", "EXPERT", "EXPLAIN", "EXPLORE", "EXPRESS", "EXTEND", "EXTRA", "FACE", "FACTOR", "FAIL", "FAIR", "FAITH", "FALL", "FAMILY", "FAMOUS", "FANCY", "FAST", "FATHER", "FAULT", "FAVOUR", "FEAR", "FEATURE", "FEEL", "FEMALE", "FIELD", "FIGHT", "FIGURE", "FILE", "FILL", "FINAL", "FINANCE", "FIND", "FINE", "FINISH", "FIRE", "FIRST", "FISH", "FIT", "FIX", "FLAG", "FLAME", "FLAT", "FLIGHT", "FLOOR", "FLOW", "FLY", "FOLLOW", "FOOD", "FOOT", "FORCE", "FORGET", "FORGIVE", "FORM", "FORMAL", "FORMER", "FORTUNE", "FORWARD", "FOUND", "FRAME", "FREE", "FREEDOM", "FRESH", "FRIEND", "FRONT", "FROZEN", "FUEL", "FULL", "FUNCTION", "FUND", "FUNNY", "FUTURE", "GAIN", "GALLERY", "GAME", "GARDEN", "GAS", "GATE", "GATHER", "GENDER", "GENERAL", "GENERATE", "GENUINE", "GHOST", "GIFT", "GIVE", "GLASS", "GLOBAL", "GOAL", "GOOD", "GOVERNMENT", "GRACE", "GRADE", "GRANT", "GREAT", "GREEN", "GROUND", "GROUP", "GROW", "GROWTH", "GUARD", "GUESS", "GUEST", "GUIDE", "HABIT", "HALF", "HAND", "HANDLE", "HANG", "HAPPEN", "HAPPY", "HARD", "HARM", "HATE", "HEAD", "HEALTH", "HEAR", "HEART", "HEAT", "HEAVY", "HEIGHT", "HELLO", "HELP", "HERE", "HERO", "HIDE", "HIGH", "HILL", "HINT", "HISTORY", "HOLD", "HOLE", "HOLIDAY", "HOME", "HONEST", "HONOUR", "HOPE", "HORROR", "HOSPITAL", "HOST", "HOTEL", "HOUR", "HOUSE", "HUMAN", "HUNGRY", "HURRY", "HURT", "IDEA", "IDEAL", "IDENTIFY", "IMAGE", "IMAGINE", "IMPACT", "IMPROVE", "INCLUDE", "INCOME", "INCREASE", "INDICATE", "INDUSTRY", "INFLUENCE", "INFORM", "INITIAL", "INJURY", "INNER", "INNOVATE", "INSIDE", "INSIGHT", "INSIST", "INSPECT", "INSPIRE", "INSTALL", "INSTANT", "INSTEAD", "INSTRUCT", "INSURE", "INTEND", "INTEREST", "INTERNAL", "INTERNET", "INTERVIEW", "INTRODUCE", "INVEST", "INVITE", "INVOLVE", "IRON", "ISSUE", "ITEM", "JOB", "JOIN", "JOY", "JUDGE", "JUMP", "JUSTICE", "KEEP", "KID", "KIND", "KING", "KITCHEN", "KNEE", "KNOW", "KNOWLEDGE", "LAB", "LABEL", "LABOUR", "LACK", "LADDER", "LAND", "LANDLORD", "LANDSCAPE", "LANGUAGE", "LARGE", "LAST", "LATE", "LATER", "LAUGH", "LAUNCH", "LAW", "LAYER", "LEAD", "LEADER", "LEARN", "LEAST", "LEAVE", "LEFT", "LEG", "LEGAL", "LEGEND", "LEND", "LENGTH", "LESSON", "LETTER", "LEVEL", "LIBRARY", "LIFE", "LIFT", "LIGHT", "LIKE", "LIMIT", "LINE", "LINK", "LIST", "LISTEN", "LITTLE", "LIVE", "LOAD", "LOAN", "LOCAL", "LOCATE", "LOCATION", "LOCK", "LOGIC", "LONG", "LOOK", "LOSE", "LOSS", "LOST", "LOUD", "LOVE", "LOWER", "LUCK", "LUNCH", "MACHINE", "MAGIC", "MAIL", "MAIN", "MAJOR", "MAKE", "MAN", "MANAGE", "MANNER", "MANY", "MAP", "MARKET", "MARRIED", "MATCH", "MATERIAL", "MATTER", "MAYBE", "MEAL", "MEAN", "MEASURE", "MEDIA", "MEDICAL", "MEET", "MEMBER", "MEMORY", "MENTAL", "MENTION", "MENU", "MESSAGE", "METAL", "MIDDLE", "MIGHT", "MILLION", "MIND", "MINOR", "MINUTE", "MIRROR", "MISSION", "MISTAKE", "MIX", "MOBILE", "MODEL", "MODERN", "MOMENT", "MONEY", "MONTH", "MOOD", "MORE", "MORNING", "MOTHER", "MOTION", "MOUNTAIN", "MOUTH", "MOVE", "MOVEMENT", "MOVIE", "MUSIC", "MUST", "NAME", "NARROW", "NATION", "NATIONAL", "NATIVE", "NATURE", "NEAR", "NEAT", "NECESSARY", "NEED", "NEGLECT", "NEITHER", "NERVOUS", "NETWORK", "NEVER", "NEW", "NEWS", "NEXT", "NICE", "NIGHT", "NOBODY", "NOISE", "NONE", "NORMAL", "NORTH", "NOTE", "NOTHING", "NOTICE", "NUMBER", "NURSE", "OBJECT", "OBSERVE", "OBTAIN", "OBVIOUS", "OCCASION", "OCCUPY", "OCCUR", "OFFER", "OFFICE", "OFFICER", "OFFICIAL", "OFTEN", "OIL", "OKAY", "OLD", "ONCE", "ONE", "ONLY", "OPEN", "OPERATE", "OPINION", "OPPOSITE", "OPTION", "ORDER", "ORDINARY", "ORGANISE", "ORIGINAL", "OTHER", "OUT", "OUTCOME", "OUTSIDE", "OVER", "OWN", "OWNER", "PACE", "PACK", "PAGE", "PAIN", "PAINT", "PAIR", "PAPER", "PARENT", "PARK", "PARTNER", "PARTY", "PASS", "PAST", "PATH", "PATIENT", "PATTERN", "PAY", "PAYMENT", "PEACE", "PEAK", "PEOPLE", "PERFECT", "PERFORM", "PERHAPS", "PERIOD", "PERMIT", "PERSON", "PERSONAL", "PHONE", "PHOTO", "PHYSICAL", "PICK", "PICTURE", "PIECE", "PINK", "PLACE", "PLAN", "PLANE", "PLANT", "PLASTIC", "PLATE", "PLATFORM", "PLAY", "PLEASURE", "PLOT", "PLUS", "POCKET", "POINT", "POLICE", "POLICY", "POLITE", "POOL", "POOR", "POPULAR", "POSITION", "POSITIVE", "POSSIBLE", "POST", "POTENTIAL", "POWER", "PRACTICE", "PRAISE", "PREPARE", "PRESENT", "PRESS", "PRESSURE", "PREVENT", "PRICE", "PRIDE", "PRIMARY", "PRINCIPLE", "PRINT", "PRIOR", "PRISON", "PRIVATE", "PRIZE", "PROBLEM", "PROCESS", "PRODUCE", "PRODUCT", "PROFESSIONAL", "PROFILE", "PROFIT", "PROGRAM", "PROJECT", "PROMISE", "PROOF", "PROPER", "PROPERTY", "PROTECT", "PROVE", "PROVIDE", "PUBLIC", "PURPOSE", "PUSH", "PUT", "QUALITY", "QUESTION", "QUICK", "QUIET", "QUOTE", "RACE", "RADIO", "RAIN", "RAISE", "RANGE", "RATE", "RATHER", "REACH", "REACT", "READ", "READY", "REAL", "REALISE", "REALLY", "REASON", "RECEIVE", "RECENT", "RECORD", "RECOVER", "RED", "REDUCE", "REFER", "REFLECT", "REFRESH", "REFUND", "REFUSE", "REGARD", "REGION", "REGISTER", "REGRET", "REGULAR", "RELATE", "RELAX", "RELEASE", "RELIEF", "RELY", "REMAIN", "REMEMBER", "REMIND", "REMOVE", "RENT", "REPAIR", "REPEAT", "REPLACE", "REPLY", "REPORT", "REPRESENT", "REQUEST", "REQUIRE", "RESCUE", "RESEARCH", "RESIDENT", "RESIST", "RESPECT", "RESPOND", "RESULT", "RETURN", "REVEAL", "REVIEW", "REWARD", "RIDE", "RIGHT", "RING", "RISK", "ROAD", "ROLE", "ROLL", "ROOF", "ROOM", "ROOT", "ROUGH", "ROUND", "ROUTE", "ROYAL", "RULE", "RUN", "RURAL", "RUSH", "SAFE", "SAFETY", "SAID", "SAIL", "SALARY", "SALE", "SAME", "SAMPLE", "SAVE", "SAY", "SCALE", "SCENE", "SCHOOL", "SCIENCE", "SCORE", "SCREEN", "SEARCH", "SEASON", "SEAT", "SECOND", "SECRET", "SECTION", "SECURE", "SEEK", "SEEM", "SELECT", "SELF", "SELL", "SEND", "SENIOR", "SENSE", "SENTENCE", "SEPARATE", "SERIES", "SERIOUS", "SERVE", "SERVICE", "SESSION", "SET", "SETTLE", "SEVEN", "SEVERAL", "SHADE", "SHAKE", "SHAPE", "SHARE", "SHARP", "SHEET", "SHELTER", "SHINE", "SHIP", "SHIRT", "SHOCK", "SHOE", "SHOOT", "SHOP", "SHORT", "SHOULD", "SHOULDER", "SHOUT", "SHOW", "SHUT", "SIDE", "SIGHT", "SIGN", "SIGNAL", "SIGNIFICANT", "SILENT", "SILVER", "SIMPLE", "SIMPLY", "SING", "SISTER", "SITE", "SITUATION", "SIZE", "SKILL", "SLEEP", "SLOW", "SMALL", "SMART", "SMELL", "SMILE", "SMOKE", "SMOOTH", "SNOW", "SOCIAL", "SOCIETY", "SOFT", "SOFTWARE", "SOLUTION", "SOME", "SOMEONE", "SOMETHING", "SOMEWHERE", "SONG", "SOON", "SORRY", "SORT", "SOUND", "SOURCE", "SOUTH", "SPACE", "SPEAK", "SPECIAL", "SPECIFIC", "SPEECH", "SPEED", "SPEND", "SPIRIT", "SPORT", "SPOT", "SPRING", "SQUARE", "STAGE", "STAND", "STANDARD", "STAR", "START", "STATE", "STATION", "STAY", "STEEL", "STEP", "STILL", "STOCK", "STONE", "STOP", "STORE", "STORM", "STORY", "STRAIGHT", "STRANGE", "STRATEGY", "STREET", "STRENGTH", "STRESS", "STRICT", "STRIKE", "STRING", "STRONG", "STRUCTURE", "STUDENT", "STUDY", "STYLE", "SUBJECT", "SUBMIT", "SUBSCRIBE", "SUCCESS", "SUCH", "SUDDEN", "SUGAR", "SUIT", "SUMMER", "SUN", "SUNDAY", "SUPPLY", "SUPPORT", "SUPPOSE", "SURE", "SURFACE", "SURPRISE", "SURROUND", "SURVEY", "SURVIVE", "SYSTEM", "TABLE", "TACKLE", "TAIL", "TAKE", "TALK", "TALL", "TAPE", "TARGET", "TASK", "TASTE", "TAX", "TEACH", "TEAM", "TECHNICAL", "TECHNOLOGY", "TEETH", "TELEPHONE", "TELEVISION", "TELL", "TEMPORARY", "TEND", "TENDER", "TERM", "TERRIBLE", "TEST", "TEXT", "THAN", "THANK", "THAT", "THE", "THEIR", "THEM", "THEME", "THEN", "THEORY", "THERE", "THESE", "THEY", "THICK", "THIN", "THING", "THINK", "THIRD", "THIS", "THOUGHT", "THOUSAND", "THREAT", "THREE", "THROAT", "THROUGH", "THROW", "THURSDAY", "TICKET", "TIDY", "TIE", "TIGHT", "TIME", "TINY", "TITLE", "TODAY", "TOGETHER", "TOMORROW", "TONE", "TONGUE", "TONIGHT", "TOOL", "TOP", "TOPIC", "TOTAL", "TOUCH", "TOWN", "TRACK", "TRADE", "TRAFFIC", "TRAIN", "TRANSFER", "TRAVEL", "TREAT", "TREE", "TREND", "TRIAL", "TRIP", "TROUBLE", "TRUE", "TRUST", "TRUTH", "TRY", "TUESDAY", "TURN", "TWICE", "TYPE", "UNDER", "UNDERSTAND", "UNIT", "UNIVERSITY", "UNLESS", "UNLIKE", "UNLOCK", "UNTIL", "UPDATE", "UPPER", "URBAN", "URGENT", "US", "USE", "USUAL", "VACANT", "VALUE", "VARIOUS", "VAST", "VEHICLE", "VENTURE", "VERSION", "VERY", "VICTORY", "VIDEO", "VIEW", "VILLAGE", "VISION", "VISIT", "VISUAL", "VITAL", "VOICE", "VOLUME", "VOTE", "WAIT", "WAKE", "WALK", "WALL", "WANT", "WAR", "WARM", "WARN", "WASH", "WASTE", "WATCH", "WATER", "WAVE", "WAY", "WEAK", "WEALTH", "WEAR", "WEATHER", "WEDNESDAY", "WEEK", "WELCOME", "WELL", "WEST", "WHAT", "WHEEL", "WHEN", "WHERE", "WHETHER", "WHICH", "WHILE", "WHISPER", "WHITE", "WHO", "WHOLE", "WHOM", "WHOSE", "WHY", "WIDE", "WIFE", "WILD", "WILL", "WIND", "WINDOW", "WING", "WINNER", "WINTER", "WIRE", "WISDOM", "WISH", "WITH", "WITHIN", "WITHOUT", "WITNESS", "WOMAN", "WONDER", "WOOD", "WORD", "WORK", "WORLD", "WORRY", "WORTH", "WOULD", "WRITE", "WRONG", "YARD", "YEAR", "YELLOW", "YES", "YET", "YOUNG", "YOUR", "YOURSELF"];
-  const $=s=>document.querySelector(s);
-  const meter=$('#meter'), mtx=meter.getContext('2d');
-  const spec=$('#spec'), stx=spec.getContext('2d');
-  const statusEl=$('#status'), diag=$('#diag'), ta=$('#ta'), logEl=$('#log'), msgEl=$('#msg');
-  function log(msg){ const ts=new Date().toLocaleTimeString(); logEl.innerHTML='['+ts+'] '+msg+'<br>'+logEl.innerHTML; logEl.innerHTML=logEl.innerHTML.split('<br>').slice(0,180).join('<br>'); }
-  function status(s){ statusEl.textContent=s; }
-
-  let audio, analyser, hp, lp, freqBuf, timeBuf, running=false;
-  let baseline=0, ema=0, overStreak=0, zEMA=0, lastCommit=0, coolUntil=0, sessionStart=0;
-  let assists=0;
-
-  // Lenient defaults
-  const cfg = { cutoff:190, sens:1.16, cool:3000, conf:0.25 };
-  let strictValley=true; // will be temporarily relaxed by rescue
-
-  async function getMic(kind='normal'){
-    try{
-      if(location.protocol==='file:'){ msgEl.innerHTML='Note: mic may be blocked on <code>file://</code>. Run on http://localhost or HTTPS.'; }
-      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('getUserMedia not available');
-      audio = audio || new (window.AudioContext||window.webkitAudioContext)();
-      if(kind==='safari'){
-        const osc=audio.createOscillator(); const dst=audio.createMediaStreamDestination(); osc.connect(dst); osc.start(); osc.stop(audio.currentTime+0.05); await audio.resume();
-      } else { if(audio.state==='suspended'){ await audio.resume(); } }
-      const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:false, autoGainControl:false}});
-      const src=audio.createMediaStreamSource(stream);
-      hp=audio.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=20;
-      lp=audio.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=cfg.cutoff;
-      analyser=audio.createAnalyser(); analyser.fftSize=2048; analyser.smoothingTimeConstant=0.85;
-      freqBuf=new Uint8Array(analyser.frequencyBinCount); timeBuf=new Float32Array(analyser.fftSize);
-      src.connect(hp).connect(lp).connect(analyser);
-      running=true; status('Mic ready'); log('Mic ready');
-      sessionStart=performance.now(); lastCommit=0; coolUntil=0; assists=0;
-      loop();
-      return true;
-    }catch(e){
-      const msg=(e&&e.name?e.name+': ':'')+(e.message||e);
-      status('Mic error'); diag.textContent='Mic access failed: '+msg; msgEl.innerHTML='Mic access failed: '+msg;
-      log('Mic error: '+msg); return false;
+  <meta charset="UTF-8" />
+  <title>ORACLE PRO v6.0 — Rescue Mode</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #05050a;
+      --bg-soft: #0b0b15;
+      --bg-softer: #111120;
+      --accent: #7b5cff;
+      --accent-soft: rgba(123, 92, 255, 0.2);
+      --accent-strong: #b79dff;
+      --text: #f5f5ff;
+      --text-soft: #b5b7d0;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --danger: #ff4f7b;
+      --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.6);
+      --radius-xl: 24px;
+      --radius-pill: 999px;
+      --transition-fast: 150ms ease-out;
     }
-  }
 
-  function lfEnergy(){ if(!analyser) return 0; analyser.getByteFrequencyData(freqBuf);
-    const nyq=audio.sampleRate/2, binHz=nyq/freqBuf.length, maxBin=Math.min(freqBuf.length-1, Math.floor(cfg.cutoff/binHz));
-    let sum=0; for(let i=0;i<=maxBin;i++) sum+=freqBuf[i]; return sum/(maxBin+1); }
-  function centroid(){ analyser.getByteFrequencyData(freqBuf); const nyq=audio.sampleRate/2, binHz=nyq/freqBuf.length; let num=0,den=0; for(let i=0;i<freqBuf.length;i++){ const f=i*binHz, a=freqBuf[i]; num+=f*a; den+=a; } return den>0?num/den:0; }
-  function zcr(){ analyser.getFloatTimeDomainData(timeBuf); let z=0; for(let i=1;i<timeBuf.length;i++){ const a=timeBuf[i-1], b=timeBuf[i]; if((a>=0&&b<0)||(a<0&&b>=0)) z++; } return z/timeBuf.length; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  function drawMeter(e, base, over=false){
-    const W=meter.clientWidth,H=meter.clientHeight; if(meter.width!==W) meter.width=W; if(meter.height!==H) meter.height=H;
-    mtx.clearRect(0,0,W,H);
-    const thr=base*cfg.sens; const pct=Math.max(0,Math.min(1, thr>0 ? e/thr : 0));
-    mtx.fillStyle= over?'rgba(159,253,221,0.4)':'rgba(159,253,221,0.25)'; mtx.fillRect(0,H*(1-pct),W,H*pct);
-    mtx.fillStyle='rgba(220,235,255,0.9)'; mtx.font='12px ui-sans-serif'; mtx.fillText('E:'+e.toFixed(1)+' Thr:'+thr.toFixed(1)+' x='+pct.toFixed(2),8,16);
-  }
-  function drawSpec(empty){
-    const W=spec.clientWidth,H=spec.clientHeight; if(spec.width!==W) spec.width=W; if(spec.height!==H) spec.height=H;
-    stx.clearRect(0,0,W,H); if(!analyser||empty) return;
-    analyser.getByteFrequencyData(freqBuf);
-    const nyq=(audio?audio.sampleRate:44100)/2, binHz=nyq/freqBuf.length; const maxBin=Math.min(freqBuf.length-1, Math.floor(cfg.cutoff/binHz)); const barW=Math.max(1,W/(maxBin+1));
-    for(let i=0;i<=maxBin;i++){ const v=freqBuf[i]/255, h=v*H; stx.fillStyle='rgba(122,225,255,0.45)'; stx.fillRect(i*barW, H-h, barW-1, h); }
-  }
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #181848 0, #05050a 55%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-  const COMMON_DAMP = new Set(['SEE','YES','NO','CAT','ECO']);
-  function scoreWord(w, e){
-    const L=w.toUpperCase(); const len=L.length;
-    let s = -Math.abs(len-6)*1.2;
-    const v=(L.match(/[AEIOU]/g)||[]).length; const vr=v/Math.max(1,len);
-    s += (0.8 - Math.abs(vr-0.42))*0.6;
-    const thr = baseline*cfg.sens;
-    if(COMMON_DAMP.has(L) && e < thr*1.2) s -= 1.0;
-    s += (Math.random()-0.5)*0.02;
-    return s;
-  }
+    .shell {
+      width: 100%;
+      max-width: 980px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.02), transparent);
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 24px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(28px);
+      position: relative;
+      overflow: hidden;
+    }
 
-  const recent=[]; const shadow=new Map();
-  function banned(w, now){ const u=shadow.get(w); if(u&&now<u) return true; return recent.slice(-10).some(x=>x===w); }
-  function pushRecent(w){ const now=performance.now(); recent.push(w); while(recent.length>120) recent.shift(); const last8=recent.slice(-8); const c=last8.filter(x=>x===w).length; if(c>=2){ shadow.set(w, now+90000); log('Shadow-ban '+w+' for 90s'); } }
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(123, 92, 255, 0.18), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(255, 79, 123, 0.12), transparent 60%);
+      opacity: 0.7;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
 
-  function candidates(e){
-    const now=performance.now(); const arr=[];
-    for(const w of CORE){ const L=w.toUpperCase(); if(banned(L, now)) continue; arr.push([L, scoreWord(L, e)]); }
-    arr.sort((a,b)=>b[1]-a[1]); return arr.slice(0,6);
-  }
+    .shell-inner {
+      position: relative;
+      z-index: 1;
+    }
 
-  let relaxUntil=0, tempConfUntil=0;
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
 
-  function emit(tok){
-    const now=performance.now();
-    ta.value = (ta.value==='(no text)') ? tok : (ta.value + ' ' + tok);
-    ta.scrollTop = ta.scrollHeight;
-    pushRecent(tok);
-    lastCommit=now; coolUntil=now+cfg.cool;
-    log('Commit: '+tok);
-  }
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
-  async function calibrate(){
-    if(!running){ await getMic(); if(!running) return; }
-    status('Calibrating...'); log('Calibration 10s');
-    let acc=0,n=0; const t0=performance.now();
-    while(performance.now()-t0<10000){ acc+=lfEnergy(); n++; await new Promise(r=>setTimeout(r,50)); }
-    baseline=acc/Math.max(1,n); ema=baseline; status('Calibrated'); log('Baseline '+baseline.toFixed(1));
-  }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
 
-  async function enableMic(){ await getMic(); }
+    .badge {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text-soft);
+    }
 
-  function assist(now, since){
-    if(assists>=3) return;
-    if(since>25000 && assists===0){ cfg.sens=Math.max(1.06,cfg.sens*0.97); baseline=baseline*0.99; assists++; log('Assist: slight sensitivity drop'); }
-    else if(since>40000 && assists===1){ relaxUntil=now+10000; assists++; log('Assist: relaxed valley 10s'); }
-    else if(since>55000 && assists===2){ tempConfUntil=now+12000; assists++; log('Assist: lowered confidence 12s'); }
-  }
+    .badge.accent {
+      border-color: var(--accent);
+      background: rgba(123, 92, 255, 0.16);
+      color: var(--accent-strong);
+    }
 
-  function loop(){
-    if(!running){ drawMeter(0,0); drawSpec(true); return; }
-    const e=lfEnergy(); ema=ema+(e-ema)*0.02; baseline=baseline*0.995+ema*0.005;
-    const thr=baseline*cfg.sens; const over=e>thr;
-    const z=zcr(); zEMA=zEMA*0.9+z*0.1; const valley=z<zEMA*0.85;
-    overStreak=over?Math.min(overStreak+1,120):Math.max(0,overStreak-1);
-    drawMeter(e,baseline,over); drawSpec();
+    h1 {
+      font-size: 22px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
 
-    const list=candidates(e);
-    const now=performance.now();
-    const valleyOk = (now>=relaxUntil) ? (!strictValley || valley) : true;
-    const conf = (now<tempConfUntil) ? Math.max(0.18, cfg.conf*0.8) : cfg.conf;
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-soft);
+    }
 
-    if(now>=coolUntil && overStreak>=6 && valleyOk){
-      if(list.length>=2 && (list[0][1]-list[1][1])>=conf){
-        emit(list[0][0]);
+    .status-pill {
+      font-size: 11px;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(3, 190, 140, 0.12);
+      color: #89f5d2;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #89f5d2;
+      box-shadow: 0 0 10px rgba(137, 245, 210, 0.9);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 780px) {
+      .shell {
+        padding: 18px;
+        border-radius: 24px;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      main {
+        grid-template-columns: 1fr;
       }
     }
 
-    // Rescue: if no commit after 75s, force a commit on next overStreak
-    const since = lastCommit ? (now-lastCommit) : (now-sessionStart);
-    if(since>75000 && overStreak>=4 && list.length){
-      emit(list[0][0]);
-      log('Rescue commit');
+    /* Left: question + reading */
+    .panel {
+      background: radial-gradient(circle at top left, rgba(255,255,255,0.04), transparent 50%);
+      border-radius: var(--radius-xl);
+      padding: 18px 18px 16px;
+      border: 1px solid var(--border-subtle);
     }
 
-    assist(now, since);
-    requestAnimationFrame(loop);
-  }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      gap: 16px;
+    }
 
-  // Buttons
-  document.getElementById('btnStart').onclick=enableMic;
-  document.getElementById('btnCal').onclick=calibrate;
-  document.getElementById('btnSafari').onclick=async()=>{ await getMic('safari'); };
-  document.getElementById('btnQuick').onclick=()=>{
-    // Apply lenient QuickStart
-    strictValley=false; cfg.sens=1.18; cfg.cutoff=180; cfg.cool=2800; baseline=baseline*0.98; log('QuickStart applied');
-    if(lp) lp.frequency.value=cfg.cutoff;
-  };
+    .panel-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-soft);
+    }
 
-  // Export
-  document.getElementById('btnExport').onclick=()=>{
-    const lines = logEl.innerText.split('\\n').reverse();
-    const out = [
-      '# ORACLE PRO v5.2 — Rescue Mode',
-      'Time: '+new Date().toISOString(),
-      'Cutoff: '+cfg.cutoff+' Hz; Sens: '+cfg.sens.toFixed(2)+'x; Cooldown: '+cfg.cool+' ms; Conf: '+cfg.conf.toFixed(2),
-      'Strict valley: '+strictValley,
-      '',
-      'Transcript:',
-      ta.value,
-      '',
-      'Diagnostics (oldest → newest):',
-      ...lines
-    ].join('\\n');
-    const blob = new Blob([out], {type:'text/plain'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='oracle_pro_v5_2_rescue_session.txt'; a.click(); URL.revokeObjectURL(a.href);
-  };
+    .panel-sub {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
 
-  log('Ready');
-})();
-</script>
+    label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin-bottom: 6px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .input-row textarea {
+      flex: 1;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+      max-height: 140px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(3, 4, 20, 0.9);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.35;
+      outline: none;
+      box-shadow: inset 0 0 0 1px transparent;
+      transition: border-color var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast);
+    }
+
+    textarea::placeholder {
+      color: rgba(181, 183, 208, 0.7);
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(123, 92, 255, 0.6);
+      background: rgba(3, 4, 20, 0.98);
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .primary-btn {
+      align-self: flex-end;
+      padding: 10px 14px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent), #ff4f7b);
+      color: white;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      transition: transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        filter var(--transition-fast),
+        opacity var(--transition-fast);
+    }
+
+    .primary-btn span.symbol {
+      font-size: 14px;
+      transform: translateY(-1px);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.85);
+    }
+
+    .primary-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.8);
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .reading-block {
+      margin-top: 8px;
+      border-radius: 18px;
+      background: linear-gradient(
+        135deg,
+        rgba(2, 5, 26, 0.85),
+        rgba(8, 10, 35, 0.95)
+      );
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 10px 12px 11px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    @media (max-width: 640px) {
+      .reading-block {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .words-row {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .word-card {
+      flex: 1;
+      border-radius: 14px;
+      padding: 10px 6px 8px;
+      text-align: center;
+      background: radial-gradient(
+          circle at top,
+          rgba(123, 92, 255, 0.25),
+          transparent 65%
+        ),
+        radial-gradient(circle at bottom, rgba(2, 4, 30, 0.9), #020316);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .word-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        transparent 0,
+        rgba(255, 255, 255, 0.06) 40%,
+        transparent 100%
+      );
+      mix-blend-mode: soft-light;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .word-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(227, 225, 255, 0.65);
+      margin-bottom: 4px;
+    }
+
+    .word-text {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #ffffff;
+      white-space: nowrap;
+    }
+
+    .interpretation {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    .interpretation strong {
+      color: var(--accent-strong);
+      font-weight: 500;
+    }
+
+    .hint-row {
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      font-size: 11px;
+      color: rgba(181, 183, 208, 0.8);
+    }
+
+    .hint-row span.key {
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(4, 6, 30, 0.9);
+    }
+
+    /* Right: history */
+    .side-panel {
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.04), transparent 60%);
+      border-radius: var(--radius-xl);
+      padding: 14px 14px 10px;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .side-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .side-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+    }
+
+    .side-meta {
+      font-size: 11px;
+      color: rgba(181, 183, 208, 0.9);
+    }
+
+    .history-list {
+      list-style: none;
+      max-height: 260px;
+      overflow: auto;
+      padding-right: 4px;
+      margin-top: 4px;
+    }
+
+    .history-empty {
+      font-size: 11px;
+      color: var(--text-soft);
+      opacity: 0.8;
+      padding: 4px 0 2px;
+    }
+
+    .history-item {
+      border-radius: 12px;
+      padding: 7px 8px 6px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(7, 7, 22, 0.9);
+      margin-bottom: 4px;
+    }
+
+    .history-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+
+    .history-time {
+      font-size: 10px;
+      color: rgba(181, 183, 208, 0.85);
+      white-space: nowrap;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    .history-question {
+      font-size: 11px;
+      color: var(--text);
+      opacity: 0.9;
+    }
+
+    .history-words {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: rgba(181, 183, 208, 0.95);
+      margin-top: 3px;
+    }
+
+    .history-words span.tag {
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: rgba(12, 12, 36, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .history-note {
+      font-size: 10px;
+      color: rgba(181, 183, 208, 0.8);
+      margin-top: 3px;
+    }
+
+    footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: rgba(181, 183, 208, 0.7);
+      gap: 10px;
+    }
+
+    .foot-left {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .foot-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(5, 6, 26, 0.9);
+    }
+
+    .foot-right {
+      text-align: right;
+      max-width: 260px;
+    }
+
+    .foot-right strong {
+      color: var(--accent-strong);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="shell-inner">
+      <header>
+        <div class="title-block">
+          <div class="badge-row">
+            <div class="badge accent">ORACLE PRO v6.0</div>
+            <div class="badge">Rescue Mode</div>
+          </div>
+          <h1>Resonance &amp; Lexical Field Scanner</h1>
+          <p class="subtitle">
+            Ask a focused question, then let the field collapse into three signal-words.
+          </p>
+        </div>
+        <div class="status-pill" aria-live="polite">
+          <span class="status-dot"></span>
+          Channel idle · ready
+        </div>
+      </header>
+
+      <main>
+        <!-- LEFT: Question & Reading -->
+        <section class="panel" aria-label="Oracle input and reading">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Input</div>
+              <div class="panel-sub">Phrase it like a real situation, not a yes/no quiz.</div>
+            </div>
+          </div>
+
+          <label for="oracle-question">Focus / situation</label>
+          <div class="input-row">
+            <textarea
+              id="oracle-question"
+              placeholder="Example: &quot;Guidance on how to handle the job interview and my nerves around it.&quot;"
+            ></textarea>
+            <button id="generate-btn" class="primary-btn" type="button">
+              <span class="symbol">◎</span>
+              <span>Generate&nbsp;reading</span>
+            </button>
+          </div>
+
+          <div class="reading-block" aria-live="polite">
+            <div class="words-row" id="words-row">
+              <div class="word-card">
+                <div class="word-label">Signal 01</div>
+                <div class="word-text" id="word-1">—</div>
+              </div>
+              <div class="word-card">
+                <div class="word-label">Signal 02</div>
+                <div class="word-text" id="word-2">—</div>
+              </div>
+              <div class="word-card">
+                <div class="word-label">Signal 03</div>
+                <div class="word-text" id="word-3">—</div>
+              </div>
+            </div>
+            <div class="interpretation" id="interpretation">
+              Type a situation above and press <strong>Generate reading</strong>.
+              You'll get three words: treat them like a digital tarot spread and notice
+              what they poke at in you.
+            </div>
+          </div>
+
+          <div class="hint-row">
+            <div>
+              Press <span class="key">Ctrl</span> + <span class="key">Enter</span> to re-cast.
+            </div>
+            <div>Same question + new cast = checking the pattern, not “right vs wrong”.</div>
+          </div>
+        </section>
+
+        <!-- RIGHT: History -->
+        <aside class="side-panel" aria-label="Recent readings">
+          <div class="side-header">
+            <div class="side-title">Recent casts</div>
+            <div class="side-meta" id="history-meta">0 stored · latest at —</div>
+          </div>
+          <ul class="history-list" id="history-list">
+            <li class="history-empty" id="history-empty">
+              No casts yet. Your last 10 questions + words will show here.
+            </li>
+          </ul>
+        </aside>
+      </main>
+
+      <footer>
+        <div class="foot-left">
+          <div class="foot-pill">Self-reflection tool · not a promise machine</div>
+          <div class="foot-pill">For experimentation &amp; pattern-spotting only</div>
+        </div>
+        <div class="foot-right">
+          The “meaning” happens in how <strong>you</strong> feel when you look at the words,
+          not inside the code.
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // --- CORE WORDSET ---
+    // You can freely edit / extend this list.
+    const CORE_WORDS = [
+      "ABOUT", "ABOVE", "ACROSS", "ACCEPT", "ACCESS", "ACTION", "ADAPT",
+      "AFTER", "AGAIN", "AGAINST", "ALIGN", "ALLOW", "ALONE", "ALREADY",
+      "ALWAYS", "AMOUNT", "ANCHOR", "ANSWER", "ANYONE", "ANYTHING",
+      "APPEAR", "APPLY", "AROUND", "ASK", "ASSIST", "ATTEND", "AWARE",
+      "BALANCE", "BEGIN", "BELOW", "BETWEEN", "BOLD", "BREAK", "BRIDGE",
+      "BUILD", "CALM", "CHANGE", "CHOOSE", "CIRCLE", "CLARIFY", "CLOSE",
+      "COMFORT", "COMMIT", "COMMON", "COMPLETE", "CONNECT", "CONTAIN",
+      "COURAGE", "CREATE", "DECIDE", "DEEPEN", "DELAY", "DETAIL", "DIRECT",
+      "DISTANCE", "DOUBT", "EASY", "ECHO", "EDGE", "EFFORT", "EMERGE",
+      "EMOTION", "ENERGY", "ENOUGH", "ENTER", "EQUAL", "ESSENTIAL",
+      "EVIDENCE", "EXACT", "EXPAND", "EXPERIENCE", "EXPOSE", "FAITH",
+      "FOCUS", "FOLLOW", "FORCE", "FORWARD", "FRAME", "FREQUENCY",
+      "GATHER", "GENTLE", "GROUND", "GROW", "HABIT", "HIDDEN", "HOLD",
+      "HONEST", "IMPACT", "INSIDE", "INTEND", "INVITE", "JUDGEMENT",
+      "KEEP", "KIND", "KNOW", "LEARN", "LEAVE", "LIMIT", "LISTEN",
+      "MEASURE", "MEET", "MOVE", "NEAR", "NOTICE", "OFFER", "OPEN",
+      "ORDER", "OVER", "OWN", "PAUSE", "PATTERN", "PEACE", "POSSIBLE",
+      "POWER", "PRESENT", "PRESSURE", "PROTECT", "PULL", "PURPOSE",
+      "QUESTION", "QUIET", "RECEIVE", "REPEAT", "RESIST", "RESOLVE",
+      "REST", "RISK", "RITUAL", "SAY", "SEE", "SHIFT", "SHOW", "SIGNAL",
+      "SILENCE", "SIMPLE", "SPACE", "SPEAK", "STAND", "STAY", "STEP",
+      "STILL", "STRENGTH", "TENSION", "THROUGH", "TOWARD", "TRUST",
+      "TRUTH", "UNDER", "UNDERSTAND", "UNTIL", "VALUE", "WAIT", "WARMTH",
+      "WITHIN", "WITHOUT", "WORTH"
+    ];
+
+    const questionInput = document.getElementById("oracle-question");
+    const generateBtn = document.getElementById("generate-btn");
+    const wordEls = [
+      document.getElementById("word-1"),
+      document.getElementById("word-2"),
+      document.getElementById("word-3")
+    ];
+    const interpretationEl = document.getElementById("interpretation");
+    const historyListEl = document.getElementById("history-list");
+    const historyEmptyEl = document.getElementById("history-empty");
+    const historyMetaEl = document.getElementById("history-meta");
+
+    let history = [];
+
+    function randomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function pickUniqueWords(count) {
+      const words = [];
+      const used = new Set();
+      const total = CORE_WORDS.length;
+
+      while (words.length < count && words.length < total) {
+        const idx = randomInt(total);
+        const word = CORE_WORDS[idx];
+        if (!used.has(word)) {
+          used.add(word);
+          words.push(word);
+        }
+      }
+      return words;
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function generateInterpretation(words, question) {
+      if (!words || words.length === 0) return "";
+
+      const lower = words.map(w => w.toLowerCase());
+      const base =
+        `The field collapsed around ` +
+        `${lower[0]}, ${lower[1]} and ${lower[2]}.`;
+
+      const angle = question
+        ? ` In relation to “${question}”, notice where these themes are already alive: what you keep circling, avoiding, or feeling pulled toward.`
+        : ` Notice where these themes are already alive in what you keep circling, avoiding, or feeling pulled toward today.`;
+
+      const nudge =
+        ` If one of the words annoys you or feels “off”, that tension is part of the reading—sit with it before you recast.`;
+
+      return base + angle + nudge;
+    }
+
+    function renderHistory() {
+      historyListEl.innerHTML = "";
+      if (history.length === 0) {
+        historyListEl.appendChild(historyEmptyEl);
+        historyEmptyEl.style.display = "block";
+        historyMetaEl.textContent = "0 stored · latest at —";
+        return;
+      }
+
+      historyEmptyEl.style.display = "none";
+
+      history.forEach(entry => {
+        const li = document.createElement("li");
+        li.className = "history-item";
+
+        const top = document.createElement("div");
+        top.className = "history-top";
+
+        const q = document.createElement("div");
+        q.className = "history-question";
+        q.textContent = entry.question || "No question (free cast)";
+
+        const time = document.createElement("time");
+        time.className = "history-time";
+        time.textContent = entry.timeLabel;
+
+        top.appendChild(q);
+        top.appendChild(time);
+
+        const words = document.createElement("div");
+        words.className = "history-words";
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = entry.words.join(" · ");
+        words.appendChild(tag);
+
+        const note = document.createElement("div");
+        note.className = "history-note";
+        note.textContent = entry.question
+          ? "Glance back after today and see which word actually hit."
+          : "Free-cast: see what this ended up matching in your day.";
+
+        li.appendChild(top);
+        li.appendChild(words);
+        li.appendChild(note);
+
+        historyListEl.appendChild(li);
+      });
+
+      const latest = history[0];
+      historyMetaEl.textContent =
+        `${history.length} stored · latest at ${latest.timeLabel}`;
+    }
+
+    function castOracle() {
+      if (generateBtn.disabled) return;
+
+      generateBtn.disabled = true;
+
+      const question = questionInput.value.trim();
+      const words = pickUniqueWords(3);
+
+      // Visual update
+      words.forEach((w, idx) => {
+        wordEls[idx].textContent = w || "—";
+      });
+
+      const text = generateInterpretation(words, question);
+      interpretationEl.textContent = text;
+
+      // History (store newest at top, keep max 10)
+      const now = new Date();
+      history.unshift({
+        time: now,
+        timeLabel: formatTime(now),
+        question,
+        words
+      });
+      if (history.length > 10) history = history.slice(0, 10);
+
+      renderHistory();
+
+      // Small delay so the disabled state is perceptible
+      setTimeout(() => {
+        generateBtn.disabled = false;
+      }, 250);
+    }
+
+    generateBtn.addEventListener("click", castOracle);
+
+    questionInput.addEventListener("keydown", event => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        castOracle();
+      }
+    });
+
+    // Initial render
+    renderHistory();
+  </script>
 </body>
 </html>
+
