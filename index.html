@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ORACLE PRO – Sensor Channel v1.0</title>
+  <title>ORACLE PRO – Sensor Channel v2.0</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
@@ -129,8 +129,8 @@
       padding: 5px 11px;
       border-radius: var(--radius-pill);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(6, 34, 26, 0.9);
-      color: #9bf4d3;
+      background: rgba(40, 10, 16, 0.9);
+      color: #ffb9c9;
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -141,8 +141,8 @@
       width: 7px;
       height: 7px;
       border-radius: 999px;
-      background: #9bf4d3;
-      box-shadow: 0 0 10px rgba(155, 244, 211, 0.9);
+      background: #ffb9c9;
+      box-shadow: 0 0 10px rgba(255, 185, 201, 0.9);
     }
 
     main {
@@ -194,7 +194,8 @@
       box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
       position: relative;
       overflow: hidden;
-      transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+      transition: box-shadow var(--transition-fast), border-color var(--transition-fast),
+        transform var(--transition-fast);
     }
 
     .pulse-circle::after {
@@ -213,6 +214,11 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 1px rgba(123, 92, 255, 0.5),
         0 18px 45px rgba(0, 0, 0, 0.95);
+      transform: scale(1.02);
+    }
+
+    .pulse-circle.spike {
+      transform: scale(1.06);
     }
 
     .big-word {
@@ -221,7 +227,7 @@
       letter-spacing: 0.3em;
       text-transform: uppercase;
       text-align: center;
-      padding-left: 0.3em; /* account for letter-spacing */
+      padding-left: 0.3em;
     }
 
     .big-word-empty {
@@ -248,8 +254,11 @@
 
     .controls-row {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
+      gap: 8px;
       margin-top: 10px;
+      align-items: center;
     }
 
     button {
@@ -303,6 +312,18 @@
       cursor: wait;
     }
 
+    .voice-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .voice-toggle input {
+      accent-color: #7b5cff;
+    }
+
     .metrics {
       margin-top: 10px;
       display: grid;
@@ -330,6 +351,11 @@
 
     .metric-value {
       font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    .metric-pill.energy {
+      grid-column: span 3;
+      justify-content: space-between;
     }
 
     /* History */
@@ -437,12 +463,12 @@
         <div class="title-block">
           <div class="badge-row">
             <div class="badge accent">ORACLE PRO</div>
-            <div class="badge">Sensor Channel v1.0</div>
+            <div class="badge">Sensor Channel v2.0</div>
           </div>
           <h1>Lexical Field Receiver</h1>
           <p class="subtitle">
-            Uses device motion + ambient sound as chaotic inputs to select words
-            from a fixed bank. Interpretation is up to you.
+            Watches motion, mic noise and (where available) magnetic field.
+            Significant shifts trigger words from a fixed bank. Audio output optional.
           </p>
         </div>
         <div class="status-pill" id="session-status">
@@ -465,7 +491,7 @@
             </div>
 
             <div class="mode-hint">
-              Word every <span id="interval-label">3s</span> · bank size
+              Triggered by sensor “energy” spikes · word bank size
               <span id="bank-size">0</span>
             </div>
           </div>
@@ -475,6 +501,10 @@
               <span class="symbol">◎</span>
               <span id="toggle-label">Start session</span>
             </button>
+            <label class="voice-toggle">
+              <input type="checkbox" id="voice-toggle" checked />
+              Voice output
+            </label>
           </div>
 
           <div class="metrics">
@@ -483,12 +513,16 @@
               <span class="metric-value" id="motion-value">0.00</span>
             </div>
             <div class="metric-pill">
-              <span class="metric-label">Rotation</span>
-              <span class="metric-value" id="rotation-value">0.00</span>
+              <span class="metric-label">Mag field*</span>
+              <span class="metric-value" id="mag-value">0.00</span>
             </div>
             <div class="metric-pill">
               <span class="metric-label">Audio</span>
               <span class="metric-value" id="audio-value">0.00</span>
+            </div>
+            <div class="metric-pill energy">
+              <span class="metric-label">Energy mix</span>
+              <span class="metric-value" id="energy-value">0.00</span>
             </div>
           </div>
         </section>
@@ -501,8 +535,8 @@
           </div>
           <ul class="history-list" id="history-list">
             <li class="history-empty" id="history-empty">
-              Once the channel is running, each word + a crude “energy” mix from
-              the sensors will show here.
+              When the combined sensor “energy” crosses a threshold, a word is selected
+              and (optionally) spoken. Entries appear here.
             </li>
           </ul>
         </section>
@@ -510,11 +544,11 @@
 
       <footer>
         <div class="foot-pill">
-          Experimental tool. Sensors just provide noise; meaning is user-generated.
+          Experimental. Sensors provide noise; “meaning” is user interpretation, not proof.
         </div>
         <div class="foot-right">
-          If you like the idea of “energy” nudging the noise, treat this
-          as a <strong>ritual interface</strong>, not proof.
+          EMF &amp; temperature are not truly measured here; magnetic data is used if
+          supported, temperature is simulated noise. <strong>Ritual interface only.</strong>
         </div>
       </footer>
     </div>
@@ -522,7 +556,7 @@
 
   <script>
     // -------------------------------
-    // WORD BANK – edit this as you like
+    // WORD BANK – you can edit this
     // -------------------------------
     const WORD_BANK = [
       "ABOUT","ABOVE","ACCEPT","ACCESS","ACTION","ADAPT","AFTER","AGAIN",
@@ -546,78 +580,101 @@
       "WITHIN","WITHOUT","WORTH"
     ];
 
-    const INTERVAL_MS = 3000; // word every 3 seconds
+    // how often we analyse sensors (ms)
+    const ANALYSIS_INTERVAL_MS = 250;
+    // minimum gap between word triggers (ms)
+    const MIN_TRIGGER_GAP_MS = 900;
+    // base threshold for "energy spike"
+    const ENERGY_THRESHOLD = 0.9;
 
-    // UI elements
     const bankSizeEl = document.getElementById("bank-size");
-    const intervalLabelEl = document.getElementById("interval-label");
     const bigWordEl = document.getElementById("big-word");
     const bigWordEmptyEl = document.getElementById("big-word-empty");
     const pulseEl = document.getElementById("pulse");
     const toggleBtn = document.getElementById("toggle-btn");
     const toggleLabel = document.getElementById("toggle-label");
+    const voiceToggleEl = document.getElementById("voice-toggle");
     const motionValueEl = document.getElementById("motion-value");
-    const rotationValueEl = document.getElementById("rotation-value");
+    const magValueEl = document.getElementById("mag-value");
     const audioValueEl = document.getElementById("audio-value");
+    const energyValueEl = document.getElementById("energy-value");
     const historyListEl = document.getElementById("history-list");
     const historyEmptyEl = document.getElementById("history-empty");
     const historyMetaEl = document.getElementById("history-meta");
     const sessionStatusEl = document.getElementById("session-status");
 
     bankSizeEl.textContent = WORD_BANK.length.toString();
-    intervalLabelEl.textContent = (INTERVAL_MS / 1000).toFixed(0) + "s";
 
     // Sensor state
     let lastMotionMagnitude = 0;
-    let lastRotationMagnitude = 0;
+    let lastMagMagnitude = 0;
     let lastAudioLevel = 0;
+    let thermalNoise = Math.random(); // synthetic "temperature-ish" drift
 
+    // Baselines for change detection
+    let baseMotion = null;
+    let baseMag = null;
+    let baseAudio = null;
+    let baseThermal = thermalNoise;
+
+    // activity flags
     let motionListenerActive = false;
+    let magSensor = null;
+    let magActive = false;
     let audioStream = null;
     let audioAnalyser = null;
     let audioDataArray = null;
 
     let running = false;
-    let tickTimer = null;
+    let analysisTimer = null;
     let history = [];
+    let recentIndices = [];
+    let lastTriggerTime = 0;
+
+    const synth = window.speechSynthesis || null;
 
     function setStatus(text, active) {
       sessionStatusEl.textContent = text;
+      const dot = sessionStatusEl.querySelector(".status-dot");
       if (active) {
         sessionStatusEl.style.background = "rgba(5, 40, 28, 0.9)";
         sessionStatusEl.style.color = "#9bf4d3";
+        if (dot) {
+          dot.style.background = "#9bf4d3";
+          dot.style.boxShadow = "0 0 10px rgba(155, 244, 211, 0.9)";
+        }
       } else {
         sessionStatusEl.style.background = "rgba(40, 10, 16, 0.9)";
         sessionStatusEl.style.color = "#ffb9c9";
+        if (dot) {
+          dot.style.background = "#ffb9c9";
+          dot.style.boxShadow = "0 0 10px rgba(255, 185, 201, 0.9)";
+        }
       }
     }
 
-    function updateMetricsDisplay() {
+    function updateMetricsDisplay(energy) {
       motionValueEl.textContent = lastMotionMagnitude.toFixed(2);
-      rotationValueEl.textContent = lastRotationMagnitude.toFixed(2);
+      magValueEl.textContent = lastMagMagnitude.toFixed(2);
       audioValueEl.textContent = lastAudioLevel.toFixed(2);
+      energyValueEl.textContent = energy.toFixed(2);
+    }
+
+    // Smooth baseline update
+    function updateBaseline(current, base) {
+      if (base === null || typeof base !== "number") return current;
+      return base * 0.98 + current * 0.02;
     }
 
     // Motion handler
     function handleDeviceMotion(event) {
       const acc = event.accelerationIncludingGravity || event.acceleration;
-      const rot = event.rotationRate;
-
       if (acc) {
         const ax = acc.x || 0;
         const ay = acc.y || 0;
         const az = acc.z || 0;
         lastMotionMagnitude = Math.sqrt(ax * ax + ay * ay + az * az);
       }
-
-      if (rot) {
-        const alpha = rot.alpha || 0;
-        const beta = rot.beta || 0;
-        const gamma = rot.gamma || 0;
-        lastRotationMagnitude = Math.sqrt(alpha * alpha + beta * beta + gamma * gamma) / 100;
-      }
-
-      updateMetricsDisplay();
     }
 
     function startMotionListener() {
@@ -628,21 +685,48 @@
         motionListenerActive = true;
       }
 
-      // iOS permission
-      if (typeof DeviceMotionEvent !== "undefined" &&
-          typeof DeviceMotionEvent.requestPermission === "function") {
+      if (
+        typeof DeviceMotionEvent !== "undefined" &&
+        typeof DeviceMotionEvent.requestPermission === "function"
+      ) {
         DeviceMotionEvent.requestPermission()
-          .then(state => {
+          .then((state) => {
             if (state === "granted") {
               enableListener();
             }
           })
-          .catch(() => {
-            // ignore – will just not have motion
-          });
+          .catch(() => {});
       } else if (typeof DeviceMotionEvent !== "undefined") {
         enableListener();
       }
+    }
+
+    // Magnetometer (if supported)
+    function startMagnetometer() {
+      if (magActive || typeof Magnetometer === "undefined") return;
+      try {
+        magSensor = new Magnetometer({ frequency: 10 });
+        magSensor.addEventListener("reading", () => {
+          const x = magSensor.x || 0;
+          const y = magSensor.y || 0;
+          const z = magSensor.z || 0;
+          lastMagMagnitude = Math.sqrt(x * x + y * y + z * z);
+        });
+        magSensor.start();
+        magActive = true;
+      } catch (err) {
+        magActive = false;
+      }
+    }
+
+    function stopMagnetometer() {
+      if (magSensor && magActive) {
+        try {
+          magSensor.stop();
+        } catch (e) {}
+      }
+      magSensor = null;
+      magActive = false;
     }
 
     // Audio level via Web Audio
@@ -652,8 +736,12 @@
       }
 
       try {
-        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false
+        });
+        const audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
         const source = audioContext.createMediaStreamSource(audioStream);
         audioAnalyser = audioContext.createAnalyser();
         audioAnalyser.fftSize = 256;
@@ -666,23 +754,22 @@
           audioAnalyser.getByteTimeDomainData(audioDataArray);
           let sum = 0;
           for (let i = 0; i < audioDataArray.length; i++) {
-            const v = (audioDataArray[i] - 128) / 128; // -1..1
+            const v = (audioDataArray[i] - 128) / 128;
             sum += v * v;
           }
-          const rms = Math.sqrt(sum / audioDataArray.length); // 0..1-ish
-          lastAudioLevel = rms * 5; // scale it a bit
-          updateMetricsDisplay();
+          const rms = Math.sqrt(sum / audioDataArray.length);
+          lastAudioLevel = rms * 5;
           requestAnimationFrame(audioLoop);
         }
         audioLoop();
       } catch (err) {
-        // mic denied or error; we just won't have audio
+        // mic denied; audio stays 0
       }
     }
 
     function stopAudio() {
       if (audioStream) {
-        audioStream.getTracks().forEach(t => t.stop());
+        audioStream.getTracks().forEach((t) => t.stop());
       }
       audioStream = null;
       audioAnalyser = null;
@@ -696,17 +783,38 @@
       }
     }
 
-    // Word selection: mix sensors + time into a pseudo-random index
-    function selectWord() {
-      const time = Date.now();
-      const combo =
-        (lastMotionMagnitude * 17.3) +
-        (lastRotationMagnitude * 31.7) +
-        (lastAudioLevel * 47.9) +
-        (time % 1000);
+    // Synthetic "thermal" drift: slow changing noise source
+    function updateThermalNoise() {
+      const step = (Math.random() - 0.5) * 0.02;
+      thermalNoise = Math.min(1.5, Math.max(0, thermalNoise + step));
+    }
 
-      const raw = Math.abs(Math.floor(combo * 3.14159));
-      const idx = WORD_BANK.length > 0 ? raw % WORD_BANK.length : 0;
+    // Word selection: sensors + time + randomness, avoiding immediate repeats
+    function selectWord(energy) {
+      const now = Date.now();
+      const base =
+        now / 1000 +
+        lastMotionMagnitude * 11.3 +
+        lastMagMagnitude * 3.7 +
+        lastAudioLevel * 9.1 +
+        thermalNoise * 5.5 +
+        energy * 13.3;
+
+      let idx =
+        Math.floor(Math.abs(base + Math.random() * WORD_BANK.length)) %
+        WORD_BANK.length;
+
+      let safety = 0;
+      while (recentIndices.includes(idx) && safety < 10) {
+        idx = Math.floor(Math.random() * WORD_BANK.length);
+        safety++;
+      }
+
+      recentIndices.unshift(idx);
+      if (recentIndices.length > 5) {
+        recentIndices = recentIndices.slice(0, 5);
+      }
+
       return WORD_BANK[idx] || "---";
     }
 
@@ -728,7 +836,7 @@
       }
       historyEmptyEl.style.display = "none";
 
-      history.forEach(entry => {
+      history.forEach((entry) => {
         const li = document.createElement("li");
         li.className = "history-item";
 
@@ -749,7 +857,9 @@
         const energy = document.createElement("div");
         energy.className = "history-energy";
         energy.textContent =
-          `motion ${entry.motion.toFixed(2)} · rotation ${entry.rotation.toFixed(2)} · audio ${entry.audio.toFixed(2)}`;
+          `energy ${entry.energy.toFixed(2)} · motion ${entry.motion.toFixed(
+            2
+          )} · mag ${entry.mag.toFixed(2)} · audio ${entry.audio.toFixed(2)}`;
 
         li.appendChild(top);
         li.appendChild(energy);
@@ -761,9 +871,18 @@
         `${history.length} entries · latest ${latest.timeLabel}`;
     }
 
-    function tick() {
-      if (!running) return;
-      const word = selectWord();
+    function speakWord(word) {
+      if (!synth || !voiceToggleEl.checked) return;
+      try {
+        const u = new SpeechSynthesisUtterance(word);
+        u.rate = 0.9;
+        u.pitch = 1.0;
+        synth.speak(u);
+      } catch (e) {}
+    }
+
+    function triggerWord(energy) {
+      const word = selectWord(energy);
 
       bigWordEl.textContent = word;
       bigWordEl.style.display = "block";
@@ -775,13 +894,53 @@
         time: now,
         timeLabel: formatTime(now),
         motion: lastMotionMagnitude,
-        rotation: lastRotationMagnitude,
-        audio: lastAudioLevel
+        mag: lastMagMagnitude,
+        audio: lastAudioLevel,
+        energy
       });
       if (history.length > 80) {
         history = history.slice(0, 80);
       }
       renderHistory();
+      speakWord(word);
+
+      // visual pulse
+      pulseEl.classList.add("spike");
+      setTimeout(() => pulseEl.classList.remove("spike"), 140);
+    }
+
+    function analyseSensors() {
+      if (!running) return;
+
+      updateThermalNoise();
+
+      baseMotion = updateBaseline(lastMotionMagnitude, baseMotion);
+      baseMag = updateBaseline(lastMagMagnitude, baseMag);
+      baseAudio = updateBaseline(lastAudioLevel, baseAudio);
+      baseThermal = updateBaseline(thermalNoise, baseThermal);
+
+      const dMotion = Math.abs(lastMotionMagnitude - baseMotion);
+      const dMag = Math.abs(lastMagMagnitude - baseMag);
+      const dAudio = Math.abs(lastAudioLevel - baseAudio);
+      const dThermal = Math.abs(thermalNoise - baseThermal);
+
+      const energy =
+        dMotion * 0.5 +
+        dMag * 0.25 +
+        dAudio * 0.7 +
+        dThermal * 0.3 +
+        Math.random() * 0.1;
+
+      updateMetricsDisplay(energy);
+
+      const now = Date.now();
+      if (
+        energy > ENERGY_THRESHOLD &&
+        now - lastTriggerTime > MIN_TRIGGER_GAP_MS
+      ) {
+        lastTriggerTime = now;
+        triggerWord(energy);
+      }
     }
 
     async function startSession() {
@@ -790,37 +949,45 @@
 
       toggleBtn.disabled = true;
       toggleLabel.textContent = "Starting…";
-      setStatus("Starting · requesting sensors", true);
+      setStatus("Starting · requesting sensor access", true);
       pulseEl.classList.add("active");
 
-      // Start sensor listeners
+      baseMotion = null;
+      baseMag = null;
+      baseAudio = null;
+      baseThermal = thermalNoise;
+      lastTriggerTime = 0;
+      recentIndices = [];
+
       startMotionListener();
-      await startAudio(); // if this fails, we just have 0 audio
+      startMagnetometer();
+      await startAudio();
 
       toggleBtn.disabled = false;
       toggleLabel.textContent = "Stop session";
       toggleBtn.classList.remove("secondary");
-      setStatus("Channel running · sensors mixed into word selection", true);
+      setStatus("Running · watching for energy spikes", true);
 
-      tick(); // immediate first word
-      tickTimer = setInterval(tick, INTERVAL_MS);
+      if (analysisTimer) clearInterval(analysisTimer);
+      analysisTimer = setInterval(analyseSensors, ANALYSIS_INTERVAL_MS);
     }
 
     function stopSession() {
       if (!running) return;
       running = false;
 
-      if (tickTimer) {
-        clearInterval(tickTimer);
-        tickTimer = null;
+      if (analysisTimer) {
+        clearInterval(analysisTimer);
+        analysisTimer = null;
       }
       stopAudio();
       stopMotion();
+      stopMagnetometer();
 
       pulseEl.classList.remove("active");
       toggleLabel.textContent = "Start session";
       toggleBtn.classList.add("secondary");
-      setStatus("Stopped · sensor listeners released", false);
+      setStatus("Stopped · listeners released", false);
     }
 
     toggleBtn.addEventListener("click", () => {
@@ -831,11 +998,10 @@
       }
     });
 
-    // Initial UI state
     toggleBtn.classList.add("secondary");
     setStatus("Idle · waiting to start", false);
     renderHistory();
-    updateMetricsDisplay();
+    updateMetricsDisplay(0);
   </script>
 </body>
 </html>
