@@ -558,34 +558,85 @@
     // -------------------------------
     // WORD BANK – you can edit this
     // -------------------------------
-    const WORD_BANK = [
-      "ABOUT","ABOVE","ACCEPT","ACCESS","ACTION","ADAPT","AFTER","AGAIN",
-      "AGAINST","ALIGN","ALONE","ALREADY","ALWAYS","ANCHOR","ANSWER","ASK",
-      "ATTEND","AWARE","BALANCE","BEGIN","BELIEVE","BELOW","BOUNDARY","BREAK",
-      "BRIDGE","CALM","CARE","CHANGE","CHOOSE","CIRCLE","CLARIFY","CLOSE",
-      "COMFORT","COMMIT","COMPLETE","CONNECT","CROSS","DECIDE","DEEP","DELAY",
-      "DISTANCE","DOUBT","EASY","ECHO","EDGE","EMERGE","EMOTION","ENERGY",
-      "ENOUGH","ENTER","EVIDENCE","EXACT","EXPAND","EXPOSE","FAITH","FEAR",
-      "FIELD","FOCUS","FOLLOW","FORCE","FORWARD","FRAME","FREQUENCY","GATHER",
-      "GENTLE","GROUND","GUIDE","GROW","HABIT","HIDDEN","HOLD","HONEST",
-      "IMPACT","INSIDE","INTEND","INVITE","JUDGE","KEEP","KIND","KNOW",
-      "LEARN","LEAVE","LIGHT","LIMIT","LISTEN","MEASURE","MEET","MOVE",
-      "NEAR","NOISE","NOTICE","OFFER","OPEN","ORDER","OVER","OWN","PAUSE",
-      "PATTERN","PEACE","POSSIBLE","POWER","PRESENT","PRESSURE","PROTECT",
-      "PULL","PURPOSE","QUESTION","QUIET","RECEIVE","REPEAT","RESIST",
-      "RESOLVE","REST","RISK","RITUAL","SAY","SEE","SHIFT","SHOW","SIGNAL",
-      "SILENCE","SIMPLE","SPACE","SPEAK","SPIRIT","STAND","STAY","STEP",
-      "STILL","STRENGTH","TENSION","THIN","THROUGH","TOWARD","TRUST","TRUTH",
-      "UNDER","UNDERSTAND","UNSEEN","UNTIL","VALUE","VOICE","WAIT","WARMTH",
-      "WITHIN","WITHOUT","WORTH"
-    ];
+const WORD_BANK = [
+  // Core / yes-no / simple
+  "YES","NO","MAYBE","STOP","GO","WAIT","SOON","LATER","NOW",
+  "HERE","THERE","NEAR","FAR","INSIDE","OUTSIDE","OPEN","CLOSED",
 
-    // how often we analyse sensors (ms)
-    const ANALYSIS_INTERVAL_MS = 250;
-    // minimum gap between word triggers (ms)
-    const MIN_TRIGGER_GAP_MS = 900;
-    // base threshold for "energy spike"
-    const ENERGY_THRESHOLD = 0.9;
+  // People / relationships
+  "MAN","WOMAN","CHILD","BOY","GIRL","BABY","FRIEND","MOTHER","FATHER",
+  "SISTER","BROTHER","GRANDMOTHER","GRANDFATHER","AUNT","UNCLE","COUSIN",
+  "FAMILY","LOVER","PARTNER","NEIGHBOUR","STRANGER",
+
+  // Names / titles (generic, can still feel personal)
+  "JOHN","JAMES","MARY","MICHAEL","DAVID","SARAH","PAUL","ANNA","THOMAS",
+  "ELIZABETH","PETER","EMMA","DANIEL","LUCY","GEORGE","KATE","HENRY",
+  "KING","QUEEN","PRIEST","TEACHER","DOCTOR","NURSE","SOLDIER",
+
+  // Emotions / states
+  "HAPPY","SAD","ANGRY","CALM","SCARED","ANXIOUS","PEACEFUL","LONELY",
+  "TIRED","WEAK","STRONG","BRAVE","GUILTY","SORRY","PROUD","HOPEFUL",
+  "LOST","FOUND","STUCK","FREE",
+
+  // Body / illness / physical
+  "HEAD","HEART","HAND","EYE","VOICE","BREATH","BLOOD","BONE","SKIN",
+  "PAIN","HURT","ILL","SICK","HEAL","MEDICINE","HOSPITAL","ACCIDENT",
+  "FIRE","FALL","BROKEN","INJURY",
+
+  // Time / date / life events
+  "BIRTH","BORN","DIE","DEAD","PASSED","AFTERLIFE","BEFORE","AFTER",
+  "YESTERDAY","TODAY","TOMORROW","MORNING","NIGHT","MIDNIGHT","WINTER",
+  "SUMMER","AUTUMN","SPRING","YEAR","MONTH","WEEK","HOUR","MINUTE",
+
+  // Places / locations
+  "HOUSE","HOME","FLAT","ROOM","BEDROOM","KITCHEN","STAIRS","DOOR",
+  "WINDOW","GARDEN","ROAD","BRIDGE","CHURCH","GRAVEYARD","HOSPITAL",
+  "SCHOOL","OFFICE","FACTORY","FIELD","FOREST","RIVER","LAKE","SEA",
+  "CITY","TOWN","VILLAGE","SHOP","PUB","PARK","ATTIC","CELLAR",
+
+  // Objects
+  "PHONE","LIGHT","CANDLE","PHOTO","MIRROR","CLOCK","KEY","LETTER",
+  "BOOK","CHAIR","TABLE","BED","CURTAIN","CAR","BUS","TRAIN","PLANE",
+  "TV","RADIO","COMPUTER","MUSIC","RING","NECKLACE","COIN","FLOWER",
+  "GLASS","BOTTLE","KNIFE","ROPE",
+
+  // Actions / verbs
+  "LOOK","LISTEN","SPEAK","WHISPER","CALL","ANSWER","HIDE","RUN","WALK",
+  "STAY","COME","GO","LEAVE","RETURN","REMEMBER","FORGET","WAIT","HELP",
+  "PROTECT","WATCH","FOLLOW","PUSH","PULL","FALL","RISE","KNOCK","OPEN",
+  "CLOSE","MOVE","STAND","SIT","TOUCH",
+
+  // Descriptors / adjectives
+  "COLD","WARM","HOT","DARK","LIGHT","BRIGHT","LOW","HIGH","LOUDEST",
+  "QUIET","EMPTY","FULL","HEAVY","SOFT","HARD","OLD","YOUNG","NEW",
+  "BROKEN","CLEAN","DIRTY","SAFE","DANGEROUS","NEARBY","HIDDEN",
+
+  // Numbers (for ages, dates, counting)
+  "ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN",
+  "ELEVEN","TWELVE","THIRTEEN","FOURTEEN","FIFTEEN","TWENTY","THIRTY",
+  "FORTY","FIFTY","HUNDRED",
+
+  // More “paranormal” flavour
+  "SPIRIT","GHOST","SHADOW","LIGHT","ORB","PORTAL","DOORWAY","ENERGY",
+  "PRESENCE","VOICE","MESSAGE","WARNING","SIGN","DREAM","NIGHTMARE",
+  "PORTAL","ANGEL","DEMON","PRAYER","CURSE","HAUNTED","CROSS","ALTAR",
+  "RITUAL","CEMETERY","GRAVE","STONE","NAME","BIBLE","BOOK","WITCH",
+  "DEVIL","STAR","MOON","SUN",
+
+  // Misc / conversational
+  "WHY","HOW","WHERE","WHEN","WHO","BECAUSE","SORRY","THANKS","PLEASE",
+  "STAY","LISTEN","QUIET","ENOUGH","AGAIN","ALWAYS","NEVER","LATER",
+  "GO","COME","STOP","DONT"
+];
+
+// Check sensors 4x per second (still responsive)
+const ANALYSIS_INTERVAL_MS = 250;
+
+// Minimum time between words (4 seconds)
+const MIN_TRIGGER_GAP_MS = 4000;
+
+// How “big” a spike has to be to trigger a word (higher = fewer words)
+const ENERGY_THRESHOLD = 1.8;
 
     const bankSizeEl = document.getElementById("bank-size");
     const bigWordEl = document.getElementById("big-word");
