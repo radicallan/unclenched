@@ -1,1059 +1,388 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-950">
 <head>
   <meta charset="UTF-8" />
-  <title>ORACLE PRO – Sensor Channel v2.0</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root {
-      --bg: #04040a;
-      --bg-soft: #0a0a16;
-      --accent: #7b5cff;
-      --accent-soft: rgba(123, 92, 255, 0.2);
-      --accent-strong: #cab4ff;
-      --text: #f5f5ff;
-      --text-soft: #b5b7d0;
-      --danger: #ff4f7b;
-      --radius-xl: 24px;
-      --radius-pill: 999px;
-      --border-subtle: rgba(255, 255, 255, 0.06);
-      --shadow-soft: 0 16px 40px rgba(0, 0, 0, 0.8);
-      --transition-fast: 140ms ease-out;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #191940 0, #04040a 60%);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-    }
-
-    .shell {
-      width: 100%;
-      max-width: 780px;
-      background: linear-gradient(140deg, rgba(255, 255, 255, 0.03), transparent);
-      border-radius: 30px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      padding: 18px 18px 14px;
-      box-shadow: var(--shadow-soft);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .shell::before {
-      content: "";
-      position: absolute;
-      inset: -40%;
-      background:
-        radial-gradient(circle at 0% 0%, rgba(123, 92, 255, 0.2), transparent 60%),
-        radial-gradient(circle at 100% 100%, rgba(255, 79, 123, 0.12), transparent 65%);
-      mix-blend-mode: screen;
-      opacity: 0.8;
-      pointer-events: none;
-    }
-
-    .shell-inner {
-      position: relative;
-      z-index: 1;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    @media (max-width: 640px) {
-      header {
-        flex-direction: column;
-      }
-    }
-
-    .title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .badge-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 2px;
-    }
-
-    .badge {
-      font-size: 10px;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      padding: 3px 9px;
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(0, 0, 0, 0.4);
-      color: var(--text-soft);
-    }
-
-    .badge.accent {
-      border-color: var(--accent);
-      background: rgba(123, 92, 255, 0.16);
-      color: var(--accent-strong);
-    }
-
-    h1 {
-      font-size: 18px;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-    }
-
-    .subtitle {
-      font-size: 12px;
-      color: var(--text-soft);
-      max-width: 380px;
-    }
-
-    .status-pill {
-      font-size: 10px;
-      padding: 5px 11px;
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(40, 10, 16, 0.9);
-      color: #ffb9c9;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #ffb9c9;
-      box-shadow: 0 0 10px rgba(255, 185, 201, 0.9);
-    }
-
-    main {
-      display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr);
-      gap: 14px;
-    }
-
-    @media (max-width: 720px) {
-      main {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .panel {
-      border-radius: var(--radius-xl);
-      border: 1px solid var(--border-subtle);
-      padding: 14px;
-      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.04), transparent 65%);
-    }
-
-    .panel-title {
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--text-soft);
-      margin-bottom: 6px;
-    }
-
-    .big-word-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .pulse-circle {
-      width: 180px;
-      height: 180px;
-      max-width: 70vw;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background:
-        radial-gradient(circle at 30% 10%, rgba(255, 255, 255, 0.12), transparent 60%),
-        radial-gradient(circle at 50% 100%, rgba(2, 4, 28, 1), #02020b);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
-      position: relative;
-      overflow: hidden;
-      transition: box-shadow var(--transition-fast), border-color var(--transition-fast),
-        transform var(--transition-fast);
-    }
-
-    .pulse-circle::after {
-      content: "";
-      position: absolute;
-      inset: -30%;
-      background:
-        radial-gradient(circle at 0% 0%, rgba(123, 92, 255, 0.4), transparent 65%),
-        radial-gradient(circle at 100% 100%, rgba(255, 79, 123, 0.3), transparent 55%);
-      mix-blend-mode: soft-light;
-      opacity: 0.65;
-      pointer-events: none;
-    }
-
-    .pulse-circle.active {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(123, 92, 255, 0.5),
-        0 18px 45px rgba(0, 0, 0, 0.95);
-      transform: scale(1.02);
-    }
-
-    .pulse-circle.spike {
-      transform: scale(1.06);
-    }
-
-    .big-word {
-      font-size: 26px;
-      font-weight: 600;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      text-align: center;
-      padding-left: 0.3em;
-    }
-
-    .big-word-empty {
-      font-size: 13px;
-      color: var(--text-soft);
-      text-align: center;
-      padding: 0 16px;
-    }
-
-    .mode-hint {
-      font-size: 11px;
-      color: var(--text-soft);
-      text-align: center;
-    }
-
-    .mode-hint span {
-      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-      font-size: 10px;
-      padding: 1px 6px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(5, 5, 28, 0.9);
-    }
-
-    .controls-row {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 10px;
-      align-items: center;
-    }
-
-    button {
-      border: none;
-      cursor: pointer;
-      font: inherit;
-    }
-
-    .primary-btn {
-      padding: 9px 16px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--accent), #ff4f7b);
-      color: white;
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.9);
-      transition: transform var(--transition-fast),
-        box-shadow var(--transition-fast),
-        filter var(--transition-fast),
-        opacity var(--transition-fast);
-    }
-
-    .primary-btn span.symbol {
-      font-size: 13px;
-    }
-
-    .primary-btn:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.04);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 1);
-    }
-
-    .primary-btn:active {
-      transform: translateY(0);
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.9);
-    }
-
-    .primary-btn.secondary {
-      background: rgba(10, 10, 30, 0.96);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.85);
-      letter-spacing: 0.16em;
-    }
-
-    .primary-btn:disabled {
-      opacity: 0.7;
-      cursor: wait;
-    }
-
-    .voice-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      color: var(--text-soft);
-    }
-
-    .voice-toggle input {
-      accent-color: #7b5cff;
-    }
-
-    .metrics {
-      margin-top: 10px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-      font-size: 10px;
-      color: var(--text-soft);
-    }
-
-    .metric-pill {
-      border-radius: var(--radius-pill);
-      padding: 4px 8px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(6, 7, 28, 0.95);
-      display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      align-items: baseline;
-    }
-
-    .metric-label {
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-    }
-
-    .metric-value {
-      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-    }
-
-    .metric-pill.energy {
-      grid-column: span 3;
-      justify-content: space-between;
-    }
-
-    /* History */
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 4px;
-    }
-
-    .history-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: var(--text-soft);
-    }
-
-    .history-meta {
-      font-size: 10px;
-      color: rgba(181, 183, 208, 0.9);
-    }
-
-    .history-list {
-      list-style: none;
-      max-height: 260px;
-      overflow: auto;
-      padding-right: 4px;
-      margin-top: 4px;
-    }
-
-    .history-empty {
-      font-size: 11px;
-      color: var(--text-soft);
-      opacity: 0.8;
-      padding: 2px 0;
-    }
-
-    .history-item {
-      border-radius: 12px;
-      padding: 6px 7px;
-      margin-bottom: 3px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      background: rgba(6, 7, 25, 0.96);
-    }
-
-    .history-top-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: baseline;
-    }
-
-    .history-time {
-      font-size: 10px;
-      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-      color: rgba(181, 183, 208, 0.85);
-      white-space: nowrap;
-    }
-
-    .history-word {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--text);
-    }
-
-    .history-energy {
-      font-size: 9px;
-      color: rgba(181, 183, 208, 0.85);
-      margin-top: 2px;
-    }
-
-    footer {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 9px;
-      color: rgba(181, 183, 208, 0.75);
-      flex-wrap: wrap;
-    }
-
-    .foot-pill {
-      padding: 3px 7px;
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(5, 6, 26, 0.9);
-    }
-
-    .foot-right {
-      text-align: right;
-      max-width: 260px;
-    }
-
-    .foot-right strong {
-      color: var(--accent-strong);
-      font-weight: 500;
-    }
-  </style>
+  <title>Net Zero Navigator – Data-driven roadmaps & funding for buildings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="AI and data-driven net zero roadmaps for SMEs, charities and landlords – with tailored funding and grant options for each building."
+  />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="shell">
-    <div class="shell-inner">
-      <header>
-        <div class="title-block">
-          <div class="badge-row">
-            <div class="badge accent">ORACLE PRO</div>
-            <div class="badge">Sensor Channel v2.0</div>
+<body class="h-full text-slate-100 antialiased">
+  <div class="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900">
+    <!-- NAVBAR -->
+    <header class="border-b border-slate-800/60 bg-slate-950/70 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-0">
+        <div class="flex items-center gap-2">
+          <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-400/40">
+            <span class="text-xs font-semibold text-emerald-300">NZ</span>
           </div>
-          <h1>Lexical Field Receiver</h1>
-          <p class="subtitle">
-            Watches motion, mic noise and (where available) magnetic field.
-            Significant shifts trigger words from a fixed bank. Audio output optional.
-          </p>
+          <span class="text-sm font-semibold tracking-wide text-slate-100">
+            Net Zero Navigator
+          </span>
         </div>
-        <div class="status-pill" id="session-status">
-          <span class="status-dot"></span>
-          Idle · waiting to start
-        </div>
-      </header>
+        <nav class="hidden items-center gap-8 text-xs font-medium text-slate-300/80 md:flex">
+          <a href="#how-it-works" class="hover:text-slate-100">How it works</a>
+          <a href="#who-its-for" class="hover:text-slate-100">Who it’s for</a>
+          <a href="#features" class="hover:text-slate-100">Product</a>
+          <a href="#early-access" class="hover:text-slate-100">Early access</a>
+        </nav>
+        <a
+          href="#early-access"
+          class="rounded-full border border-emerald-400/60 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-200 shadow-sm hover:bg-emerald-500/20"
+        >
+          Join early access
+        </a>
+      </div>
+    </header>
 
-      <main>
-        <!-- LEFT: Live word + controls -->
-        <section class="panel">
-          <div class="panel-title">Live channel</div>
+    <!-- HERO -->
+    <main>
+      <section class="border-b border-slate-800/60">
+        <div class="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 lg:flex-row lg:items-center lg:justify-between lg:py-16 lg:px-0">
+          <!-- Left column -->
+          <div class="max-w-xl space-y-6">
+            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/5 px-3 py-1">
+              <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+              <span class="text-[11px] font-medium tracking-wide text-emerald-100">
+                Data-driven roadmaps, not generic advice
+              </span>
+            </div>
 
-          <div class="big-word-wrap">
-            <div class="pulse-circle" id="pulse">
-              <div class="big-word-empty" id="big-word-empty">
-                Tap <strong>Start session</strong> and keep the device nearby.
+            <h1 class="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl lg:text-5xl">
+              Turn any building into a clear
+              <span class="text-emerald-300">net zero roadmap</span>
+              with funding attached.
+            </h1>
+
+            <p class="text-sm leading-relaxed text-slate-300/90 sm:text-base">
+              Net Zero Navigator combines property data, energy profiles and funding rules to design a
+              staged upgrade plan for each site – then matches it with the most realistic mix of grants,
+              incentives and finance.
+            </p>
+
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <a
+                href="#early-access"
+                class="inline-flex items-center justify-center rounded-full bg-emerald-400 px-5 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-emerald-500/40 hover:bg-emerald-300"
+              >
+                Get early access
+              </a>
+              <button
+                type="button"
+                onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})"
+                class="inline-flex items-center justify-center rounded-full border border-slate-700 px-4 py-2 text-xs font-medium text-slate-200 hover:border-slate-500"
+              >
+                See how it works
+              </button>
+            </div>
+
+            <dl class="mt-4 grid gap-4 text-xs text-slate-300/80 sm:grid-cols-3">
+              <div>
+                <dt class="font-semibold text-slate-100">Three-phase roadmap</dt>
+                <dd>Fabric, systems and renewables sequenced properly for each building.</dd>
               </div>
-              <div class="big-word" id="big-word" style="display:none;">---</div>
-            </div>
-
-            <div class="mode-hint">
-              Triggered by sensor “energy” spikes · word bank size
-              <span id="bank-size">0</span>
-            </div>
+              <div>
+                <dt class="font-semibold text-slate-100">Funding engine</dt>
+                <dd>Matches grants, incentives and finance to each stage of the plan.</dd>
+              </div>
+              <div>
+                <dt class="font-semibold text-slate-100">Lead generator</dt>
+                <dd>Connects ready projects to vetted delivery and finance partners.</dd>
+              </div>
+            </dl>
           </div>
 
-          <div class="controls-row">
-            <button class="primary-btn" id="toggle-btn" type="button">
-              <span class="symbol">◎</span>
-              <span id="toggle-label">Start session</span>
-            </button>
-            <label class="voice-toggle">
-              <input type="checkbox" id="voice-toggle" checked />
-              Voice output
-            </label>
-          </div>
+          <!-- Right column: mock UI card -->
+          <div class="w-full max-w-md lg:max-w-lg">
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl shadow-black/40">
+              <div class="mb-3 flex items-center justify-between text-[11px] text-slate-300/80">
+                <span class="font-semibold text-slate-100">Example roadmap</span>
+                <span class="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-emerald-300">
+                  Community centre · NG7 4AA
+                </span>
+              </div>
 
-          <div class="metrics">
-            <div class="metric-pill">
-              <span class="metric-label">Motion</span>
-              <span class="metric-value" id="motion-value">0.00</span>
-            </div>
-            <div class="metric-pill">
-              <span class="metric-label">Mag field*</span>
-              <span class="metric-value" id="mag-value">0.00</span>
-            </div>
-            <div class="metric-pill">
-              <span class="metric-label">Audio</span>
-              <span class="metric-value" id="audio-value">0.00</span>
-            </div>
-            <div class="metric-pill energy">
-              <span class="metric-label">Energy mix</span>
-              <span class="metric-value" id="energy-value">0.00</span>
+              <div class="space-y-3 text-xs">
+                <!-- Phase 1 -->
+                <div class="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+                  <div class="mb-1 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-100">Phase 1 · 0–18 months</span>
+                    <span class="text-[10px] text-emerald-300">Payback ~2–4 years</span>
+                  </div>
+                  <ul class="space-y-1 text-[11px] text-slate-300/90">
+                    <li>• LED + sensor controls</li>
+                    <li>• Draught-proofing & basic fabric fixes</li>
+                    <li>• Heating controls optimisation</li>
+                  </ul>
+                  <p class="mt-2 text-[11px] text-slate-400">
+                    Funded via: Local SME grant · Util. efficiency rebate
+                  </p>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+                  <div class="mb-1 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-100">Phase 2 · 18–48 months</span>
+                    <span class="text-[10px] text-emerald-300">Bills −35–45%</span>
+                  </div>
+                  <ul class="space-y-1 text-[11px] text-slate-300/90">
+                    <li>• ASHP replacing ageing gas boiler</li>
+                    <li>• Additional roof insulation to support low-temp flow</li>
+                    <li>• Smart zoning for occupied areas only</li>
+                  </ul>
+                  <p class="mt-2 text-[11px] text-slate-400">
+                    Funded via: Blended loan + regional decarb grant
+                  </p>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="rounded-xl border border-slate-800 bg-slate-900/80 p-3">
+                  <div class="mb-1 flex items-center justify-between">
+                    <span class="text-[11px] font-semibold text-slate-100">Phase 3 · 4–8 years</span>
+                    <span class="text-[10px] text-emerald-300">Net zero ready</span>
+                  </div>
+                  <ul class="space-y-1 text-[11px] text-slate-300/90">
+                    <li>• 20 kWp rooftop solar (south-facing)</li>
+                    <li>• Battery for evening events & resilience</li>
+                    <li>• EV charge points (staff & visitors)</li>
+                  </ul>
+                  <p class="mt-2 text-[11px] text-slate-400">
+                    Funded via: Power purchase agreement & match funding
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between border-t border-slate-800 pt-3 text-[11px] text-slate-300/80">
+                <div>
+                  <div>Estimated bill reduction: <span class="font-semibold text-emerald-300">52–63%</span></div>
+                  <div>Carbon reduction: <span class="font-semibold text-emerald-300">up to 78%</span></div>
+                </div>
+                <button
+                  type="button"
+                  class="rounded-full bg-emerald-400 px-3 py-1 text-[11px] font-semibold text-slate-950 hover:bg-emerald-300"
+                >
+                  Generate my roadmap
+                </button>
+              </div>
             </div>
           </div>
-        </section>
-
-        <!-- RIGHT: History -->
-        <section class="panel">
-          <div class="history-header">
-            <div class="history-label">Word stream</div>
-            <div class="history-meta" id="history-meta">0 entries · latest —</div>
-          </div>
-          <ul class="history-list" id="history-list">
-            <li class="history-empty" id="history-empty">
-              When the combined sensor “energy” crosses a threshold, a word is selected
-              and (optionally) spoken. Entries appear here.
-            </li>
-          </ul>
-        </section>
-      </main>
-
-      <footer>
-        <div class="foot-pill">
-          Experimental. Sensors provide noise; “meaning” is user interpretation, not proof.
         </div>
-        <div class="foot-right">
-          EMF &amp; temperature are not truly measured here; magnetic data is used if
-          supported, temperature is simulated noise. <strong>Ritual interface only.</strong>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section id="how-it-works" class="border-b border-slate-800/60">
+        <div class="mx-auto max-w-6xl px-4 py-12 lg:py-16 lg:px-0">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-semibold text-slate-50 sm:text-2xl">
+                How Net Zero Navigator works
+              </h2>
+              <p class="mt-2 text-sm text-slate-300/90">
+                Under the hood it’s data and modelling. On the surface it’s a clear three-phase plan and a shortlist
+                of funding options.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid gap-6 md:grid-cols-3">
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <div class="mb-2 text-xs font-semibold tracking-wide text-emerald-300">
+                Step 1 · Baseline
+              </div>
+              <h3 class="text-sm font-semibold text-slate-50">We understand the building.</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                Address, EPC and open data tell us the building type and typical performance. A short intake captures
+                usage patterns, comfort issues and constraints.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <div class="mb-2 text-xs font-semibold tracking-wide text-emerald-300">
+                Step 2 · Modelling
+              </div>
+              <h3 class="text-sm font-semibold text-slate-50">We simulate realistic upgrade paths.</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                For that building archetype, we model measure “stacks” – fabric, systems and renewables – and estimate
+                ranges for cost, bill savings and carbon impact.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <div class="mb-2 text-xs font-semibold tracking-wide text-emerald-300">
+                Step 3 · Roadmap & funding
+              </div>
+              <h3 class="text-sm font-semibold text-slate-50">We design a three-phase roadmap with funding.</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                The result is a phased plan tailored to your site, plus a shortlist of grants, incentives and finance
+                products that actually fit your profile.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- WHO IT'S FOR -->
+      <section id="who-its-for" class="border-b border-slate-800/60">
+        <div class="mx-auto max-w-6xl px-4 py-12 lg:py-16 lg:px-0">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-semibold text-slate-50 sm:text-2xl">
+                Built for people who need a plan, not another policy PDF.
+              </h2>
+              <p class="mt-2 text-sm text-slate-300/90">
+                Start with one segment and expand later – SMEs with premises, community buildings, and small landlords
+                are all struggling with the same questions.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid gap-6 md:grid-cols-3">
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">SMEs & workplaces</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                Independent shops, offices and warehouses that need to cut bills and emissions but don’t have an
+                energy team or time to decode schemes.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">Charities & community buildings</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                Community centres, village halls, faith spaces and CICs that need a realistic roadmap plus a clear view
+                of what funding might support each step.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">Landlords & small portfolios</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                Owners of a few properties who must hit EPC and net zero targets without overspending on the wrong
+                measures in the wrong order.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES / AI & DATA ANGLE -->
+      <section id="features" class="border-b border-slate-800/60">
+        <div class="mx-auto max-w-6xl px-4 py-12 lg:py-16 lg:px-0">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-semibold text-slate-50 sm:text-2xl">
+                What makes it different
+              </h2>
+              <p class="mt-2 text-sm text-slate-300/90">
+                Not just another grant list. Net Zero Navigator is an intelligence layer that sits between buildings,
+                funding and delivery.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid gap-6 lg:grid-cols-3">
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">Data-driven baseline</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                We blend open property data, EPCs, archetype libraries and a focused intake form to understand the
+                building before suggesting any measures.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">AI-assisted funding engine</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                Policy and scheme documents are parsed into a structured rules engine. That means “you might be
+                eligible for X” or “don’t waste time on Y – it doesn’t fit”.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">Three-phase roadmaps, not one-off quotes</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                Most tools push a single product. We design a staged pathway over several years, so early actions
+                support rather than block later ones.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">Funding mix, not just “find a grant”</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                Roadmaps show where grants, incentives and finance make sense – and where self-funding is more realistic
+                than chasing unlikely schemes.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">Lead generation with standards</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                When buildings are ready, they can be matched to vetted delivery and finance partners – keeping quality
+                and consumer trust at the centre.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <h3 class="text-sm font-semibold text-slate-50">White-label ready</h3>
+              <p class="mt-2 text-xs text-slate-300/90">
+                Councils, utilities and membership bodies can offer Navigator as part of their own support offer –
+                branded for them, powered by you.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EARLY ACCESS / EMAIL CAPTURE -->
+      <section id="early-access" class="border-b border-slate-800/60">
+        <div class="mx-auto max-w-6xl px-4 py-12 lg:py-16 lg:px-0">
+          <div class="mx-auto max-w-xl text-center">
+            <h2 class="text-xl font-semibold text-slate-50 sm:text-2xl">
+              Early access for pilot partners
+            </h2>
+            <p class="mt-3 text-sm text-slate-300/90">
+              In the first phase we’re working with a small group of organisations who want to shape the product:
+              local authorities, retrofit delivery partners, membership bodies and funders.
+            </p>
+
+            <form class="mt-6 space-y-3">
+              <div class="flex flex-col gap-3 sm:flex-row">
+                <input
+                  type="email"
+                  required
+                  placeholder="Work email address"
+                  class="w-full rounded-full border border-slate-700 bg-slate-950/70 px-4 py-2 text-xs text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  class="w-full rounded-full bg-emerald-400 px-5 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-emerald-500/40 hover:bg-emerald-300 sm:w-auto"
+                >
+                  Request early access
+                </button>
+              </div>
+              <div class="text-[11px] text-slate-400">
+                Tell us who you are and what portfolio you’re thinking about. We’ll only use your details to contact you
+                about the pilot.
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="border-t border-slate-800/60">
+        <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 text-[11px] text-slate-500 lg:flex-row lg:items-center lg:justify-between lg:px-0">
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-slate-300">Net Zero Navigator</span>
+            <span>·</span>
+            <span>Prototype concept</span>
+          </div>
+          <div class="flex flex-wrap gap-4">
+            <span>Made for SMEs, charities and landlords trying to make sense of net zero.</span>
+            <div class="flex gap-3">
+              <a href="#" class="hover:text-slate-300">Privacy</a>
+              <a href="#" class="hover:text-slate-300">Contact</a>
+            </div>
+          </div>
         </div>
       </footer>
-    </div>
+    </main>
   </div>
-
-  <script>
-    // -------------------------------
-    // WORD BANK – you can edit this
-    // -------------------------------
-const WORD_BANK = [
-  // Core / yes-no / simple
-  "YES","NO","MAYBE","STOP","GO","WAIT","SOON","LATER","NOW",
-  "HERE","THERE","NEAR","FAR","INSIDE","OUTSIDE","OPEN","CLOSED",
-
-  // People / relationships
-  "MAN","WOMAN","CHILD","BOY","GIRL","BABY","FRIEND","MOTHER","FATHER",
-  "SISTER","BROTHER","GRANDMOTHER","GRANDFATHER","AUNT","UNCLE","COUSIN",
-  "FAMILY","LOVER","PARTNER","NEIGHBOUR","STRANGER",
-
-  // Names / titles (generic, can still feel personal)
-  "JOHN","JAMES","MARY","MICHAEL","DAVID","SARAH","PAUL","ANNA","THOMAS",
-  "ELIZABETH","PETER","EMMA","DANIEL","LUCY","GEORGE","KATE","HENRY",
-  "KING","QUEEN","PRIEST","TEACHER","DOCTOR","NURSE","SOLDIER",
-
-  // Emotions / states
-  "HAPPY","SAD","ANGRY","CALM","SCARED","ANXIOUS","PEACEFUL","LONELY",
-  "TIRED","WEAK","STRONG","BRAVE","GUILTY","SORRY","PROUD","HOPEFUL",
-  "LOST","FOUND","STUCK","FREE",
-
-  // Body / illness / physical
-  "HEAD","HEART","HAND","EYE","VOICE","BREATH","BLOOD","BONE","SKIN",
-  "PAIN","HURT","ILL","SICK","HEAL","MEDICINE","HOSPITAL","ACCIDENT",
-  "FIRE","FALL","BROKEN","INJURY",
-
-  // Time / date / life events
-  "BIRTH","BORN","DIE","DEAD","PASSED","AFTERLIFE","BEFORE","AFTER",
-  "YESTERDAY","TODAY","TOMORROW","MORNING","NIGHT","MIDNIGHT","WINTER",
-  "SUMMER","AUTUMN","SPRING","YEAR","MONTH","WEEK","HOUR","MINUTE",
-
-  // Places / locations
-  "HOUSE","HOME","FLAT","ROOM","BEDROOM","KITCHEN","STAIRS","DOOR",
-  "WINDOW","GARDEN","ROAD","BRIDGE","CHURCH","GRAVEYARD","HOSPITAL",
-  "SCHOOL","OFFICE","FACTORY","FIELD","FOREST","RIVER","LAKE","SEA",
-  "CITY","TOWN","VILLAGE","SHOP","PUB","PARK","ATTIC","CELLAR",
-
-  // Objects
-  "PHONE","LIGHT","CANDLE","PHOTO","MIRROR","CLOCK","KEY","LETTER",
-  "BOOK","CHAIR","TABLE","BED","CURTAIN","CAR","BUS","TRAIN","PLANE",
-  "TV","RADIO","COMPUTER","MUSIC","RING","NECKLACE","COIN","FLOWER",
-  "GLASS","BOTTLE","KNIFE","ROPE",
-
-  // Actions / verbs
-  "LOOK","LISTEN","SPEAK","WHISPER","CALL","ANSWER","HIDE","RUN","WALK",
-  "STAY","COME","GO","LEAVE","RETURN","REMEMBER","FORGET","WAIT","HELP",
-  "PROTECT","WATCH","FOLLOW","PUSH","PULL","FALL","RISE","KNOCK","OPEN",
-  "CLOSE","MOVE","STAND","SIT","TOUCH",
-
-  // Descriptors / adjectives
-  "COLD","WARM","HOT","DARK","LIGHT","BRIGHT","LOW","HIGH","LOUDEST",
-  "QUIET","EMPTY","FULL","HEAVY","SOFT","HARD","OLD","YOUNG","NEW",
-  "BROKEN","CLEAN","DIRTY","SAFE","DANGEROUS","NEARBY","HIDDEN",
-
-  // Numbers (for ages, dates, counting)
-  "ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN",
-  "ELEVEN","TWELVE","THIRTEEN","FOURTEEN","FIFTEEN","TWENTY","THIRTY",
-  "FORTY","FIFTY","HUNDRED",
-
-  // More “paranormal” flavour
-  "SPIRIT","GHOST","SHADOW","LIGHT","ORB","PORTAL","DOORWAY","ENERGY",
-  "PRESENCE","VOICE","MESSAGE","WARNING","SIGN","DREAM","NIGHTMARE",
-  "PORTAL","ANGEL","DEMON","PRAYER","CURSE","HAUNTED","CROSS","ALTAR",
-  "RITUAL","CEMETERY","GRAVE","STONE","NAME","BIBLE","BOOK","WITCH",
-  "DEVIL","STAR","MOON","SUN",
-
-  // Misc / conversational
-  "WHY","HOW","WHERE","WHEN","WHO","BECAUSE","SORRY","THANKS","PLEASE",
-  "STAY","LISTEN","QUIET","ENOUGH","AGAIN","ALWAYS","NEVER","LATER",
-  "GO","COME","STOP","DONT"
-];
-
-// Check sensors 4x per second (still responsive)
-const ANALYSIS_INTERVAL_MS = 250;
-
-// Minimum time between words (4 seconds)
-const MIN_TRIGGER_GAP_MS = 4000;
-
-// How “big” a spike has to be to trigger a word (higher = fewer words)
-const ENERGY_THRESHOLD = 1.8;
-
-    const bankSizeEl = document.getElementById("bank-size");
-    const bigWordEl = document.getElementById("big-word");
-    const bigWordEmptyEl = document.getElementById("big-word-empty");
-    const pulseEl = document.getElementById("pulse");
-    const toggleBtn = document.getElementById("toggle-btn");
-    const toggleLabel = document.getElementById("toggle-label");
-    const voiceToggleEl = document.getElementById("voice-toggle");
-    const motionValueEl = document.getElementById("motion-value");
-    const magValueEl = document.getElementById("mag-value");
-    const audioValueEl = document.getElementById("audio-value");
-    const energyValueEl = document.getElementById("energy-value");
-    const historyListEl = document.getElementById("history-list");
-    const historyEmptyEl = document.getElementById("history-empty");
-    const historyMetaEl = document.getElementById("history-meta");
-    const sessionStatusEl = document.getElementById("session-status");
-
-    bankSizeEl.textContent = WORD_BANK.length.toString();
-
-    // Sensor state
-    let lastMotionMagnitude = 0;
-    let lastMagMagnitude = 0;
-    let lastAudioLevel = 0;
-    let thermalNoise = Math.random(); // synthetic "temperature-ish" drift
-
-    // Baselines for change detection
-    let baseMotion = null;
-    let baseMag = null;
-    let baseAudio = null;
-    let baseThermal = thermalNoise;
-
-    // activity flags
-    let motionListenerActive = false;
-    let magSensor = null;
-    let magActive = false;
-    let audioStream = null;
-    let audioAnalyser = null;
-    let audioDataArray = null;
-
-    let running = false;
-    let analysisTimer = null;
-    let history = [];
-    let recentIndices = [];
-    let lastTriggerTime = 0;
-
-    const synth = window.speechSynthesis || null;
-
-    function setStatus(text, active) {
-      sessionStatusEl.textContent = text;
-      const dot = sessionStatusEl.querySelector(".status-dot");
-      if (active) {
-        sessionStatusEl.style.background = "rgba(5, 40, 28, 0.9)";
-        sessionStatusEl.style.color = "#9bf4d3";
-        if (dot) {
-          dot.style.background = "#9bf4d3";
-          dot.style.boxShadow = "0 0 10px rgba(155, 244, 211, 0.9)";
-        }
-      } else {
-        sessionStatusEl.style.background = "rgba(40, 10, 16, 0.9)";
-        sessionStatusEl.style.color = "#ffb9c9";
-        if (dot) {
-          dot.style.background = "#ffb9c9";
-          dot.style.boxShadow = "0 0 10px rgba(255, 185, 201, 0.9)";
-        }
-      }
-    }
-
-    function updateMetricsDisplay(energy) {
-      motionValueEl.textContent = lastMotionMagnitude.toFixed(2);
-      magValueEl.textContent = lastMagMagnitude.toFixed(2);
-      audioValueEl.textContent = lastAudioLevel.toFixed(2);
-      energyValueEl.textContent = energy.toFixed(2);
-    }
-
-    // Smooth baseline update
-    function updateBaseline(current, base) {
-      if (base === null || typeof base !== "number") return current;
-      return base * 0.98 + current * 0.02;
-    }
-
-    // Motion handler
-    function handleDeviceMotion(event) {
-      const acc = event.accelerationIncludingGravity || event.acceleration;
-      if (acc) {
-        const ax = acc.x || 0;
-        const ay = acc.y || 0;
-        const az = acc.z || 0;
-        lastMotionMagnitude = Math.sqrt(ax * ax + ay * ay + az * az);
-      }
-    }
-
-    function startMotionListener() {
-      if (motionListenerActive) return;
-
-      function enableListener() {
-        window.addEventListener("devicemotion", handleDeviceMotion);
-        motionListenerActive = true;
-      }
-
-      if (
-        typeof DeviceMotionEvent !== "undefined" &&
-        typeof DeviceMotionEvent.requestPermission === "function"
-      ) {
-        DeviceMotionEvent.requestPermission()
-          .then((state) => {
-            if (state === "granted") {
-              enableListener();
-            }
-          })
-          .catch(() => {});
-      } else if (typeof DeviceMotionEvent !== "undefined") {
-        enableListener();
-      }
-    }
-
-    // Magnetometer (if supported)
-    function startMagnetometer() {
-      if (magActive || typeof Magnetometer === "undefined") return;
-      try {
-        magSensor = new Magnetometer({ frequency: 10 });
-        magSensor.addEventListener("reading", () => {
-          const x = magSensor.x || 0;
-          const y = magSensor.y || 0;
-          const z = magSensor.z || 0;
-          lastMagMagnitude = Math.sqrt(x * x + y * y + z * z);
-        });
-        magSensor.start();
-        magActive = true;
-      } catch (err) {
-        magActive = false;
-      }
-    }
-
-    function stopMagnetometer() {
-      if (magSensor && magActive) {
-        try {
-          magSensor.stop();
-        } catch (e) {}
-      }
-      magSensor = null;
-      magActive = false;
-    }
-
-    // Audio level via Web Audio
-    async function startAudio() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        return;
-      }
-
-      try {
-        audioStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: false
-        });
-        const audioContext = new (window.AudioContext ||
-          window.webkitAudioContext)();
-        const source = audioContext.createMediaStreamSource(audioStream);
-        audioAnalyser = audioContext.createAnalyser();
-        audioAnalyser.fftSize = 256;
-        const bufferLength = audioAnalyser.frequencyBinCount;
-        audioDataArray = new Uint8Array(bufferLength);
-        source.connect(audioAnalyser);
-
-        function audioLoop() {
-          if (!audioAnalyser) return;
-          audioAnalyser.getByteTimeDomainData(audioDataArray);
-          let sum = 0;
-          for (let i = 0; i < audioDataArray.length; i++) {
-            const v = (audioDataArray[i] - 128) / 128;
-            sum += v * v;
-          }
-          const rms = Math.sqrt(sum / audioDataArray.length);
-          lastAudioLevel = rms * 5;
-          requestAnimationFrame(audioLoop);
-        }
-        audioLoop();
-      } catch (err) {
-        // mic denied; audio stays 0
-      }
-    }
-
-    function stopAudio() {
-      if (audioStream) {
-        audioStream.getTracks().forEach((t) => t.stop());
-      }
-      audioStream = null;
-      audioAnalyser = null;
-      audioDataArray = null;
-    }
-
-    function stopMotion() {
-      if (motionListenerActive) {
-        window.removeEventListener("devicemotion", handleDeviceMotion);
-        motionListenerActive = false;
-      }
-    }
-
-    // Synthetic "thermal" drift: slow changing noise source
-    function updateThermalNoise() {
-      const step = (Math.random() - 0.5) * 0.02;
-      thermalNoise = Math.min(1.5, Math.max(0, thermalNoise + step));
-    }
-
-    // Word selection: sensors + time + randomness, avoiding immediate repeats
-    function selectWord(energy) {
-      const now = Date.now();
-      const base =
-        now / 1000 +
-        lastMotionMagnitude * 11.3 +
-        lastMagMagnitude * 3.7 +
-        lastAudioLevel * 9.1 +
-        thermalNoise * 5.5 +
-        energy * 13.3;
-
-      let idx =
-        Math.floor(Math.abs(base + Math.random() * WORD_BANK.length)) %
-        WORD_BANK.length;
-
-      let safety = 0;
-      while (recentIndices.includes(idx) && safety < 10) {
-        idx = Math.floor(Math.random() * WORD_BANK.length);
-        safety++;
-      }
-
-      recentIndices.unshift(idx);
-      if (recentIndices.length > 5) {
-        recentIndices = recentIndices.slice(0, 5);
-      }
-
-      return WORD_BANK[idx] || "---";
-    }
-
-    function formatTime(date) {
-      return date.toLocaleTimeString(undefined, {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      });
-    }
-
-    function renderHistory() {
-      historyListEl.innerHTML = "";
-      if (history.length === 0) {
-        historyListEl.appendChild(historyEmptyEl);
-        historyEmptyEl.style.display = "block";
-        historyMetaEl.textContent = "0 entries · latest —";
-        return;
-      }
-      historyEmptyEl.style.display = "none";
-
-      history.forEach((entry) => {
-        const li = document.createElement("li");
-        li.className = "history-item";
-
-        const top = document.createElement("div");
-        top.className = "history-top-row";
-
-        const w = document.createElement("div");
-        w.className = "history-word";
-        w.textContent = entry.word;
-
-        const t = document.createElement("time");
-        t.className = "history-time";
-        t.textContent = entry.timeLabel;
-
-        top.appendChild(w);
-        top.appendChild(t);
-
-        const energy = document.createElement("div");
-        energy.className = "history-energy";
-        energy.textContent =
-          `energy ${entry.energy.toFixed(2)} · motion ${entry.motion.toFixed(
-            2
-          )} · mag ${entry.mag.toFixed(2)} · audio ${entry.audio.toFixed(2)}`;
-
-        li.appendChild(top);
-        li.appendChild(energy);
-        historyListEl.appendChild(li);
-      });
-
-      const latest = history[0];
-      historyMetaEl.textContent =
-        `${history.length} entries · latest ${latest.timeLabel}`;
-    }
-
-    function speakWord(word) {
-      if (!synth || !voiceToggleEl.checked) return;
-      try {
-        const u = new SpeechSynthesisUtterance(word);
-        u.rate = 0.9;
-        u.pitch = 1.0;
-        synth.speak(u);
-      } catch (e) {}
-    }
-
-    function triggerWord(energy) {
-      const word = selectWord(energy);
-
-      bigWordEl.textContent = word;
-      bigWordEl.style.display = "block";
-      bigWordEmptyEl.style.display = "none";
-
-      const now = new Date();
-      history.unshift({
-        word,
-        time: now,
-        timeLabel: formatTime(now),
-        motion: lastMotionMagnitude,
-        mag: lastMagMagnitude,
-        audio: lastAudioLevel,
-        energy
-      });
-      if (history.length > 80) {
-        history = history.slice(0, 80);
-      }
-      renderHistory();
-      speakWord(word);
-
-      // visual pulse
-      pulseEl.classList.add("spike");
-      setTimeout(() => pulseEl.classList.remove("spike"), 140);
-    }
-
-    function analyseSensors() {
-      if (!running) return;
-
-      updateThermalNoise();
-
-      baseMotion = updateBaseline(lastMotionMagnitude, baseMotion);
-      baseMag = updateBaseline(lastMagMagnitude, baseMag);
-      baseAudio = updateBaseline(lastAudioLevel, baseAudio);
-      baseThermal = updateBaseline(thermalNoise, baseThermal);
-
-      const dMotion = Math.abs(lastMotionMagnitude - baseMotion);
-      const dMag = Math.abs(lastMagMagnitude - baseMag);
-      const dAudio = Math.abs(lastAudioLevel - baseAudio);
-      const dThermal = Math.abs(thermalNoise - baseThermal);
-
-      const energy =
-        dMotion * 0.5 +
-        dMag * 0.25 +
-        dAudio * 0.7 +
-        dThermal * 0.3 +
-        Math.random() * 0.1;
-
-      updateMetricsDisplay(energy);
-
-      const now = Date.now();
-      if (
-        energy > ENERGY_THRESHOLD &&
-        now - lastTriggerTime > MIN_TRIGGER_GAP_MS
-      ) {
-        lastTriggerTime = now;
-        triggerWord(energy);
-      }
-    }
-
-    async function startSession() {
-      if (running) return;
-      running = true;
-
-      toggleBtn.disabled = true;
-      toggleLabel.textContent = "Starting…";
-      setStatus("Starting · requesting sensor access", true);
-      pulseEl.classList.add("active");
-
-      baseMotion = null;
-      baseMag = null;
-      baseAudio = null;
-      baseThermal = thermalNoise;
-      lastTriggerTime = 0;
-      recentIndices = [];
-
-      startMotionListener();
-      startMagnetometer();
-      await startAudio();
-
-      toggleBtn.disabled = false;
-      toggleLabel.textContent = "Stop session";
-      toggleBtn.classList.remove("secondary");
-      setStatus("Running · watching for energy spikes", true);
-
-      if (analysisTimer) clearInterval(analysisTimer);
-      analysisTimer = setInterval(analyseSensors, ANALYSIS_INTERVAL_MS);
-    }
-
-    function stopSession() {
-      if (!running) return;
-      running = false;
-
-      if (analysisTimer) {
-        clearInterval(analysisTimer);
-        analysisTimer = null;
-      }
-      stopAudio();
-      stopMotion();
-      stopMagnetometer();
-
-      pulseEl.classList.remove("active");
-      toggleLabel.textContent = "Start session";
-      toggleBtn.classList.add("secondary");
-      setStatus("Stopped · listeners released", false);
-    }
-
-    toggleBtn.addEventListener("click", () => {
-      if (running) {
-        stopSession();
-      } else {
-        startSession();
-      }
-    });
-
-    toggleBtn.classList.add("secondary");
-    setStatus("Idle · waiting to start", false);
-    renderHistory();
-    updateMetricsDisplay(0);
-  </script>
 </body>
 </html>
-
