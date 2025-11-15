@@ -1,0 +1,41 @@
+<svg width="800" height="200" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root {
+      --hf-color: #111827; /* change this to your brand colour */
+    }
+    .hf-stroke {
+      stroke: var(--hf-color);
+      fill: none;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .hf-fill {
+      fill: var(--hf-color);
+    }
+    .hf-text {
+      fill: var(--hf-color);
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Rounded", sans-serif;
+    }
+  </style>
+
+  <!-- SIGIL "h" (flow gate), sized to match text height -->
+  <g transform="translate(80,50)">
+    <!-- uprights -->
+    <line class="hf-stroke" x1="10" y1="10" x2="10" y2="90"></line>
+    <line class="hf-stroke" x1="50" y1="10" x2="50" y2="90"></line>
+
+    <!-- flowing crossbar -->
+    <path class="hf-stroke" d="M10 55
+         C22 45, 38 45, 50 55"></path>
+
+    <!-- ember dot at base -->
+    <circle class="hf-fill" cx="30" cy="82" r="3.5"></circle>
+  </g>
+
+  <!-- WORDMARK: same size text, reads as one word with the sigil as the first "h" -->
+  <!-- font-size chosen so cap height matches the sigil height -->
+  <text x="150" y="118" class="hf-text" font-size="64" letter-spacing="0.04em">
+    earthflow
+  </text>
+</svg>
