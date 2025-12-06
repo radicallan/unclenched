@@ -1,567 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Hearthflow – Retrofit journeys made clear</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      --bg: #f4f5f7;
-      --card-bg: #ffffff;
-      --text-main: #111827;
-      --text-muted: #4b5563;
-      --border-subtle: #e5e7eb;
-      --accent: #0f766e;   /* main accent – change this if you want a different colour */
-      --accent-soft: #ecfdf5;
-    }
+    <meta charset="UTF-8">
+    <title>ITC Digital Conduit // v2.0</title>
+    <style>
+        /* AESTHETIC: High-Tech Occult / Terminal Style */
+        body {
+            background-color: #0d0d0d;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+        }
 
-    * {
-      box-sizing: border-box;
-    }
+        h1 { margin-bottom: 5px; font-size: 1.2rem; opacity: 0.7; }
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background-color: var(--bg);
-      color: var(--text-main);
-    }
+        /* The main "Word" display */
+        #output {
+            font-size: 4rem;
+            height: 1.2em;
+            margin: 20px 0;
+            text-shadow: 0 0 15px #00ff41, 0 0 30px #00ff41;
+            letter-spacing: 5px;
+        }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+        /* The visualizer canvas */
+        canvas {
+            width: 80%;
+            height: 150px;
+            background: #001100;
+            border: 1px solid #003300;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+        }
 
-    .page {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+        /* Controls UI */
+        .controls {
+            margin-top: 20px;
+            padding: 20px;
+            background: #111;
+            display: inline-block;
+            border: 1px solid #333;
+        }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
+        input[type=range] { width: 200px; accent-color: #00ff41; }
+        label { display: block; margin-bottom: 10px; font-size: 0.8rem; }
+        
+        button {
+            background: transparent;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            padding: 10px 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
 
-    /* HEADER */
-    header {
-      border-bottom: 1px solid var(--border-subtle);
-      background: #ffffff;
-    }
-
-    .header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 0;
-      gap: 16px;
-    }
-
-    .logo-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .logo-wrap img {
-      height: 36px;
-      width: auto;
-      display: block;
-    }
-
-    .header-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--accent);
-      background: var(--accent);
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .header-cta.secondary {
-      background: transparent;
-      color: var(--accent);
-    }
-
-    /* HERO */
-    .hero {
-      padding: 48px 0 32px;
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-      gap: 32px;
-      align-items: center;
-    }
-
-    @media (max-width: 800px) {
-      .hero-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .hero-kicker {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 16px;
-    }
-
-    .hero-title {
-      font-size: clamp(26px, 3vw, 32px);
-      line-height: 1.2;
-      margin: 0 0 12px;
-    }
-
-    .hero-subtitle {
-      font-size: 14px;
-      line-height: 1.6;
-      color: var(--text-muted);
-      margin: 0 0 20px;
-      max-width: 540px;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .btn-primary {
-      padding: 10px 18px;
-      border-radius: 999px;
-      border: none;
-      background: var(--accent);
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-quiet {
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--border-subtle);
-      background: white;
-      color: var(--text-main);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-
-    .hero-meta {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    /* HERO CARD */
-    .hero-card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      border: 1px solid var(--border-subtle);
-      padding: 18px 18px 16px;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
-      font-size: 12px;
-    }
-
-    .hero-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 8px;
-      gap: 8px;
-    }
-
-    .hero-card-title {
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .hero-card-tag {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #f3f4f6;
-      color: #4b5563;
-      white-space: nowrap;
-    }
-
-    .phase-list {
-      list-style: none;
-      padding: 0;
-      margin: 8px 0 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .phase-item {
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle);
-      padding: 8px 10px;
-    }
-
-    .phase-label {
-      font-size: 11px;
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-
-    .phase-text {
-      margin: 0;
-      color: var(--text-muted);
-    }
-
-    .phase-route {
-      margin: 4px 0 0;
-      font-size: 11px;
-      color: var(--accent);
-      font-weight: 500;
-    }
-
-    .card-footer {
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border-subtle);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .card-footer strong {
-      color: var(--text-main);
-    }
-
-    /* FEATURES */
-    .section {
-      padding: 32px 0;
-      border-top: 1px solid var(--border-subtle);
-    }
-
-    .section h2 {
-      font-size: 20px;
-      margin: 0 0 6px;
-    }
-
-    .section p.lead {
-      margin: 0 0 20px;
-      font-size: 14px;
-      color: var(--text-muted);
-      max-width: 620px;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    @media (max-width: 800px) {
-      .feature-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .feature-card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      border: 1px solid var(--border-subtle);
-      padding: 14px 14px 16px;
-      font-size: 13px;
-    }
-
-    .feature-card h3 {
-      margin: 0 0 6px;
-      font-size: 14px;
-    }
-
-    .feature-card p {
-      margin: 0;
-      color: var(--text-muted);
-    }
-
-    /* HOW IT WORKS */
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    @media (max-width: 800px) {
-      .steps {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .step-card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      border: 1px solid var(--border-subtle);
-      padding: 14px 14px 16px;
-      font-size: 13px;
-    }
-
-    .step-kicker {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 4px;
-      color: var(--accent);
-    }
-
-    /* CTA SECTION */
-    .cta {
-      padding: 28px 0 40px;
-    }
-
-    .cta-box {
-      background: var(--card-bg);
-      border-radius: 18px;
-      border: 1px solid var(--border-subtle);
-      padding: 22px 20px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .cta-title {
-      font-size: 18px;
-      margin: 0 0 4px;
-    }
-
-    .cta-text {
-      margin: 0;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    /* FOOTER */
-    footer {
-      border-top: 1px solid var(--border-subtle);
-      background: #ffffff;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .footer-inner {
-      padding: 10px 0 14px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-  </style>
+        button:hover { background: #00ff41; color: black; box-shadow: 0 0 15px #00ff41; }
+        
+        #status { font-size: 0.7rem; color: #555; margin-top: 10px; }
+        .log-box {
+            font-size: 0.8rem;
+            color: #008f11;
+            margin-top: 20px;
+            height: 100px;
+            overflow-y: auto;
+            border-top: 1px solid #333;
+            width: 60%;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+            padding: 10px;
+        }
+    </style>
 </head>
 <body>
-  <div class="page">
-    <!-- HEADER -->
-    <header>
-      <div class="container">
-        <div class="header-inner">
-          <div class="logo-wrap">
-            <img src="logo.svg" alt="Hearthflow logo" />
-          </div>
-          <button class="header-cta" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">
-            Request a pilot chat
-          </button>
-        </div>
-      </div>
-    </header>
 
-    <!-- MAIN -->
-    <main class="container">
-      <!-- HERO -->
-      <section class="hero">
-        <div class="hero-grid">
-          <div>
-            <div class="hero-kicker">MVP · retrofit journeys for real homes</div>
-            <h1 class="hero-title">
-              Turn one address into a clear, three-phase upgrade plan.
-            </h1>
-            <p class="hero-subtitle">
-              Hearthflow is a resident journey you can plug into your website. Residents see a simple roadmap for
-              their home; your teams see structured demand for ECO4, SHDF, Warm Homes and able-to-pay upgrades.
-            </p>
+    <h1>ITC DIGITAL CONDUIT</h1>
+    
+    <canvas id="visualizer"></canvas>
 
-            <div class="hero-actions">
-              <button class="btn-primary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">
-                Talk about a pilot
-              </button>
-              <button class="btn-quiet" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">
-                See how it works
-              </button>
-            </div>
+    <div id="output">...</div>
 
-            <p class="hero-meta">
-              Designed for councils, social landlords and delivery partners who want less noise and better-qualified residents.
-            </p>
-          </div>
+    <div class="controls">
+        <label>SENSITIVITY THRESHOLD (Trigger Level)</label>
+        <input type="range" id="sensitivity" min="0" max="255" value="130">
+        <br><br>
+        <button id="startBtn">INITIALIZE SYSTEM</button>
+        <div id="status">System Standby...</div>
+    </div>
 
-          <!-- Example result card -->
-          <div class="hero-card">
-            <div class="hero-card-header">
-              <div>
-                <div class="hero-card-title">Example plan · 12 Acacia Avenue</div>
-                <div style="font-size:11px; color:#6b7280;">EPC D · Social rent · Gas boiler</div>
-              </div>
-              <div class="hero-card-tag">3-phase roadmap</div>
-            </div>
+    <div class="log-box" id="history">
+        [SESSION LOG STARTED...]
+    </div>
 
-            <ul class="phase-list">
-              <li class="phase-item">
-                <div class="phase-label">Phase 1 · next 12 months</div>
-                <p class="phase-text">
-                  Low-regret fabric and controls: draught-proofing, LEDs, TRVs, basic insulation to tackle cold rooms first.
-                </p>
-                <p class="phase-route">Likely route: Warm Homes Local Grant</p>
-              </li>
-              <li class="phase-item">
-                <div class="phase-label">Phase 2 · 1–3 years</div>
-                <p class="phase-text">
-                  Replace end-of-life boiler with a low-temperature heat pump once Phase 1 is complete, with system balancing.
-                </p>
-                <p class="phase-route">Likely route: ECO4 + landlord contribution</p>
-              </li>
-              <li class="phase-item">
-                <div class="phase-label">Phase 3 · 3–7 years</div>
-                <p class="phase-text">
-                  Explore 3–4 kWp solar PV on suitable roof slopes; consider battery if evening use is high.
-                </p>
-                <p class="phase-route">Likely route: Able-to-pay / green finance</p>
-              </li>
-            </ul>
+    <script>
+        // === THE WORD BANK ===
+        // A mix of binary responses, emotional states, and environmental concepts
+        const dictionary = [
+            "YES", "NO", "WAIT", "NEAR", "FAR", "ENERGY", "COLD", "HEAT",
+            "LOOK", "LISTEN", "RUN", "HELP", "PEACE", "TRAPPED", "LIGHT",
+            "DARKNESS", "TIME", "NAME", "BELOW", "ABOVE", "WATER", "FIRE",
+            "MOTHER", "FATHER", "CHILD", "DEATH", "LIFE", "PATH", "DOOR",
+            "OPEN", "CLOSE", "SEE", "HIDE", "SPEAK", "SIGNAL", "TECH"
+        ];
 
-            <div class="card-footer">
-              <div>
-                Estimated bill reduction: <strong>up to 40–55%</strong><br />
-                Carbon reduction potential: <strong>up to ~75%</strong>
-              </div>
-              <div style="text-align:right;">
-                <span style="font-size:11px;">Resident next step:</span><br />
-                <strong>“Register for a home assessment”</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        let audioCtx, analyser, source, bufferLength, dataArray;
+        let isRunning = false;
+        let lastTriggerTime = 0;
+        const cooldown = 1500; // ms to wait between words (prevents spamming)
 
-      <!-- FEATURES -->
-      <section class="section">
-        <h2>Why start with the journey, not just the measures?</h2>
-        <p class="lead">
-          Residents don’t think in kilowatts or PAS standards. Hearthflow gives them a clear story – and gives you the
-          structured information you need to prioritise stock and partners.
-        </p>
-        <div class="feature-grid">
-          <div class="feature-card">
-            <h3>Resident-friendly</h3>
-            <p>
-              No accounts, no jargon, no twenty-page forms. A small number of questions and a plain-English roadmap
-              that feels realistic, not salesy.
-            </p>
-          </div>
-          <div class="feature-card">
-            <h3>Scheme-aware</h3>
-            <p>
-              Built around ECO4, SHDF, Warm Homes and local offers, so the routes it suggests make sense for how you
-              actually deliver upgrades.
-            </p>
-          </div>
-          <div class="feature-card">
-            <h3>Actionable for teams</h3>
-            <p>
-              You see patterns: which homes are coming forward, which measures cluster together, and where partners can
-              add capacity.
-            </p>
-          </div>
-        </div>
-      </section>
+        const canvas = document.getElementById("visualizer");
+        const ctx = canvas.getContext("2d");
+        const output = document.getElementById("output");
+        const statusDiv = document.getElementById("status");
+        const historyDiv = document.getElementById("history");
+        const sensitivitySlider = document.getElementById("sensitivity");
+        const startBtn = document.getElementById("startBtn");
 
-      <!-- HOW IT WORKS -->
-      <section id="how-it-works" class="section">
-        <h2>How Hearthflow works (MVP)</h2>
-        <p class="lead">
-          The MVP focuses on doing one thing well: turning one home story into a three-phase plan and a sensible route
-          through schemes and funding.
-        </p>
-        <div class="steps">
-          <div class="step-card">
-            <div class="step-kicker">Step 1 · Home & situation</div>
-            <p>
-              The resident enters their address and a handful of key details: tenure, heating type, benefits and main
-              comfort or bill concerns. Where available, EPC data helps identify the home type.
-            </p>
-          </div>
-          <div class="step-card">
-            <div class="step-kicker">Step 2 · Route & stack</div>
-            <p>
-              A rules engine maps the home into a likely route (scheme-backed, landlord-funded or able-to-pay) and
-              builds a three-phase stack: fabric, systems, then generation.
-            </p>
-          </div>
-          <div class="step-card">
-            <div class="step-kicker">Step 3 · Plan & next steps</div>
-            <p>
-              The resident sees a clear plan and what to do next; you receive structured data you can pass to internal
-              teams or delivery partners as qualified leads.
-            </p>
-          </div>
-        </div>
-      </section>
+        // === INITIALIZE AUDIO ENGINE ===
+        startBtn.addEventListener("click", async () => {
+            if (isRunning) return; // Prevent double click
+            
+            try {
+                // 1. Request Microphone Access
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // 2. Create Web Audio Context
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                
+                // 3. Setup Analyzer (High Resolution for detailed frequency data)
+                analyser.fftSize = 2048; 
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
 
-      <!-- CTA -->
-      <section id="cta" class="cta">
-        <div class="cta-box">
-          <div>
-            <h3 class="cta-title">Interested in shaping the MVP?</h3>
-            <p class="cta-text">
-              I’m looking for 1–3 organisations to test Hearthflow with a small number of homes and real residents.
-            </p>
-          </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn-primary">
-              Request a conversation
-            </button>
-            <button class="btn-quiet">
-              Email details (coming soon)
-            </button>
-          </div>
-        </div>
-      </section>
-    </main>
+                // 4. Connect Mic to Analyzer
+                source = audioCtx.createMediaStreamSource(stream);
+                source.connect(analyser);
 
-    <!-- FOOTER -->
-    <footer>
-      <div class="container">
-        <div class="footer-inner">
-          <div>Hearthflow · MVP concept</div>
-          <div>Made for organisations trying to move from warm words to warmer homes.</div>
-        </div>
-      </div>
-    </footer>
-  </div>
+                isRunning = true;
+                statusDiv.innerText = "SYSTEM ACTIVE - LISTENING FOR ENERGY SPIKES...";
+                startBtn.style.display = "none";
+                
+                // Start the visualizer and listening loop
+                draw();
+
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerText = "ERROR: MICROPHONE ACCESS DENIED.";
+            }
+        });
+
+        // === THE MAIN LOOP ===
+        function draw() {
+            if (!isRunning) return;
+
+            requestAnimationFrame(draw);
+
+            // Get Frequency Data (The "Fingerprint" of the sound)
+            analyser.getByteFrequencyData(dataArray);
+
+            // 1. VISUALIZER LOGIC (Draw the green energy wave)
+            ctx.fillStyle = "#001100"; // Clear screen with dark green
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#00ff41";
+            ctx.beginPath();
+
+            // Calculate width of each bar in the wave
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
+            let x = 0;
+            
+            // Calculate Average Volume for the Trigger Logic
+            let sum = 0;
+            let maxFreqIndex = 0; // To track dominant pitch
+            let maxFreqValue = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0; // Normalize 0-255 to 0-2 height
+                const y = v * canvas.height / 2;
+
+                // Draw wave line
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+
+                x += sliceWidth;
+                
+                // Analyze Volume & Pitch
+                sum += dataArray[i];
+                if (dataArray[i] > maxFreqValue) {
+                    maxFreqValue = dataArray[i];
+                    maxFreqIndex = i; // Save which frequency band is loudest
+                }
+            }
+
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            // 2. THE TRIGGER LOGIC (Ghost Detection)
+            const averageVolume = sum / bufferLength;
+            const threshold = sensitivitySlider.value / 2; // Scaled to match volume
+
+            const now = Date.now();
+            
+            // IF volume spike > threshold AND cooldown has passed
+            if (averageVolume > threshold && (now - lastTriggerTime > cooldown)) {
+                triggerWord(maxFreqIndex);
+                lastTriggerTime = now;
+            }
+        }
+
+        // === WORD SELECTION ALGORITHM ===
+        function triggerWord(freqSeed) {
+            // THEORY: We use the dominant Frequency (freqSeed) to influence randomness.
+            // If the spirit can manipulate the pitch of the sound, they can manipulate the index.
+            
+            // Mix normal math.random with the frequency seed
+            const randomFactor = Math.random() * dictionary.length;
+            const freqFactor = (freqSeed % dictionary.length); 
+            
+            // Combine them to get final index
+            const finalIndex = Math.floor((randomFactor + freqFactor)) % dictionary.length;
+            const selectedWord = dictionary[finalIndex];
+
+            // Display Word
+            output.innerText = selectedWord;
+            
+            // Log it
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement("div");
+            entry.innerText = `[${timestamp}] SIGNAL: ${selectedWord} (Freq: ${freqSeed})`;
+            historyDiv.prepend(entry);
+            
+            // Visual Flare (Flash screen)
+            document.body.style.backgroundColor = "#003300";
+            setTimeout(() => { document.body.style.backgroundColor = "#0d0d0d"; }, 100);
+        }
+
+    </script>
 </body>
 </html>
