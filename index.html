@@ -1,1 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Annual Leave Tool</title>
+  <style>
+    :root{
+      --bg: #0f1115;
+      --panel: #141824;
+      --panel-2: #0c0f18;
+      --text: #f5f7ff;
+      --muted: #b6bccf;
+      --accent: #ffffff;
+      --line: rgba(255,255,255,0.08);
+      --good: #2fd48f;
+      --warn: #ffb020;
+      --bad: #ff5c6c;
+      --shadow: 0 12px 30px rgba(0,0,0,0.25);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --focus: 0 0 0 3px rgba(255,255,255,0.12);
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --panel-2: #f3f5fa;
+        --text: #0e1220;
+        --muted: #59627a;
+        --accent: #0e1220;
+        --line: rgba(10,20,40,0.08);
+        --shadow: 0 10px 22px rgba(10,20,40,0.08);
+        --focus: 0 0 0 3px rgba(10,20,40,0.08);
+      }
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--font);
+      background: radial-gradient(1200px 800px at 10% -10%, rgba(255,255,255,0.06), transparent 60%),
+                  radial-gradient(900px 700px at 100% 0%, rgba(255,255,255,0.05), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+    }
+
+    header{
+      position: sticky;
+      top:0;
+      z-index: 5;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(0,0,0,0.18), transparent);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .wrap{
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 22px 22px 30px;
+    }
+
+    .topbar{
+      display:flex;
+      gap: 14px;
+      align-items:center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+    }
+
+    .brand h1{
+      font-size: 18px;
+      margin:0 0 2px 0;
+      letter-spacing: 0.2px;
+    }
+    .brand small{
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    .company-input{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+    .company-input input{
+      width: 220px;
+    }
+
+    nav{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn{
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 540;
+      font-size: 12.5px;
+      letter-spacing: 0.2px;
+      transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    }
+    .tab-btn:hover{ transform: translateY(-1px); }
+    .tab-btn.active{
+      border-color: rgba(255,255,255,0.22);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    }
+
+    main .panel{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+      .company-input input{ width: 180px; }
+    }
+
+    h2{
+      margin: 0 0 12px 0;
+      font-size: 18px;
+    }
+    h3{
+      margin: 0 0 10px 0;
+      font-size: 14.5px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+
+    label{
+      display:block;
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea{
+      width: 100%;
+      padding: 10px 11px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      outline: none;
+      font-size: 12.8px;
+    }
+    textarea{ min-height: 80px; resize: vertical; }
+    input:focus, select:focus, textarea:focus{
+      box-shadow: var(--focus);
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    .row{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row > *{ flex: 1 1 180px; }
+
+    .btn{
+      border: 1px solid var(--line);
+      background: var(--accent);
+      color: var(--bg);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor:pointer;
+      font-weight: 650;
+      font-size: 12px;
+      letter-spacing: 0.2px;
+    }
+    .btn.secondary{
+      background: transparent;
+      color: var(--text);
+    }
+    .btn.ghost{
+      background: var(--panel-2);
+      color: var(--text);
+    }
+    .btn.small{
+      padding: 6px 9px;
+      font-size: 11px;
+      border-radius: 8px;
+    }
+    .btn.good{
+      background: var(--good);
+      color: #08130e;
+      border-color: transparent;
+    }
+    .btn.bad{
+      background: var(--bad);
+      color: #16060a;
+      border-color: transparent;
+    }
+    .btn.warn{
+      background: var(--warn);
+      color: #1a1204;
+      border-color: transparent;
+    }
+
+    .muted{ color: var(--muted); }
+    .hint{
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .table{
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .table th, .table td{
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align:left;
+      vertical-align: top;
+    }
+    .table th{
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.25px;
+      text-transform: uppercase;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+    }
+    .pill.pending{ color: var(--warn); }
+    .pill.approved{ color: var(--good); }
+    .pill.rejected{ color: var(--bad); }
+
+    .section{
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .empty{
+      border: 1px dashed var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+      padding: 14px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .right{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .spacer{ height: 6px; }
+
+    .footer{
+      margin-top: 22px;
+      display:flex;
+      gap: 10px;
+      justify-content: space-between;
+      align-items:center;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .danger-zone{
+      border: 1px solid rgba(255,92,108,0.25);
+      background: linear-gradient(180deg, rgba(255,92,108,0.06), transparent);
+      padding: 14px;
+      border-radius: 12px;
+    }
+
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 10.5px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div>
+            <h1 id="brandTitle">Annual Leave Tool</h1>
+            <small id="brandSub">Local browser-based leave tracker</small>
+          </div>
+          <div class="company-input">
+            <label for="companyName" class="muted" style="margin:0;font-size:10.5px;">Company</label>
+            <input id="companyName" type="text" placeholder="Your company name" />
+          </div>
+        </div>
+
+        <nav id="tabs">
+          <button class="tab-btn active" data-tab="employees">Employees</button>
+          <button class="tab-btn" data-tab="request">Request Leave</button>
+          <button class="tab-btn" data-tab="approvals">Approvals</button>
+          <button class="tab-btn" data-tab="calendar">Team Calendar</button>
+          <button class="tab-btn" data-tab="reports">Reports & Backup</button>
+          <button class="tab-btn" data-tab="settings">Settings</button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- EMPLOYEES -->
+    <section class="panel" data-panel="employees">
+      <div class="grid">
+        <div>
+          <h2>Employees</h2>
+          <div class="hint">
+            Add your drivers, admins, and office staff here. Allowances are stored per employee.
+            Used and remaining days are calculated from approved annual leave requests.
+          </div>
+
+          <div class="section">
+            <h3>Add employee</h3>
+            <div class="row">
+              <div>
+                <label for="empName">Name</label>
+                <input id="empName" type="text" placeholder="e.g., Alex Morgan" />
+              </div>
+              <div>
+                <label for="empEmail">Email (optional)</label>
+                <input id="empEmail" type="email" placeholder="e.g., alex@company.com" />
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <label for="empAllowance">Annual allowance (days)</label>
+                <input id="empAllowance" type="number" min="0" step="0.5" />
+              </div>
+              <div>
+                <label for="empCarry">Carry-over (days)</label>
+                <input id="empCarry" type="number" min="0" step="0.5" value="0" />
+              </div>
+            </div>
+
+            <div class="row">
+              <button id="addEmployeeBtn" class="btn">Add employee</button>
+              <button id="seedDemoBtn" class="btn secondary">Add demo data</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3>Current employees</h3>
+          <div id="employeesList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REQUEST -->
+    <section class="panel" data-panel="request" hidden>
+      <h2>Request leave</h2>
+      <div class="grid">
+        <div>
+          <h3>New request</h3>
+
+          <div class="row">
+            <div>
+              <label for="reqEmployee">Employee</label>
+              <select id="reqEmployee"></select>
+            </div>
+            <div>
+              <label for="reqType">Leave type</label>
+              <select id="reqType">
+                <option value="annual">Annual leave</option>
+                <option value="unpaid">Unpaid leave</option>
+                <option value="sick">Sick leave (record only)</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="reqStart">Start date</label>
+              <input id="reqStart" type="date" />
+            </div>
+            <div>
+              <label for="reqEnd">End date</label>
+              <input id="reqEnd" type="date" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="reqNotes">Notes (optional)</label>
+              <textarea id="reqNotes" placeholder="Route coverage, reason, handover notes, etc."></textarea>
+            </div>
+          </div>
+
+          <div class="row">
+            <button id="calcDaysBtn" class="btn ghost">Calculate days</button>
+            <button id="submitRequestBtn" class="btn">Submit request</button>
+          </div>
+
+          <div id="reqSummary" class="hint"></div>
+        </div>
+
+        <div>
+          <h3>My requests (all employees)</h3>
+          <div id="requestsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- APPROVALS -->
+    <section class="panel" data-panel="approvals" hidden>
+      <h2>Approvals</h2>
+      <div class="hint">
+        This is a simple approval queue for a small business. In a multi-user version,
+        this would be permission-controlled.
+      </div>
+
+      <div class="grid section">
+        <div>
+          <h3>Pending requests</h3>
+          <div id="pendingList"></div>
+        </div>
+        <div>
+          <h3>Recent decisions</h3>
+          <div id="decisionsList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="panel" data-panel="calendar" hidden>
+      <h2>Team calendar</h2>
+      <div class="grid">
+        <div>
+          <h3>Filters</h3>
+          <div class="row">
+            <div>
+              <label for="calEmployee">Employee</label>
+              <select id="calEmployee"></select>
+            </div>
+            <div>
+              <label for="calFrom">From</label>
+              <input id="calFrom" type="date" />
+            </div>
+            <div>
+              <label for="calTo">To</label>
+              <input id="calTo" type="date" />
+            </div>
+          </div>
+          <div class="row">
+            <button id="calApplyBtn" class="btn">Apply filters</button>
+            <button id="calResetBtn" class="btn secondary">Reset</button>
+          </div>
+          <div class="hint">
+            This list view is intentionally lightweight for fast use.
+          </div>
+        </div>
+        <div>
+          <h3>Approved leave (list)</h3>
+          <div id="calendarList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="panel" data-panel="reports" hidden>
+      <h2>Reports & Backup</h2>
+      <div class="grid">
+        <div>
+          <h3>Allowance summary</h3>
+          <div id="reportTableWrap"></div>
+
+          <div class="section">
+            <div class="row">
+              <button id="exportCsvBtn" class="btn ghost">Export CSV summary</button>
+              <button id="refreshReportsBtn" class="btn secondary">Refresh</button>
+            </div>
+            <div class="hint">
+              CSV exports the allowance summary for the current holiday year.
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3>Backup</h3>
+          <div class="row">
+            <button id="exportJsonBtn" class="btn">Export data (JSON)</button>
+            <label class="btn secondary" for="importJsonInput" style="display:inline-flex;align-items:center;justify-content:center;">
+              Import data (JSON)
+            </label>
+            <input id="importJsonInput" type="file" accept="application/json" hidden />
+          </div>
+
+          <div class="section">
+            <h3>Data safety</h3>
+            <div class="empty">
+              This version stores data only on this device/browser.
+              Use JSON export for backups or when moving computers.
+            </div>
+          </div>
+
+          <div class="section danger-zone">
+            <h3>Reset</h3>
+            <div class="row">
+              <button id="resetAllBtn" class="btn bad">Delete all data</button>
+            </div>
+            <div class="hint">
+              This cannot be undone.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="panel" data-panel="settings" hidden>
+      <h2>Settings</h2>
+      <div class="grid">
+        <div>
+          <h3>Holiday year</h3>
+          <div class="row">
+            <div>
+              <label for="yearStart">Holiday year start date</label>
+              <input id="yearStart" type="date" />
+              <div class="hint">
+                Used to calculate allowance usage for reports and remaining days.
+              </div>
+            </div>
+            <div>
+              <label for="defaultAllowance">Default allowance (days)</label>
+              <input id="defaultAllowance" type="number" min="0" step="0.5" />
+              <div class="hint">
+                Applied as the suggested allowance when adding new employees.
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Working pattern</h3>
+            <div class="hint">
+              Leave days are calculated using this working week.
+              Default is Monday–Friday.
+            </div>
+            <div class="row">
+              <div>
+                <label>
+                  <input type="checkbox" class="workday" value="1" />
+                  Monday
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input type="checkbox" class="workday" value="2" />
+                  Tuesday
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input type="checkbox" class="workday" value="3" />
+                  Wednesday
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input type="checkbox" class="workday" value="4" />
+                  Thursday
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input type="checkbox" class="workday" value="5" />
+                  Friday
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input type="checkbox" class="workday" value="6" />
+                  Saturday
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input type="checkbox" class="workday" value="0" />
+                  Sunday
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <button id="saveSettingsBtn" class="btn">Save settings</button>
+            <div class="hint">
+              Tip: For typical UK office/admin schedules, keep Mon–Fri checked.
+              For driver rota patterns, you can include weekends if appropriate.
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3>Quick help</h3>
+          <div class="empty">
+            <div class="spacer"></div>
+            <div><span class="kbd">Employees</span> Add staff and allowances.</div>
+            <div class="spacer"></div>
+            <div><span class="kbd">Request Leave</span> Submit requests (defaults to pending).</div>
+            <div class="spacer"></div>
+            <div><span class="kbd">Approvals</span> Approve or reject.</div>
+            <div class="spacer"></div>
+            <div><span class="kbd">Reports</span> View used/remaining and export CSV.</div>
+            <div class="spacer"></div>
+            <div><span class="kbd">Backup</span> Export/import JSON regularly.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div>Leave Tool v1 (local-only MVP)</div>
+      <div class="muted">Designed for small teams. Upgradeable to a shared online version.</div>
+    </div>
+  </main>
+
+  <script>
+    // -----------------------------
+    // Local Annual Leave Tool v1
+    // -----------------------------
+
+    const STORAGE_KEY = "leaveTool.v1";
+
+    const defaultState = () => ({
+      companyName: "",
+      settings: {
+        holidayYearStart: new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0,10),
+        defaultAllowance: 28,
+        workWeek: [1,2,3,4,5] // Mon-Fri
+      },
+      employees: [],
+      requests: []
+    });
+
+    const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return defaultState();
+        const parsed = JSON.parse(raw);
+
+        // Gentle migration/safety defaults
+        parsed.settings = parsed.settings || {};
+        if(!parsed.settings.holidayYearStart) parsed.settings.holidayYearStart = defaultState().settings.holidayYearStart;
+        if(parsed.settings.defaultAllowance == null) parsed.settings.defaultAllowance = 28;
+        if(!Array.isArray(parsed.settings.workWeek)) parsed.settings.workWeek = [1,2,3,4,5];
+
+        parsed.employees = Array.isArray(parsed.employees) ? parsed.employees : [];
+        parsed.requests = Array.isArray(parsed.requests) ? parsed.requests : [];
+
+        return parsed;
+      }catch(e){
+        console.warn("Failed to load state", e);
+        return defaultState();
+      }
+    }
+
+    function saveState(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+    }
+
+    let state = loadState();
+
+    // -----------------------------
+    // Date + calculation helpers
+    // -----------------------------
+
+    function toDate(str){
+      const d = new Date(str + "T00:00:00");
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function fmtDate(str){
+      const d = toDate(str);
+      if(!d) return str || "";
+      return d.toLocaleDateString();
+    }
+
+    function isWorkday(dateObj){
+      const day = dateObj.getDay(); // 0=Sun
+      return state.settings.workWeek.includes(day);
+    }
+
+    function eachDay(start, end){
+      const days = [];
+      const cur = new Date(start);
+      while(cur <= end){
+        days.push(new Date(cur));
+        cur.setDate(cur.getDate()+1);
+      }
+      return days;
+    }
+
+    function workingDaysBetween(startStr, endStr){
+      const s = toDate(startStr);
+      const e = toDate(endStr);
+      if(!s || !e || e < s) return 0;
+      const all = eachDay(s, e);
+      return all.filter(isWorkday).length;
+    }
+
+    function getHolidayYearRange(){
+      const start = toDate(state.settings.holidayYearStart);
+      if(!start) {
+        const fallback = new Date(new Date().getFullYear(),0,1);
+        return { start: fallback, end: new Date(fallback.getFullYear()+1,0,0) };
+      }
+      const end = new Date(start);
+      end.setFullYear(start.getFullYear()+1);
+      end.setDate(end.getDate()-1);
+      return { start, end };
+    }
+
+    function inHolidayYear(dateStr){
+      const d = toDate(dateStr);
+      if(!d) return false;
+      const { start, end } = getHolidayYearRange();
+      return d >= start && d <= end;
+    }
+
+    function requestDays(req){
+      return workingDaysBetween(req.start, req.end);
+    }
+
+    function approvedAnnualForEmployee(empId){
+      return state.requests.filter(r =>
+        r.employeeId === empId &&
+        r.status === "approved" &&
+        r.type === "annual" &&
+        inHolidayYear(r.start) // simple rule: count by start date
+      );
+    }
+
+    function usedDays(empId){
+      return approvedAnnualForEmployee(empId)
+        .reduce((sum, r) => sum + requestDays(r), 0);
+    }
+
+    function allowanceTotal(emp){
+      const carry = Number(emp.carryOver || 0);
+      const base = Number(emp.allowance || 0);
+      return base + carry;
+    }
+
+    function remainingDays(emp){
+      const total = allowanceTotal(emp);
+      return Math.max(0, roundHalf(total - usedDays(emp.id)));
+    }
+
+    function roundHalf(num){
+      // keep 0.5 increments tidy
+      return Math.round(num * 2) / 2;
+    }
+
+    function overlapWarning(empId, startStr, endStr){
+      const s = toDate(startStr);
+      const e = toDate(endStr);
+      if(!s || !e) return false;
+
+      const relevant = state.requests.filter(r =>
+        r.employeeId === empId &&
+        r.status !== "rejected"
+      );
+
+      return relevant.some(r => {
+        const rs = toDate(r.start);
+        const re = toDate(r.end);
+        if(!rs || !re) return false;
+        return (s <= re && e >= rs);
+      });
+    }
+
+    // -----------------------------
+    // DOM references
+    // -----------------------------
+
+    const brandTitle = document.getElementById("brandTitle");
+    const brandSub = document.getElementById("brandSub");
+    const companyNameInput = document.getElementById("companyName");
+
+    // Tabs
+    const tabsEl = document.getElementById("tabs");
+    const panels = Array.from(document.querySelectorAll("[data-panel]"));
+
+    // Employees
+    const empName = document.getElementById("empName");
+    const empEmail = document.getElementById("empEmail");
+    const empAllowance = document.getElementById("empAllowance");
+    const empCarry = document.getElementById("empCarry");
+    const addEmployeeBtn = document.getElementById("addEmployeeBtn");
+    const seedDemoBtn = document.getElementById("seedDemoBtn");
+    const employeesList = document.getElementById("employeesList");
+
+    // Request
+    const reqEmployee = document.getElementById("reqEmployee");
+    const reqType = document.getElementById("reqType");
+    const reqStart = document.getElementById("reqStart");
+    const reqEnd = document.getElementById("reqEnd");
+    const reqNotes = document.getElementById("reqNotes");
+    const submitRequestBtn = document.getElementById("submitRequestBtn");
+    const calcDaysBtn = document.getElementById("calcDaysBtn");
+    const reqSummary = document.getElementById("reqSummary");
+    const requestsList = document.getElementById("requestsList");
+
+    // Approvals
+    const pendingList = document.getElementById("pendingList");
+    const decisionsList = document.getElementById("decisionsList");
+
+    // Calendar
+    const calEmployee = document.getElementById("calEmployee");
+    const calFrom = document.getElementById("calFrom");
+    const calTo = document.getElementById("calTo");
+    const calApplyBtn = document.getElementById("calApplyBtn");
+    const calResetBtn = document.getElementById("calResetBtn");
+    const calendarList = document.getElementById("calendarList");
+
+    // Reports & backup
+    const reportTableWrap = document.getElementById("reportTableWrap");
+    const exportJsonBtn = document.getElementById("exportJsonBtn");
+    const importJsonInput = document.getElementById("importJsonInput");
+    const resetAllBtn = document.getElementById("resetAllBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const refreshReportsBtn = document.getElementById("refreshReportsBtn");
+
+    // Settings
+    const yearStart = document.getElementById("yearStart");
+    const defaultAllowanceInput = document.getElementById("defaultAllowance");
+    const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+    const workdayChecks = Array.from(document.querySelectorAll(".workday"));
+
+    // -----------------------------
+    // Renderers
+    // -----------------------------
+
+    function renderBrand(){
+      const name = (state.companyName || "").trim();
+      brandTitle.textContent = name ? `${name} Leave Tool` : "Annual Leave Tool";
+      brandSub.textContent = "Local browser-based leave tracker";
+      companyNameInput.value = state.companyName || "";
+    }
+
+    function renderEmployees(){
+      if(state.employees.length === 0){
+        employeesList.innerHTML = `<div class="empty">No employees yet. Add one on the left.</div>`;
+        return;
+      }
+
+      const rows = state.employees
+        .slice()
+        .sort((a,b) => (a.name||"").localeCompare(b.name||""))
+        .map(emp => {
+          const used = usedDays(emp.id);
+          const total = allowanceTotal(emp);
+          const remaining = remainingDays(emp);
+
+          return `
+            <tr>
+              <td>
+                <div style="font-weight:650;">${escapeHtml(emp.name)}</div>
+                <div class="muted" style="font-size:10.5px;">${emp.email ? escapeHtml(emp.email) : ""}</div>
+              </td>
+              <td>${Number(emp.allowance || 0)}</td>
+              <td>${Number(emp.carryOver || 0)}</td>
+              <td>${roundHalf(used)}</td>
+              <td>${roundHalf(total)}</td>
+              <td><strong>${roundHalf(remaining)}</strong></td>
+              <td class="right">
+                <button class="btn small secondary" data-action="edit-emp" data-id="${emp.id}">Edit</button>
+                <button class="btn small bad" data-action="delete-emp" data-id="${emp.id}">Remove</button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+      employeesList.innerHTML = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Allowance</th>
+              <th>Carry</th>
+              <th>Used</th>
+              <th>Total</th>
+              <th>Remaining</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="hint">Used/remaining reflect approved annual leave within the current holiday year.</div>
+      `;
+
+      // Attach row actions
+      employeesList.querySelectorAll("button[data-action]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          const action = btn.dataset.action;
+          if(action === "delete-emp") deleteEmployee(id);
+          if(action === "edit-emp") editEmployeePrompt(id);
+        });
+      });
+    }
+
+    function renderEmployeeSelects(){
+      const active = state.employees.slice().sort((a,b)=> (a.name||"").localeCompare(b.name||""));
+      const opts = active.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join("");
+
+      reqEmployee.innerHTML = active.length
+        ? `<option value="" disabled selected>Select employee</option>${opts}`
+        : `<option value="" disabled selected>No employees added</option>`;
+
+      calEmployee.innerHTML = active.length
+        ? `<option value="all">All employees</option>${opts}`
+        : `<option value="all">All employees</option>`;
+    }
+
+    function renderRequests(){
+      if(state.requests.length === 0){
+        requestsList.innerHTML = `<div class="empty">No leave requests yet.</div>`;
+        return;
+      }
+
+      const sorted = state.requests.slice().sort((a,b) => {
+        const da = toDate(a.createdAt) || new Date(0);
+        const db = toDate(b.createdAt) || new Date(0);
+        return db - da;
+      });
+
+      const rows = sorted.map(r => {
+        const emp = state.employees.find(e => e.id === r.employeeId);
+        const days = requestDays(r);
+        const typeLabel = leaveTypeLabel(r.type);
+
+        return `
+          <tr>
+            <td>${emp ? escapeHtml(emp.name) : `<span class="muted">Unknown</span>`}</td>
+            <td>${typeLabel}</td>
+            <td>${fmtDate(r.start)} → ${fmtDate(r.end)}</td>
+            <td>${days}</td>
+            <td>${r.notes ? escapeHtml(r.notes) : ""}</td>
+            <td><span class="pill ${r.status}">${r.status}</span></td>
+            <td class="right">
+              ${r.status === "pending"
+                ? `<button class="btn small bad" data-action="cancel-req" data-id="${r.id}">Cancel</button>`
+                : `<span class="muted" style="font-size:10px;">${r.decisionAt ? fmtDate(r.decisionAt) : ""}</span>`
+              }
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      requestsList.innerHTML = `
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Type</th>
+              <th>Dates</th>
+              <th>Days</th>
+              <th>Notes</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+
+      requestsList.querySelectorAll("button[data-action='cancel-req']").forEach(btn => {
+        btn.addEventListener("click", () => cancelRequest(btn.dataset.id));
+      });
+    }
+
+    function renderApprovals(){
+      const pending = state.requests
+        .filter(r => r.status === "pending")
+        .slice()
+        .sort((a,b) => (toDate(a.start)||0) - (toDate(b.start)||0));
+
+      if(pending.length === 0){
+        pendingList.innerHTML = `<div class="empty">No pending requests.</div>`;
+      }else{
+        pendingList.innerHTML = pending.map(r => {
+          const emp = state.employees.find(e => e.id === r.employeeId);
+          const days = requestDays(r);
+          const typeLabel = leaveTypeLabel(r.type);
+
+          let allowanceNote = "";
+          if(emp && r.type === "annual"){
+            const rem = remainingDays(emp);
+            if(days > rem){
+              allowanceNote = `<div class="hint" style="color: var(--warn);">Warning: request exceeds remaining allowance (${rem}).</div>`;
+            }
+          }
+
+          return `
+            <div class="panel" style="padding:14px;margin-bottom:10px;background:var(--panel-2);">
+              <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                <div>
+                  <div style="font-weight:700;">${emp ? escapeHtml(emp.name) : "Unknown employee"}</div>
+                  <div class="muted" style="font-size:11px;">${typeLabel} • ${fmtDate(r.start)} → ${fmtDate(r.end)} • ${days} day(s)</div>
+                  ${r.notes ? `<div class="hint">${escapeHtml(r.notes)}</div>` : ""}
+                  ${allowanceNote}
+                </div>
+                <div class="right">
+                  <button class="btn small good" data-action="approve" data-id="${r.id}">Approve</button>
+                  <button class="btn small bad" data-action="reject" data-id="${r.id}">Reject</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        pendingList.querySelectorAll("button[data-action='approve']").forEach(btn => {
+          btn.addEventListener("click", () => decideRequest(btn.dataset.id, "approved"));
+        });
+        pendingList.querySelectorAll("button[data-action='reject']").forEach(btn => {
+          btn.addEventListener("click", () => decideRequest(btn.dataset.id, "rejected"));
+        });
+      }
+
+      const decided = state.requests
+        .filter(r => r.status !== "pending")
+        .slice()
+        .sort((a,b) => (toDate(b.decisionAt)||0) - (toDate(a.decisionAt)||0))
+        .slice(0, 12);
+
+      if(decided.length === 0){
+        decisionsList.innerHTML = `<div class="empty">No decisions yet.</div>`;
+      }else{
+        decisionsList.innerHTML = decided.map(r => {
+          const emp = state.employees.find(e => e.id === r.employeeId);
+          const days = requestDays(r);
+          const typeLabel = leaveTypeLabel(r.type);
+
+          return `
+            <div style="border-bottom:1px solid var(--line);padding:10px 0;">
+              <div style="display:flex;justify-content:space-between;gap:10px;">
+                <div>
+                  <div style="font-weight:650;">${emp ? escapeHtml(emp.name) : "Unknown"}</div>
+                  <div class="muted" style="font-size:11px;">
+                    ${typeLabel} • ${fmtDate(r.start)} → ${fmtDate(r.end)} • ${days} day(s)
+                  </div>
+                </div>
+                <div>
+                  <span class="pill ${r.status}">${r.status}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function renderCalendar(){
+      const filterEmp = calEmployee.value || "all";
+      const from = calFrom.value ? toDate(calFrom.value) : null;
+      const to = calTo.value ? toDate(calTo.value) : null;
+
+      let list = state.requests.filter(r => r.status === "approved");
+
+      if(filterEmp !== "all"){
+        list = list.filter(r => r.employeeId === filterEmp);
+      }
+
+      if(from){
+        list = list.filter(r => {
+          const re = toDate(r.end);
+          return re && re >= from;
+        });
+      }
+      if(to){
+        list = list.filter(r => {
+          const rs = toDate(r.start);
+          return rs && rs <= to;
+        });
+      }
+
+      list.sort((a,b) => (toDate(a.start)||0) - (toDate(b.start)||0));
+
+      if(list.length === 0){
+        calendarList.innerHTML = `<div class="empty">No approved leave matches your filters.</div>`;
+        return;
+      }
+
+      calendarList.innerHTML = list.map(r => {
+        const emp = state.employees.find(e => e.id === r.employeeId);
+        const days = requestDays(r);
+        const typeLabel = leaveTypeLabel(r.type);
+        return `
+          <div style="border-bottom:1px solid var(--line);padding:10px 0;">
+            <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:650;">${emp ? escapeHtml(emp.name) : "Unknown"}</div>
+                <div class="muted" style="font-size:11px;">
+                  ${typeLabel} • ${fmtDate(r.start)} → ${fmtDate(r.end)} • ${days} day(s)
+                </div>
+              </div>
+              <div><span class="pill approved">approved</span></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderReports(){
+      if(state.employees.length === 0){
+        reportTableWrap.innerHTML = `<div class="empty">Add employees to generate reports.</div>`;
+        return;
+      }
+
+      const rows = state.employees
+        .slice()
+        .sort((a,b)=> (a.name||"").localeCompare(b.name||""))
+        .map(emp => {
+          const used = roundHalf(usedDays(emp.id));
+          const base = Number(emp.allowance || 0);
+          const carry = Number(emp.carryOver || 0);
+          const total = roundHalf(base + carry);
+          const remaining = roundHalf(Math.max(0, total - used));
+
+          return `
+            <tr>
+              <td>${escapeHtml(emp.name)}</td>
+              <td>${base}</td>
+              <td>${carry}</td>
+              <td>${total}</td>
+              <td>${used}</td>
+              <td><strong>${remaining}</strong></td>
+            </tr>
+          `;
+        }).join("");
+
+      const { start, end } = getHolidayYearRange();
+
+      reportTableWrap.innerHTML = `
+        <div class="hint">
+          Holiday year: ${start.toLocaleDateString()} → ${end.toLocaleDateString()}
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Allowance</th>
+              <th>Carry</th>
+              <th>Total</th>
+              <th>Used (approved)</th>
+              <th>Remaining</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function renderSettings(){
+      yearStart.value = state.settings.holidayYearStart;
+      defaultAllowanceInput.value = state.settings.defaultAllowance;
+
+      workdayChecks.forEach(chk => {
+        const val = Number(chk.value);
+        chk.checked = state.settings.workWeek.includes(val);
+      });
+    }
+
+    function renderAll(){
+      renderBrand();
+      renderEmployeeSelects();
+
+      // Suggest default allowance when adding
+      if(!empAllowance.value){
+        empAllowance.value = state.settings.defaultAllowance;
+      }
+
+      renderEmployees();
+      renderRequests();
+      renderApprovals();
+      renderCalendar();
+      renderReports();
+      renderSettings();
+      renderRequestSummary();
+    }
+
+    // -----------------------------
+    // Actions
+    // -----------------------------
+
+    function addEmployee(){
+      const name = (empName.value || "").trim();
+      const email = (empEmail.value || "").trim();
+      const allowance = Number(empAllowance.value);
+      const carry = Number(empCarry.value || 0);
+
+      if(!name){
+        alert("Please enter a name.");
+        return;
+      }
+      if(isNaN(allowance) || allowance < 0){
+        alert("Please enter a valid allowance.");
+        return;
+      }
+      if(isNaN(carry) || carry < 0){
+        alert("Please enter a valid carry-over.");
+        return;
+      }
+
+      state.employees.push({
+        id: uid(),
+        name,
+        email,
+        allowance: roundHalf(allowance),
+        carryOver: roundHalf(carry),
+        active: true,
+        createdAt: new Date().toISOString().slice(0,10)
+      });
+
+      empName.value = "";
+      empEmail.value = "";
+      empCarry.value = "0";
+      empAllowance.value = state.settings.defaultAllowance;
+
+      saveState();
+    }
+
+    function deleteEmployee(id){
+      const emp = state.employees.find(e => e.id === id);
+      if(!emp) return;
+
+      const hasRequests = state.requests.some(r => r.employeeId === id);
+      const msg = hasRequests
+        ? `Remove ${emp.name}? Their requests will remain for record but show as "Unknown employee".`
+        : `Remove ${emp.name}?`;
+
+      if(!confirm(msg)) return;
+
+      state.employees = state.employees.filter(e => e.id !== id);
+      saveState();
+    }
+
+    function editEmployeePrompt(id){
+      const emp = state.employees.find(e => e.id === id);
+      if(!emp) return;
+
+      const newName = prompt("Edit name", emp.name);
+      if(newName === null) return;
+
+      const newAllowanceStr = prompt("Edit annual allowance (days)", emp.allowance);
+      if(newAllowanceStr === null) return;
+
+      const newCarryStr = prompt("Edit carry-over (days)", emp.carryOver ?? 0);
+      if(newCarryStr === null) return;
+
+      const allowance = Number(newAllowanceStr);
+      const carry = Number(newCarryStr);
+
+      if(!newName.trim()){
+        alert("Name cannot be empty.");
+        return;
+      }
+      if(isNaN(allowance) || allowance < 0){
+        alert("Invalid allowance.");
+        return;
+      }
+      if(isNaN(carry) || carry < 0){
+        alert("Invalid carry-over.");
+        return;
+      }
+
+      emp.name = newName.trim();
+      emp.allowance = roundHalf(allowance);
+      emp.carryOver = roundHalf(carry);
+
+      saveState();
+    }
+
+    function submitRequest(){
+      const employeeId = reqEmployee.value;
+      const type = reqType.value;
+      const start = reqStart.value;
+      const end = reqEnd.value;
+      const notes = (reqNotes.value || "").trim();
+
+      if(!employeeId){
+        alert("Please select an employee.");
+        return;
+      }
+      if(!start || !end){
+        alert("Please choose start and end dates.");
+        return;
+      }
+
+      const s = toDate(start);
+      const e = toDate(end);
+      if(!s || !e || e < s){
+        alert("End date must be the same as or after start date.");
+        return;
+      }
+
+      const days = workingDaysBetween(start, end);
+      if(days <= 0){
+        alert("This date range includes no working days based on your working pattern.");
+        return;
+      }
+
+      const emp = state.employees.find(e => e.id === employeeId);
+
+      if(type === "annual" && emp){
+        const rem = remainingDays(emp);
+        if(days > rem){
+          alert(`This annual leave request is ${days} day(s), but ${emp.name} only has ${rem} remaining.\n\nAdjust dates or allowance/carry-over.`);
+          return;
+        }
+      }
+
+      const overlap = overlapWarning(employeeId, start, end);
+      if(overlap){
+        const proceed = confirm("This request overlaps an existing pending/approved request for this employee.\n\nDo you want to submit it anyway?");
+        if(!proceed) return;
+      }
+
+      state.requests.push({
+        id: uid(),
+        employeeId,
+        type,
+        start,
+        end,
+        notes,
+        status: "pending",
+        createdAt: new Date().toISOString().slice(0,10),
+        decisionAt: "",
+        decidedBy: ""
+      });
+
+      reqNotes.value = "";
+      saveState();
+    }
+
+    function cancelRequest(id){
+      const r = state.requests.find(x => x.id === id);
+      if(!r || r.status !== "pending") return;
+      if(!confirm("Cancel this pending request?")) return;
+      state.requests = state.requests.filter(x => x.id !== id);
+      saveState();
+    }
+
+    function decideRequest(id, status){
+      const r = state.requests.find(x => x.id === id);
+      if(!r || r.status !== "pending") return;
+
+      // Guard allowance on approval just in case settings/employees changed
+      if(status === "approved" && r.type === "annual"){
+        const emp = state.employees.find(e => e.id === r.employeeId);
+        if(emp){
+          const days = requestDays(r);
+          const rem = remainingDays(emp);
+          if(days > rem){
+            alert(`Cannot approve: this request is ${days} day(s) but ${emp.name} has only ${rem} remaining.`);
+            return;
+          }
+        }
+      }
+
+      r.status = status;
+      r.decisionAt = new Date().toISOString().slice(0,10);
+      r.decidedBy = "manager";
+      saveState();
+    }
+
+    function renderRequestSummary(){
+      const employeeId = reqEmployee.value;
+      const start = reqStart.value;
+      const end = reqEnd.value;
+      const type = reqType.value;
+
+      if(!employeeId || !start || !end){
+        reqSummary.textContent = "";
+        return;
+      }
+
+      const emp = state.employees.find(e => e.id === employeeId);
+      const days = workingDaysBetween(start, end);
+
+      if(days <= 0){
+        reqSummary.textContent = "This range contains no working days based on your settings.";
+        return;
+      }
+
+      let text = `${days} working day(s) selected.`;
+      if(emp && type === "annual"){
+        const rem = remainingDays(emp);
+        text += ` ${emp.name} has ${rem} remaining.`;
+        if(days > rem){
+          text += " This would exceed their remaining allowance.";
+        }
+      }
+
+      reqSummary.textContent = text;
+    }
+
+    function applyCalendarFilters(){
+      renderCalendar();
+    }
+
+    function resetCalendarFilters(){
+      calEmployee.value = "all";
+      calFrom.value = "";
+      calTo.value = "";
+      renderCalendar();
+    }
+
+    function saveSettings(){
+      const start = yearStart.value;
+      const def = Number(defaultAllowanceInput.value);
+
+      if(!start){
+        alert("Please choose a holiday year start date.");
+        return;
+      }
+      if(isNaN(def) || def < 0){
+        alert("Please enter a valid default allowance.");
+        return;
+      }
+
+      const selectedDays = workdayChecks
+        .filter(c => c.checked)
+        .map(c => Number(c.value));
+
+      if(selectedDays.length === 0){
+        alert("Please select at least one working day.");
+        return;
+      }
+
+      state.settings.holidayYearStart = start;
+      state.settings.defaultAllowance = roundHalf(def);
+      state.settings.workWeek = selectedDays;
+
+      saveState();
+    }
+
+    function seedDemo(){
+      if(state.employees.length || state.requests.length){
+        const ok = confirm("This will add demo employees and requests alongside your existing data. Continue?");
+        if(!ok) return;
+      }
+
+      const e1 = { id: uid(), name:"Jamie Carter", email:"", allowance:28, carryOver:2, active:true };
+      const e2 = { id: uid(), name:"Priya Shah", email:"", allowance:25, carryOver:0, active:true };
+      const e3 = { id: uid(), name:"Sam O'Neill", email:"", allowance:30, carryOver:1, active:true };
+
+      state.employees.push(e1, e2, e3);
+
+      const today = new Date();
+      const addDays = (d, n) => {
+        const x = new Date(d);
+        x.setDate(x.getDate()+n);
+        return x.toISOString().slice(0,10);
+      };
+
+      state.requests.push(
+        { id: uid(), employeeId:e1.id, type:"annual", start:addDays(today, 10), end:addDays(today, 14), notes:"", status:"pending", createdAt: new Date().toISOString().slice(0,10), decisionAt:"", decidedBy:"" },
+        { id: uid(), employeeId:e2.id, type:"annual", start:addDays(today, 3), end:addDays(today, 3), notes:"One day off", status:"approved", createdAt: new Date().toISOString().slice(0,10), decisionAt:addDays(today, 1), decidedBy:"manager" },
+        { id: uid(), employeeId:e3.id, type:"unpaid", start:addDays(today, 20), end:addDays(today, 21), notes:"", status:"approved", createdAt: new Date().toISOString().slice(0,10), decisionAt:addDays(today, 5), decidedBy:"manager" }
+      );
+
+      saveState();
+    }
+
+    function exportJson(){
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(state.companyName || "company").replace(/\s+/g,"-").toLowerCase()}-leave-data.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJson(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const parsed = JSON.parse(reader.result);
+          if(!parsed || typeof parsed !== "object") throw new Error("Invalid data");
+
+          // minimal validation
+          parsed.settings = parsed.settings || defaultState().settings;
+          parsed.employees = Array.isArray(parsed.employees) ? parsed.employees : [];
+          parsed.requests = Array.isArray(parsed.requests) ? parsed.requests : [];
+
+          state = parsed;
+          saveState();
+        }catch(e){
+          alert("Import failed. Please check the file.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetAll(){
+      if(!confirm("Delete all employees and requests? This cannot be undone.")) return;
+      state = defaultState();
+      saveState();
+    }
+
+    function exportCsv(){
+      if(state.employees.length === 0){
+        alert("No employees to export.");
+        return;
+      }
+
+      const { start, end } = getHolidayYearRange();
+      const header = [
+        "Holiday year start",
+        "Holiday year end",
+        "Employee",
+        "Allowance",
+        "CarryOver",
+        "Total",
+        "UsedApprovedAnnual",
+        "Remaining"
+      ];
+
+      const lines = [header.join(",")];
+
+      state.employees
+        .slice()
+        .sort((a,b)=> (a.name||"").localeCompare(b.name||""))
+        .forEach(emp => {
+          const base = Number(emp.allowance || 0);
+          const carry = Number(emp.carryOver || 0);
+          const total = roundHalf(base + carry);
+          const used = roundHalf(usedDays(emp.id));
+          const rem = roundHalf(Math.max(0, total - used));
+
+          const row = [
+            start.toISOString().slice(0,10),
+            end.toISOString().slice(0,10),
+            csvSafe(emp.name),
+            base,
+            carry,
+            total,
+            used,
+            rem
+          ];
+          lines.push(row.join(","));
+        });
+
+      const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(state.companyName || "company").replace(/\s+/g,"-").toLowerCase()}-leave-summary.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // -----------------------------
+    // Utilities
+    // -----------------------------
+
+    function leaveTypeLabel(type){
+      switch(type){
+        case "annual": return "Annual leave";
+        case "unpaid": return "Unpaid leave";
+        case "sick": return "Sick leave";
+        case "other": return "Other";
+        default: return type || "Unknown";
+      }
+    }
+
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function csvSafe(str){
+      const s = String(str ?? "");
+      if(s.includes(",") || s.includes('"') || s.includes("\n")){
+        return `"${s.replaceAll('"','""')}"`;
+      }
+      return s;
+    }
+
+    // -----------------------------
+    // Tab navigation
+    // -----------------------------
+
+    function showTab(tabName){
+      // buttons
+      tabsEl.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabName);
+      });
+      // panels
+      panels.forEach(p => {
+        p.hidden = p.dataset.panel !== tabName;
+      });
+
+      // Render specific panels fresh
+      if(tabName === "calendar") renderCalendar();
+      if(tabName === "reports") renderReports();
+    }
+
+    tabsEl.addEventListener("click", (e) => {
+      const btn = e.target.closest(".tab-btn");
+      if(!btn) return;
+      showTab(btn.dataset.tab);
+    });
+
+    // -----------------------------
+    // Event wiring
+    // -----------------------------
+
+    companyNameInput.addEventListener("input", () => {
+      state.companyName = companyNameInput.value;
+      // don't spam renderAll on every keystroke
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderBrand();
+    });
+
+    addEmployeeBtn.addEventListener("click", addEmployee);
+    seedDemoBtn.addEventListener("click", seedDemo);
+
+    submitRequestBtn.addEventListener("click", submitRequest);
+    calcDaysBtn.addEventListener("click", renderRequestSummary);
+    reqEmployee.addEventListener("change", renderRequestSummary);
+    reqType.addEventListener("change", renderRequestSummary);
+    reqStart.addEventListener("change", renderRequestSummary);
+    reqEnd.addEventListener("change", renderRequestSummary);
+
+    calApplyBtn.addEventListener("click", applyCalendarFilters);
+    calResetBtn.addEventListener("click", resetCalendarFilters);
+
+    exportJsonBtn.addEventListener("click", exportJson);
+    importJsonInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(file) importJson(file);
+      importJsonInput.value = "";
+    });
+
+    resetAllBtn.addEventListener("click", resetAll);
+    exportCsvBtn.addEventListener("click", exportCsv);
+    refreshReportsBtn.addEventListener("click", renderReports);
+
+    saveSettingsBtn.addEventListener("click", saveSettings);
+
+    // -----------------------------
+    // Init
+    // -----------------------------
+
+    function initDefaultsIntoUI(){
+      empAllowance.value = state.settings.defaultAllowance;
+      empCarry.value = "0";
+      yearStart.value = state.settings.holidayYearStart;
+      defaultAllowanceInput.value = state.settings.defaultAllowance;
+
+      workdayChecks.forEach(chk => {
+        const val = Number(chk.value);
+        chk.checked = state.settings.workWeek.includes(val);
+      });
+    }
+
+    initDefaultsIntoUI();
+    renderAll();
+  </script>
+</body>
+</html>
 
