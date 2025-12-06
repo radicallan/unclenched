@@ -2,412 +2,518 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>IsoHotel Engine</title>
+    <title>Pixel Hotel Engine</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
         body {
+            background-color: #1a1a1a;
             margin: 0;
             overflow: hidden;
-            background: #1a1a1a;
-            font-family: 'Verdana', sans-serif; /* The classic Habbo font */
-            image-rendering: pixelated; /* Crisp edges */
+            font-family: 'VT323', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: #2b2b2b;
+            border: 4px solid #fff;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            image-rendering: pixelated; 
+        }
+
         canvas {
             display: block;
         }
-        #ui {
+
+        #ui-layer {
             position: absolute;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            pointer-events: none;
-            text-align: center;
-            border: 2px solid #fff;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
         }
-        .highlight { color: #f7eb05; font-weight: bold; }
+
+        #chat-input {
+            flex-grow: 1;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #fff;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 10px;
+            outline: none;
+        }
+
+        #chat-btn {
+            background: #e67e22;
+            border: 2px solid #fff;
+            color: white;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        #chat-btn:active { transform: scale(0.95); }
+
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: rgba(255,255,255,0.3);
+            font-size: 20px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
 
-<div id="ui">
-    Welcome to <span class="highlight">IsoHotel</span>.<br>
-    <small>Click to Move • Logic runs at 60FPS • Procedural Graphics</small>
-</div>
-<canvas id="gameCanvas"></canvas>
+    <div id="game-container">
+        <div class="logo">LOBBY v1.0 | CLICK TO MOVE</div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="ui-layer">
+            <input type="text" id="chat-input" placeholder="Type here to chat..." maxlength="40">
+            <button id="chat-btn">SAY</button>
+        </div>
+    </div>
 
 <script>
 /**
- * ISOHOTEL ENGINE
- * A minimal, high-performance isometric engine written from scratch.
+ * HIGH QUALITY ISOMETRIC ENGINE
+ * Created for the User
  */
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 // --- CONFIGURATION ---
-const TILE_WIDTH = 64;
-const TILE_HEIGHT = 32; // Standard 2:1 Iso Ratio
+const TILE_W = 64; // Isometric tile width
+const TILE_H = 32; // Isometric tile height
 const MAP_SIZE = 12;
-const COLORS = {
+const SPEED = 0.08;
+
+// --- ASSETS (Procedural Generation) ---
+// We draw assets programmatically to ensure it works without external files.
+
+const PALETTE = {
     floor: '#95a5a6',
-    floorDark: '#7f8c8d',
-    wallLeft: '#bdc3c7',
-    wallRight: '#95a5a6',
-    wallTop: '#ecf0f1',
-    highlight: 'rgba(255, 255, 255, 0.3)',
-    shadow: 'rgba(0,0,0,0.2)'
+    floorHighlight: '#bdc3c7',
+    wallLeft: '#7f8c8d',
+    wallRight: '#586364',
+    wallTop: '#95a5a6',
+    skin: '#f1c27d',
+    shirt: '#e74c3c',
+    pants: '#3498db',
+    furniture: '#8e44ad',
+    gold: '#f1c40f'
 };
 
-// --- STATE MANAGEMENT ---
-let width, height;
-let cameraX = 0;
-let cameraY = 100;
-let mouse = { x: 0, y: 0, gridX: -1, gridY: -1 };
-let frameCount = 0;
+// --- GAME STATE ---
+let mouse = { x: 0, y: 0, isoX: 0, isoY: 0 };
+let map = []; // 0 = Floor, 1 = Wall, 2 = Furniture
+let entities = [];
+let particles = [];
+let bubbles = [];
 
-// The World Map (0: Floor, 1: Wall)
-const map = [];
-for(let x=0; x<MAP_SIZE; x++) {
-    map[x] = [];
-    for(let y=0; y<MAP_SIZE; y++) {
-        // Create simple walls on edges
-        if (x === 0 || y === 0) map[x][y] = 1; 
-        else map[x][y] = 0;
+// Initialize Map
+for(let y = 0; y < MAP_SIZE; y++) {
+    let row = [];
+    for(let x = 0; x < MAP_SIZE; x++) {
+        // Create walls on edges
+        if (x === 0 || y === 0) row.push(1);
+        else if (x === 5 && y === 5) row.push(2); // A "Throne" in the middle
+        else row.push(0);
     }
+    map.push(row);
 }
 
-// --- ENTITIES ---
+// --- CLASSES ---
+
 class Entity {
-    constructor(x, y, color) {
+    constructor(x, y, name) {
         this.x = x;
         this.y = y;
-        this.z = 0; // Height off ground
+        this.z = 0;
         this.targetX = x;
         this.targetY = y;
-        this.color = color;
-        this.speed = 0.15;
-        this.chat = null;
-        this.chatTimer = 0;
-        this.height = 40; // Pixel height of sprite
+        this.name = name;
+        this.color = PALETTE.shirt;
+        this.moving = false;
+        this.frame = 0;
+        this.path = [];
     }
 
     update() {
-        // Smooth interpolation movement
-        const dx = this.targetX - this.x;
-        const dy = this.targetY - this.y;
-        
-        if (Math.abs(dx) > 0.05) this.x += dx * this.speed;
-        else this.x = this.targetX;
-        
-        if (Math.abs(dy) > 0.05) this.y += dy * this.speed;
-        else this.y = this.targetY;
-
-        // Bobbing animation for idle
-        if(Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) {
-            this.z = Math.sin(frameCount * 0.1) * 2;
+        // Movement Logic
+        if (this.path.length > 0) {
+            let nextNode = this.path[0];
+            let dx = nextNode.x - this.x;
+            let dy = nextNode.y - this.y;
+            
+            if (Math.abs(dx) < SPEED && Math.abs(dy) < SPEED) {
+                this.x = nextNode.x;
+                this.y = nextNode.y;
+                this.path.shift();
+            } else {
+                this.x += Math.sign(dx) * SPEED;
+                this.y += Math.sign(dy) * SPEED;
+                this.moving = true;
+                this.frame += 0.2;
+            }
         } else {
-            // Walking hop
-            this.z = Math.abs(Math.sin(frameCount * 0.5)) * 5;
+            this.moving = false;
+            this.frame = 0;
         }
-
-        if (this.chatTimer > 0) this.chatTimer--;
-        else this.chat = null;
     }
 
-    say(text) {
-        this.chat = text;
-        this.chatTimer = 180; // 3 seconds
+    draw(ctx, offsetX, offsetY) {
+        // Convert Grid to Iso
+        const screenX = (this.x - this.y) * (TILE_W / 2) + offsetX;
+        const screenY = (this.x + this.y) * (TILE_H / 2) + offsetY;
+
+        // Bobbing animation
+        const bounce = this.moving ? Math.abs(Math.sin(this.frame)) * 5 : 0;
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(screenX, screenY + TILE_H/2, 15, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Avatar (Simple Habbo Style)
+        const h = 50; // height
+        const w = 24; // width
+        const bottomY = screenY + (TILE_H / 2) - bounce;
+
+        // Legs
+        ctx.fillStyle = PALETTE.pants;
+        ctx.fillRect(screenX - w/2, bottomY - 15, w/2 - 1, 15);
+        ctx.fillRect(screenX + 1, bottomY - 15, w/2 - 1, 15);
+
+        // Body
+        ctx.fillStyle = this.color;
+        ctx.fillRect(screenX - w/2 - 2, bottomY - 35, w + 4, 20);
+        
+        // Head
+        ctx.fillStyle = PALETTE.skin;
+        ctx.fillRect(screenX - 10, bottomY - 52, 20, 18);
+        
+        // Hair/Hat
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(screenX - 11, bottomY - 55, 22, 6);
+
+        // Name tag
+        if (!this.moving) {
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(screenX - 20, bottomY - 75, 40, 14);
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px "VT323"';
+            ctx.textAlign = 'center';
+            ctx.fillText(this.name, screenX, bottomY - 64);
+        }
     }
 }
 
-// Create Player and some Furni
-const player = new Entity(5, 5, '#e74c3c'); // Red guy
-const furniture = [
-    { x: 3, y: 3, type: 'plant' },
-    { x: 8, y: 4, type: 'table' },
-    { x: 8, y: 5, type: 'table' },
-    { x: 2, y: 8, type: 'lamp' }
-];
+class ChatBubble {
+    constructor(text, x, y) {
+        this.text = text;
+        this.gridX = x;
+        this.gridY = y;
+        this.life = 0;
+        this.maxLife = 200;
+        this.floatOffset = 0;
+    }
 
-// --- ISOMETRIC MATH ---
-// Converts Grid Coordinates (3D) to Screen Coordinates (2D)
-function isoToScreen(x, y, z) {
-    return {
-        x: (x - y) * TILE_WIDTH / 2 + width / 2 - cameraX,
-        y: (x + y) * TILE_HEIGHT / 2 - (z * TILE_HEIGHT) + height / 2 - cameraY
-    };
-}
+    update() {
+        this.life++;
+        this.floatOffset += 0.5;
+    }
 
-// Converts Screen Coordinates to Grid Coordinates (Inverse Matrix)
-function screenToIso(sx, sy) {
-    let adjX = sx - width / 2 + cameraX;
-    let adjY = sy - height / 2 + cameraY;
-    return {
-        x: Math.floor((adjY / (TILE_HEIGHT/2) + adjX / (TILE_WIDTH/2)) / 2),
-        y: Math.floor((adjY / (TILE_HEIGHT/2) - adjX / (TILE_WIDTH/2)) / 2)
-    };
-}
+    draw(ctx, offsetX, offsetY) {
+        const screenX = (this.gridX - this.gridY) * (TILE_W / 2) + offsetX;
+        const screenY = (this.gridX + this.gridY) * (TILE_H / 2) + offsetY - 80 - this.floatOffset;
 
-// --- RENDERING HELPERS ---
-function drawBlock(x, y, z, w, h, colorBase, heightPx) {
-    const pos = isoToScreen(x, y, z);
-    const topX = pos.x;
-    const topY = pos.y - heightPx;
-
-    ctx.lineWidth = 1;
-    ctx.lineJoin = 'round';
-
-    // Right Face
-    ctx.fillStyle = shadeColor(colorBase, -20);
-    ctx.beginPath();
-    ctx.moveTo(topX, topY + h/2);
-    ctx.lineTo(topX + w/2, topY);
-    ctx.lineTo(topX + w/2, topY + heightPx);
-    ctx.lineTo(topX, topY + h/2 + heightPx);
-    ctx.fill();
-
-    // Left Face
-    ctx.fillStyle = shadeColor(colorBase, -10);
-    ctx.beginPath();
-    ctx.moveTo(topX, topY + h/2);
-    ctx.lineTo(topX - w/2, topY);
-    ctx.lineTo(topX - w/2, topY + heightPx);
-    ctx.lineTo(topX, topY + h/2 + heightPx);
-    ctx.fill();
-
-    // Top Face
-    ctx.fillStyle = colorBase;
-    ctx.beginPath();
-    ctx.moveTo(topX, topY - h/2); // Top tip
-    ctx.lineTo(topX + w/2, topY); // Right tip
-    ctx.lineTo(topX, topY + h/2); // Bottom tip
-    ctx.lineTo(topX - w/2, topY); // Left tip
-    ctx.closePath();
-    ctx.fill();
-    
-    // Highlight Edge
-    ctx.strokeStyle = "rgba(255,255,255,0.2)";
-    ctx.stroke();
-}
-
-function drawTile(x, y, type) {
-    const pos = isoToScreen(x, y, 0);
-    
-    ctx.beginPath();
-    ctx.moveTo(pos.x, pos.y - TILE_HEIGHT/2);
-    ctx.lineTo(pos.x + TILE_WIDTH/2, pos.y);
-    ctx.lineTo(pos.x, pos.y + TILE_HEIGHT/2);
-    ctx.lineTo(pos.x - TILE_WIDTH/2, pos.y);
-    ctx.closePath();
-
-    if (type === 1) { // Wall
-        // Draw Wall Column
-        drawBlock(x, y, 0, TILE_WIDTH, TILE_HEIGHT, '#bdc3c7', 80);
-    } else {
-        // Floor
-        ctx.fillStyle = (x + y) % 2 === 0 ? COLORS.floor : COLORS.floorDark;
+        ctx.globalAlpha = 1 - (this.life / this.maxLife);
+        
+        // Bubble Body
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.roundRect(screenX - 60, screenY - 15, 120, 30, 5);
         ctx.fill();
         
-        // Mouse Hover Highlight
-        if (mouse.gridX === x && mouse.gridY === y) {
-            ctx.fillStyle = COLORS.highlight;
-            ctx.fill();
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-    }
-}
-
-function drawShadow(x, y) {
-    const pos = isoToScreen(x, y, 0);
-    ctx.fillStyle = COLORS.shadow;
-    ctx.beginPath();
-    ctx.ellipse(pos.x, pos.y, TILE_WIDTH/3, TILE_HEIGHT/3, 0, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-function drawAvatar(entity) {
-    const pos = isoToScreen(entity.x, entity.y, 0);
-    const spriteY = pos.y - entity.z - 10;
-
-    // Shadow
-    drawShadow(entity.x, entity.y);
-
-    // Procedural Avatar Drawing
-    // Body
-    ctx.fillStyle = entity.color;
-    ctx.fillRect(pos.x - 10, spriteY - 30, 20, 30);
-    
-    // Head
-    ctx.fillStyle = '#f1c40f'; // Skin
-    ctx.fillRect(pos.x - 8, spriteY - 44, 16, 16);
-    
-    // Hair
-    ctx.fillStyle = '#2c3e50';
-    ctx.fillRect(pos.x - 9, spriteY - 46, 18, 6);
-
-    // Legs (Simple animation)
-    ctx.fillStyle = '#34495e';
-    let legOffset = Math.sin(frameCount * 0.5) * 5;
-    ctx.fillRect(pos.x - 9, spriteY - 5, 6, 12 + legOffset);
-    ctx.fillRect(pos.x + 3, spriteY - 5, 6, 12 - legOffset);
-
-    // Chat Bubble
-    if (entity.chat) {
-        ctx.font = "12px Verdana";
-        const w = ctx.measureText(entity.chat).width + 10;
-        ctx.fillStyle = "white";
+        // Pointer
         ctx.beginPath();
-        ctx.roundRect(pos.x - w/2, spriteY - 70, w, 20, 5);
-        ctx.fill();
-        
-        // Triangle tail
-        ctx.beginPath();
-        ctx.moveTo(pos.x, spriteY - 50);
-        ctx.lineTo(pos.x - 5, spriteY - 51);
-        ctx.lineTo(pos.x + 5, spriteY - 51);
+        ctx.moveTo(screenX, screenY + 15);
+        ctx.lineTo(screenX - 5, screenY + 20);
+        ctx.lineTo(screenX + 5, screenY + 20);
         ctx.fill();
 
-        ctx.fillStyle = "black";
-        ctx.fillText(entity.chat, pos.x - w/2 + 5, spriteY - 56);
+        // Text
+        ctx.fillStyle = '#000';
+        ctx.font = '16px "VT323"';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.text, screenX, screenY);
+
+        ctx.globalAlpha = 1;
     }
 }
 
-function drawFurni(item) {
-    if (item.type === 'plant') {
-        drawBlock(item.x, item.y, 0, 20, 10, '#8e44ad', 20); // Pot
-        drawBlock(item.x, item.y, 0.5, 10, 5, '#2ecc71', 40); // Plant
-    } else if (item.type === 'table') {
-        drawBlock(item.x, item.y, 0, 10, 5, '#7f8c8d', 20); // Leg
-        drawBlock(item.x, item.y, 0.6, TILE_WIDTH, TILE_HEIGHT, '#34495e', 5); // Top
-    } else if (item.type === 'lamp') {
-        drawBlock(item.x, item.y, 0, 10, 5, '#f39c12', 50); // Base
-        
-        // Light glow
-        const pos = isoToScreen(item.x, item.y, 1.5);
-        const grad = ctx.createRadialGradient(pos.x, pos.y, 5, pos.x, pos.y, 40);
-        grad.addColorStop(0, "rgba(255, 255, 200, 0.8)");
-        grad.addColorStop(1, "rgba(255, 255, 200, 0)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, 40, 0, Math.PI*2);
-        ctx.fill();
-    }
-}
-
-// Utility: Lighten/Darken hex color
-function shadeColor(color, percent) {
-    var R = parseInt(color.substring(1,3),16);
-    var G = parseInt(color.substring(3,5),16);
-    var B = parseInt(color.substring(5,7),16);
-    R = parseInt(R * (100 + percent) / 100);
-    G = parseInt(G * (100 + percent) / 100);
-    B = parseInt(B * (100 + percent) / 100);
-    R = (R<255)?R:255;  
-    G = (G<255)?G:255;  
-    B = (B<255)?B:255;  
-    var RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-    var GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-    var BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-    return "#"+RR+GG+BB;
-}
-
-// --- CORE LOOP ---
-function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-}
-
-function update() {
-    frameCount++;
-    player.update();
-}
-
-function draw() {
-    // 1. Clear Screen
-    const grad = ctx.createLinearGradient(0, 0, 0, height);
-    grad.addColorStop(0, "#2c3e50");
-    grad.addColorStop(1, "#000000");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
-
-    // 2. Prepare Render List (Depth Sorting)
-    let renderList = [];
-
-    // Add Tiles
-    for(let x=0; x<MAP_SIZE; x++) {
-        for(let y=0; y<MAP_SIZE; y++) {
-            renderList.push({ type: 'tile', x: x, y: y, z: 0, sortDepth: x + y });
-        }
-    }
-
-    // Add Furniture
-    furniture.forEach(f => {
-        renderList.push({ type: 'furni', obj: f, x: f.x, y: f.y, z: 0, sortDepth: f.x + f.y + 0.5 }); // +0.5 to sit on top of tiles
-    });
-
-    // Add Player
-    renderList.push({ type: 'player', x: Math.round(player.x), y: Math.round(player.y), sortDepth: player.x + player.y + 0.6 });
-
-    // 3. Sort by Depth (Painter's Algorithm)
-    renderList.sort((a, b) => a.sortDepth - b.sortDepth);
-
-    // 4. Draw Everything
-    renderList.forEach(item => {
-        if (item.type === 'tile') {
-            drawTile(item.x, item.y, map[item.x][item.y]);
-        } else if (item.type === 'furni') {
-            drawFurni(item.obj);
-        } else if (item.type === 'player') {
-            drawAvatar(player);
-        }
-    });
-}
-
-function loop() {
-    update();
-    draw();
-    requestAnimationFrame(loop);
-}
+// --- INITIALIZE PLAYER ---
+const player = new Entity(3, 3, "Guest");
+entities.push(player);
 
 // --- INPUT HANDLING ---
-window.addEventListener('resize', resize);
-window.addEventListener('mousemove', e => {
+canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
     mouse.x = e.clientX - rect.left;
     mouse.y = e.clientY - rect.top;
-    const gridPos = screenToIso(mouse.x, mouse.y);
-    mouse.gridX = gridPos.x;
-    mouse.gridY = gridPos.y;
 });
 
-window.addEventListener('mousedown', () => {
-    // Check bounds
-    if (mouse.gridX >= 0 && mouse.gridX < MAP_SIZE && mouse.gridY >= 0 && mouse.gridY < MAP_SIZE) {
-        // Simple collision check (Walls)
-        if (map[mouse.gridX][mouse.gridY] !== 1) {
-            player.targetX = mouse.gridX;
-            player.targetY = mouse.gridY;
-            
-            // Random Habbo-style phrase
-            const phrases = ["Going there!", "On my way.", "Bobba bobba.", "Nice pixel art!", "Walk walk walk"];
-            if (Math.random() > 0.7) {
-                player.say(phrases[Math.floor(Math.random() * phrases.length)]);
-            }
-        } else {
-            player.say("Can't walk there!");
+canvas.addEventListener('mousedown', (e) => {
+    // Simple Pathfinding: Just set target to mouse ISO
+    // In a full engine, we'd use A* here to avoid walls
+    if (mouse.isoX >= 0 && mouse.isoX < MAP_SIZE && mouse.isoY >= 0 && mouse.isoY < MAP_SIZE) {
+        if (map[mouse.isoY][mouse.isoX] === 0) {
+            // BFS Pathfinding
+            player.path = findPath(Math.round(player.x), Math.round(player.y), mouse.isoX, mouse.isoY);
         }
     }
 });
 
+const chatInput = document.getElementById('chat-input');
+const chatBtn = document.getElementById('chat-btn');
+
+function speak() {
+    const text = chatInput.value;
+    if(text.trim() === "") return;
+    bubbles.push(new ChatBubble(text, player.x, player.y));
+    chatInput.value = "";
+    // Play subtle sound
+    playSound();
+}
+
+chatBtn.addEventListener('click', speak);
+chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') speak(); });
+
+// --- HELPERS ---
+
+function isoToScreen(x, y, offsetX, offsetY) {
+    return {
+        x: (x - y) * (TILE_W / 2) + offsetX,
+        y: (x + y) * (TILE_H / 2) + offsetY
+    };
+}
+
+function screenToIso(screenX, screenY, offsetX, offsetY) {
+    const adjX = screenX - offsetX;
+    const adjY = screenY - offsetY;
+    const isoY = (2 * adjY - adjX * (TILE_H*2 / TILE_W)) / 2; // Rough approximation logic
+    // More precise inversion
+    const ym = (2 * (screenY - offsetY)) / TILE_H;
+    const xm = (screenX - offsetX) / (TILE_W / 2);
+    return {
+        x: Math.round((xm + ym) / 2),
+        y: Math.round((ym - xm) / 2)
+    };
+}
+
+function drawBlock(x, y, z, type, offsetX, offsetY, isHovered) {
+    const sx = (x - y) * (TILE_W / 2) + offsetX;
+    const sy = (x + y) * (TILE_H / 2) + offsetY - (z * TILE_H);
+
+    // Colors
+    let cTop, cLeft, cRight;
+
+    if (type === 0) { // Floor
+        cTop = isHovered ? '#bdc3c7' : '#95a5a6';
+        cLeft = '#7f8c8d';
+        cRight = '#7f8c8d';
+    } else if (type === 1) { // Wall
+        cTop = '#bdc3c7';
+        cLeft = '#95a5a6';
+        cRight = '#7f8c8d';
+    } else if (type === 2) { // Throne (Gold)
+        cTop = '#f1c40f';
+        cLeft = '#d35400';
+        cRight = '#e67e22';
+    }
+
+    // Top Face
+    ctx.fillStyle = cTop;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx + TILE_W / 2, sy - TILE_H / 2);
+    ctx.lineTo(sx + TILE_W, sy);
+    ctx.lineTo(sx + TILE_W / 2, sy + TILE_H / 2);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Highlight edges
+    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 3D Height faces
+    let height = type === 0 ? 4 : (type === 2 ? 40 : 100); // Floor thin, Wall tall
+
+    // Right Face
+    ctx.fillStyle = cRight;
+    ctx.beginPath();
+    ctx.moveTo(sx + TILE_W, sy);
+    ctx.lineTo(sx + TILE_W / 2, sy + TILE_H / 2);
+    ctx.lineTo(sx + TILE_W / 2, sy + TILE_H / 2 + height);
+    ctx.lineTo(sx + TILE_W, sy + height);
+    ctx.closePath();
+    ctx.fill();
+
+    // Left Face
+    ctx.fillStyle = cLeft;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx + TILE_W / 2, sy + TILE_H / 2);
+    ctx.lineTo(sx + TILE_W / 2, sy + TILE_H / 2 + height);
+    ctx.lineTo(sx, sy + height);
+    ctx.closePath();
+    ctx.fill();
+}
+
+// Simple BFS for pathfinding
+function findPath(sx, sy, ex, ey) {
+    let queue = [[{x: sx, y: sy}]];
+    let visited = new Set();
+    visited.add(`${sx},${sy}`);
+
+    while(queue.length > 0) {
+        let path = queue.shift();
+        let curr = path[path.length - 1];
+
+        if(curr.x === ex && curr.y === ey) return path.slice(1);
+
+        const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
+        
+        for(let d of dirs) {
+            let nx = curr.x + d.x;
+            let ny = curr.y + d.y;
+            
+            if(nx >= 0 && nx < MAP_SIZE && ny >= 0 && ny < MAP_SIZE && 
+               map[ny][nx] === 0 && !visited.has(`${nx},${ny}`)) {
+                visited.add(`${nx},${ny}`);
+                let newPath = [...path, {x: nx, y: ny}];
+                queue.push(newPath);
+            }
+        }
+    }
+    return [];
+}
+
+// Simple synth sound
+function playSound() {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+    
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.1);
+}
+
+// --- MAIN LOOP ---
+
+function draw() {
+    // Clear Screen
+    ctx.fillStyle = '#2b2b2b';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Camera Center
+    const offsetX = canvas.width / 2 - TILE_W / 2;
+    const offsetY = 100;
+
+    // Calculate Mouse Hover Logic
+    // We reverse engineer screen coord to map coord
+    // Since iso logic is tricky to reverse exactly with height, we iterate to find closest tile
+    let hoverX = -1, hoverY = -1;
+    // Approximation for hit testing
+    const mIso = screenToIso(mouse.x, mouse.y, offsetX, offsetY);
+    // Clamp
+    if(mIso.x >= 0 && mIso.x < MAP_SIZE && mIso.y >= 0 && mIso.y < MAP_SIZE) {
+        hoverX = mIso.x;
+        hoverY = mIso.y;
+    }
+    mouse.isoX = hoverX;
+    mouse.isoY = hoverY;
+
+    // RENDER LIST (Depth Sorting)
+    // We create a list of everything to be drawn (Tiles, Furniture, Entities)
+    // Then sort them by their projected depth order
+    let renderList = [];
+
+    // 1. Add Tiles & Walls
+    for(let y = 0; y < MAP_SIZE; y++) {
+        for(let x = 0; x < MAP_SIZE; x++) {
+            renderList.push({
+                type: 'tile',
+                x: x, y: y, z: 0,
+                val: map[y][x]
+            });
+        }
+    }
+
+    // 2. Add Entities
+    entities.forEach(ent => {
+        renderList.push({
+            type: 'entity',
+            x: ent.x, y: ent.y, z: 0,
+            obj: ent
+        });
+    });
+
+    // 3. Sort logic: (X + Y) is the main depth factor in isometric
+    renderList.sort((a, b) => {
+        return (a.x + a.y) - (b.x + b.y);
+    });
+
+    // 4. Draw Everything
+    renderList.forEach(item => {
+        if(item.type === 'tile') {
+            const isHover = (item.x === hoverX && item.y === hoverY);
+            drawBlock(item.x, item.y, item.z, item.val, offsetX, offsetY, isHover);
+        } else if (item.type === 'entity') {
+            item.obj.update();
+            item.obj.draw(ctx, offsetX, offsetY);
+        }
+    });
+
+    // 5. Draw Chat Bubbles (Always on top)
+    for(let i = bubbles.length - 1; i >= 0; i--) {
+        let b = bubbles[i];
+        b.update();
+        b.draw(ctx, offsetX, offsetY);
+        if(b.life > b.maxLife) bubbles.splice(i, 1);
+    }
+
+    requestAnimationFrame(draw);
+}
+
 // Start
-resize();
-loop();
+draw();
 
 </script>
 </body>
