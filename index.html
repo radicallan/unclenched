@@ -1,1727 +1,2301 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Annual Leave Tool</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IsoSocial — Habbo-inspired Isometric Room (Offline)</title>
   <style>
     :root{
-      --bg: #0f1115;
-      --panel: #141824;
-      --panel-2: #0c0f18;
-      --text: #f5f7ff;
-      --muted: #b6bccf;
-      --accent: #ffffff;
-      --line: rgba(255,255,255,0.08);
-      --good: #2fd48f;
-      --warn: #ffb020;
-      --bad: #ff5c6c;
-      --shadow: 0 12px 30px rgba(0,0,0,0.25);
-      --radius: 14px;
-      --radius-sm: 10px;
-      --focus: 0 0 0 3px rgba(255,255,255,0.12);
-      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      --bg:#0b0b0c;
+      --panel:#101012;
+      --line:#242428;
+      --text:#e9e9ee;
+      --muted:#a7a7b2;
+      --good:#7ef0b3;
+      --warn:#ffcf66;
+      --bad:#ff6b6b;
+      --accent:#ffffff;
+      --shadow: rgba(0,0,0,.35);
     }
-
-    @media (prefers-color-scheme: light){
-      :root{
-        --bg: #f5f7fb;
-        --panel: #ffffff;
-        --panel-2: #f3f5fa;
-        --text: #0e1220;
-        --muted: #59627a;
-        --accent: #0e1220;
-        --line: rgba(10,20,40,0.08);
-        --shadow: 0 10px 22px rgba(10,20,40,0.08);
-        --focus: 0 0 0 3px rgba(10,20,40,0.08);
-      }
-    }
-
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: var(--font);
-      background: radial-gradient(1200px 800px at 10% -10%, rgba(255,255,255,0.06), transparent 60%),
-                  radial-gradient(900px 700px at 100% 0%, rgba(255,255,255,0.05), transparent 60%),
-                  var(--bg);
-      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 700px at 50% -10%, #1a1a1f, var(--bg));
+      color:var(--text);
+      height:100vh;
+      overflow:hidden;
     }
-
+    .app{
+      display:grid;
+      grid-template-columns: 290px 1fr 320px;
+      grid-template-rows: 56px 1fr 92px;
+      gap:0;
+      height:100vh;
+    }
     header{
-      position: sticky;
-      top:0;
-      z-index: 5;
-      backdrop-filter: blur(10px);
-      background: linear-gradient(to bottom, rgba(0,0,0,0.18), transparent);
-      border-bottom: 1px solid var(--line);
-    }
-
-    .wrap{
-      max-width: 1150px;
-      margin: 0 auto;
-      padding: 22px 22px 30px;
-    }
-
-    .topbar{
+      grid-column:1/-1;
       display:flex;
-      gap: 14px;
       align-items:center;
-      justify-content: space-between;
-      flex-wrap: wrap;
+      justify-content:space-between;
+      padding:0 14px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(#0f0f12, #0b0b0c);
     }
-
     .brand{
       display:flex;
       align-items:center;
-      gap: 12px;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      border: 1px solid var(--line);
+      gap:10px;
+      min-width:260px;
     }
-
+    .logo{
+      width:34px;height:34px;border-radius:10px;
+      border:1px solid var(--line);
+      background: linear-gradient(145deg, #1f1f27, #0f0f12);
+      display:grid;place-items:center;
+      box-shadow: 0 8px 22px var(--shadow);
+      font-weight:800;
+    }
     .brand h1{
-      font-size: 18px;
-      margin:0 0 2px 0;
-      letter-spacing: 0.2px;
+      font-size:14px;
+      margin:0;
+      letter-spacing:.4px;
     }
-    .brand small{
-      color: var(--muted);
-      font-size: 11.5px;
+    .brand .sub{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
     }
-
-    .company-input{
-      display:flex;
-      align-items:center;
-      gap: 8px;
+    .top-actions{
+      display:flex; align-items:center; gap:10px;
     }
-    .company-input input{
-      width: 220px;
+    .pill{
+      display:flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      user-select:none;
     }
-
-    nav{
-      display:flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn{
-      border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
+    .btn{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color:var(--text);
+      border-radius:10px;
+      padding:10px 12px;
+      font-weight:650;
+      font-size:12px;
       cursor:pointer;
-      font-weight: 540;
-      font-size: 12.5px;
-      letter-spacing: 0.2px;
-      transition: transform .08s ease, border-color .15s ease, background .15s ease;
     }
-    .tab-btn:hover{ transform: translateY(-1px); }
-    .tab-btn.active{
-      border-color: rgba(255,255,255,0.22);
-      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    .btn:hover{ background: rgba(255,255,255,0.07); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      background: rgba(255,255,255,0.10);
+      border-color:#2f2f35;
     }
-
-    main .panel{
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 22px;
+    .btn.tiny{ padding:7px 10px; border-radius:999px; font-weight:600; }
+    aside{
+      background: rgba(255,255,255,0.02);
+      border-right:1px solid var(--line);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-width:260px;
     }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+    aside.right{
+      border-right:none;
+      border-left:1px solid var(--line);
+      min-width:280px;
     }
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: 1fr; }
-      .company-input input{ width: 180px; }
+    .panel{
+      padding:12px;
+      border-bottom:1px solid var(--line);
     }
-
-    h2{
-      margin: 0 0 12px 0;
-      font-size: 18px;
+    .panel h2{
+      margin:0 0 10px 0;
+      font-size:12px;
+      letter-spacing:.35px;
+      color:var(--muted);
+      font-weight:700;
+      text-transform:uppercase;
     }
-    h3{
-      margin: 0 0 10px 0;
-      font-size: 14.5px;
-      color: var(--muted);
-      font-weight: 600;
-      letter-spacing: 0.2px;
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height: calc(100vh - 56px - 92px - 24px);
+      overflow:auto;
+      padding-right:4px;
     }
-
-    label{
-      display:block;
-      font-size: 11.5px;
-      color: var(--muted);
-      margin-bottom: 6px;
+    .card{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      border-radius:12px;
+      padding:10px;
     }
-
-    input, select, textarea{
-      width: 100%;
-      padding: 10px 11px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: var(--panel-2);
-      color: var(--text);
-      outline: none;
-      font-size: 12.8px;
-    }
-    textarea{ min-height: 80px; resize: vertical; }
-    input:focus, select:focus, textarea:focus{
-      box-shadow: var(--focus);
-      border-color: rgba(255,255,255,0.22);
-    }
-
     .row{
       display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .row > *{ flex: 1 1 180px; }
-
-    .btn{
-      border: 1px solid var(--line);
-      background: var(--accent);
-      color: var(--bg);
-      padding: 10px 12px;
-      border-radius: 10px;
-      cursor:pointer;
-      font-weight: 650;
-      font-size: 12px;
-      letter-spacing: 0.2px;
-    }
-    .btn.secondary{
-      background: transparent;
-      color: var(--text);
-    }
-    .btn.ghost{
-      background: var(--panel-2);
-      color: var(--text);
-    }
-    .btn.small{
-      padding: 6px 9px;
-      font-size: 11px;
-      border-radius: 8px;
-    }
-    .btn.good{
-      background: var(--good);
-      color: #08130e;
-      border-color: transparent;
-    }
-    .btn.bad{
-      background: var(--bad);
-      color: #16060a;
-      border-color: transparent;
-    }
-    .btn.warn{
-      background: var(--warn);
-      color: #1a1204;
-      border-color: transparent;
-    }
-
-    .muted{ color: var(--muted); }
-    .hint{
-      font-size: 11.5px;
-      color: var(--muted);
-      margin-top: 6px;
-      line-height: 1.4;
-    }
-
-    .table{
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    .table th, .table td{
-      border-bottom: 1px solid var(--line);
-      padding: 10px 8px;
-      text-align:left;
-      vertical-align: top;
-    }
-    .table th{
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 11px;
-      letter-spacing: 0.25px;
-      text-transform: uppercase;
-    }
-
-    .pill{
-      display:inline-flex;
       align-items:center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 10.5px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      border: 1px solid var(--line);
-      background: var(--panel-2);
+      justify-content:space-between;
+      gap:10px;
     }
-    .pill.pending{ color: var(--warn); }
-    .pill.approved{ color: var(--good); }
-    .pill.rejected{ color: var(--bad); }
-
-    .section{
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid var(--line);
+    .muted{ color:var(--muted); }
+    .small{ font-size:12px; }
+    .tiny{ font-size:11px; }
+    .divider{
+      height:1px; background: var(--line); margin:10px 0;
     }
-
-    .empty{
-      border: 1px dashed var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
-      padding: 14px;
-      border-radius: 12px;
-      color: var(--muted);
-      font-size: 12px;
+    .tag{
+      font-size:11px;
+      color:var(--muted);
+      border:1px solid var(--line);
+      padding:4px 8px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.02);
+      user-select:none;
+      white-space:nowrap;
     }
-
-    .right{
+    main{
+      position:relative;
+      background: radial-gradient(900px 500px at 55% 30%, rgba(255,255,255,0.06), rgba(0,0,0,0));
+      overflow:hidden;
+    }
+    canvas{
+      width:100%;
+      height:100%;
+      display:block;
+    }
+    .hud{
+      position:absolute;
+      left:12px; top:12px;
       display:flex;
-      gap: 8px;
-      align-items:center;
-      justify-content: flex-end;
-      flex-wrap: wrap;
+      gap:8px;
+      z-index:5;
+      flex-wrap:wrap;
+      max-width: calc(100% - 24px);
     }
-
-    .spacer{ height: 6px; }
-
-    .footer{
-      margin-top: 22px;
+    .toast{
+      position:absolute;
+      right:12px; top:12px;
+      z-index:6;
       display:flex;
-      gap: 10px;
-      justify-content: space-between;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-end;
+      pointer-events:none;
+    }
+    .toast .t{
+      pointer-events:none;
+      border:1px solid var(--line);
+      background: rgba(16,16,18,0.88);
+      backdrop-filter: blur(8px);
+      padding:10px 12px;
+      border-radius:12px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      font-size:12px;
+      color:var(--text);
+      max-width:320px;
+    }
+    .t.good{ border-color: rgba(126,240,179,.35); }
+    .t.warn{ border-color: rgba(255,207,102,.35); }
+    .t.bad{ border-color: rgba(255,107,107,.35); }
+
+    footer{
+      grid-column:1/-1;
+      border-top:1px solid var(--line);
+      background: rgba(8,8,10,0.96);
+      display:grid;
+      grid-template-columns: 1fr 340px;
+      gap:10px;
+      padding:10px 12px;
+      align-items:stretch;
+    }
+    .chatbox{
+      display:flex;
+      gap:10px;
+      align-items:stretch;
+      min-width:0;
+    }
+    .chatlog{
+      flex:1;
+      min-width:0;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      border-radius:12px;
+      padding:10px;
+      overflow:auto;
+      font-size:12px;
+      line-height:1.45;
+      max-height:72px;
+    }
+    .chatlog b{ color:var(--accent); }
+    .chatlog .sys{ color: var(--muted); }
+    .chatinput{
+      display:flex;
+      gap:8px;
       align-items:center;
-      flex-wrap: wrap;
-      font-size: 11px;
-      color: var(--muted);
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      border-radius:12px;
+      padding:8px;
+      min-width:0;
     }
-
-    .danger-zone{
-      border: 1px solid rgba(255,92,108,0.25);
-      background: linear-gradient(180deg, rgba(255,92,108,0.06), transparent);
-      padding: 14px;
-      border-radius: 12px;
+    input[type="text"]{
+      width:100%;
+      border:none;
+      outline:none;
+      background:transparent;
+      color:var(--text);
+      font-size:13px;
+      min-width:0;
     }
-
+    .rightbar{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      align-items:center;
+    }
     .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 10.5px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      border: 1px solid var(--line);
-      background: var(--panel-2);
+      font-size:11px; color:var(--muted);
+      border:1px solid var(--line);
+      padding:4px 8px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.02);
+      user-select:none;
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:8px;
+    }
+
+    .item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background: rgba(255,255,255,0.02);
+      cursor:pointer;
+      user-select:none;
+    }
+    .item:hover{ background: rgba(255,255,255,0.05); }
+    .item.active{
+      outline:2px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+    }
+    .item .meta{
+      display:flex; flex-direction:column; gap:2px;
+      min-width:0;
+    }
+    .item .meta .name{
+      font-size:12px; font-weight:700;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .item .meta .desc{
+      font-size:11px; color:var(--muted);
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .badge{
+      font-size:11px; color:var(--muted);
+      border:1px solid var(--line);
+      padding:4px 8px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px){
+      .app{ grid-template-columns: 260px 1fr; grid-template-rows:56px 1fr 92px; }
+      aside.right{ display:none; }
+      footer{ grid-template-columns: 1fr; }
+      .rightbar{ justify-content:space-between; }
+    }
+    @media (max-width: 820px){
+      .app{ grid-template-columns: 1fr; }
+      aside{ display:none; }
+      footer{ padding:10px; }
     }
   </style>
 </head>
 <body>
+<div class="app">
   <header>
-    <div class="wrap">
-      <div class="topbar">
-        <div class="brand">
-          <div>
-            <h1 id="brandTitle">Annual Leave Tool</h1>
-            <small id="brandSub">Local browser-based leave tracker</small>
-          </div>
-          <div class="company-input">
-            <label for="companyName" class="muted" style="margin:0;font-size:10.5px;">Company</label>
-            <input id="companyName" type="text" placeholder="Your company name" />
-          </div>
-        </div>
-
-        <nav id="tabs">
-          <button class="tab-btn active" data-tab="employees">Employees</button>
-          <button class="tab-btn" data-tab="request">Request Leave</button>
-          <button class="tab-btn" data-tab="approvals">Approvals</button>
-          <button class="tab-btn" data-tab="calendar">Team Calendar</button>
-          <button class="tab-btn" data-tab="reports">Reports & Backup</button>
-          <button class="tab-btn" data-tab="settings">Settings</button>
-        </nav>
+    <div class="brand">
+      <div class="logo">IS</div>
+      <div>
+        <h1>IsoSocial</h1>
+        <div class="sub">Habbo-inspired isometric room • offline • original assets</div>
       </div>
+    </div>
+    <div class="top-actions">
+      <div class="pill" id="statusPill">Loading…</div>
+      <button class="btn tiny" id="btnHelp">Commands</button>
+      <button class="btn tiny" id="btnSave">Save</button>
+      <button class="btn tiny" id="btnLoad">Load</button>
+      <button class="btn tiny" id="btnExport">Export</button>
+      <button class="btn tiny" id="btnImport">Import</button>
+      <button class="btn tiny" id="btnSound">Sound: On</button>
+      <button class="btn tiny primary" id="btnBuild">Build: Off</button>
     </div>
   </header>
 
-  <main class="wrap">
-    <!-- EMPLOYEES -->
-    <section class="panel" data-panel="employees">
-      <div class="grid">
-        <div>
-          <h2>Employees</h2>
-          <div class="hint">
-            Add your drivers, admins, and office staff here. Allowances are stored per employee.
-            Used and remaining days are calculated from approved annual leave requests.
-          </div>
-
-          <div class="section">
-            <h3>Add employee</h3>
-            <div class="row">
-              <div>
-                <label for="empName">Name</label>
-                <input id="empName" type="text" placeholder="e.g., Alex Morgan" />
-              </div>
-              <div>
-                <label for="empEmail">Email (optional)</label>
-                <input id="empEmail" type="email" placeholder="e.g., alex@company.com" />
-              </div>
-            </div>
-
-            <div class="row">
-              <div>
-                <label for="empAllowance">Annual allowance (days)</label>
-                <input id="empAllowance" type="number" min="0" step="0.5" />
-              </div>
-              <div>
-                <label for="empCarry">Carry-over (days)</label>
-                <input id="empCarry" type="number" min="0" step="0.5" value="0" />
-              </div>
-            </div>
-
-            <div class="row">
-              <button id="addEmployeeBtn" class="btn">Add employee</button>
-              <button id="seedDemoBtn" class="btn secondary">Add demo data</button>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3>Current employees</h3>
-          <div id="employeesList"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- REQUEST -->
-    <section class="panel" data-panel="request" hidden>
-      <h2>Request leave</h2>
-      <div class="grid">
-        <div>
-          <h3>New request</h3>
-
-          <div class="row">
-            <div>
-              <label for="reqEmployee">Employee</label>
-              <select id="reqEmployee"></select>
-            </div>
-            <div>
-              <label for="reqType">Leave type</label>
-              <select id="reqType">
-                <option value="annual">Annual leave</option>
-                <option value="unpaid">Unpaid leave</option>
-                <option value="sick">Sick leave (record only)</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="row">
-            <div>
-              <label for="reqStart">Start date</label>
-              <input id="reqStart" type="date" />
-            </div>
-            <div>
-              <label for="reqEnd">End date</label>
-              <input id="reqEnd" type="date" />
-            </div>
-          </div>
-
-          <div class="row">
-            <div>
-              <label for="reqNotes">Notes (optional)</label>
-              <textarea id="reqNotes" placeholder="Route coverage, reason, handover notes, etc."></textarea>
-            </div>
-          </div>
-
-          <div class="row">
-            <button id="calcDaysBtn" class="btn ghost">Calculate days</button>
-            <button id="submitRequestBtn" class="btn">Submit request</button>
-          </div>
-
-          <div id="reqSummary" class="hint"></div>
-        </div>
-
-        <div>
-          <h3>My requests (all employees)</h3>
-          <div id="requestsList"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- APPROVALS -->
-    <section class="panel" data-panel="approvals" hidden>
-      <h2>Approvals</h2>
-      <div class="hint">
-        This is a simple approval queue for a small business. In a multi-user version,
-        this would be permission-controlled.
-      </div>
-
-      <div class="grid section">
-        <div>
-          <h3>Pending requests</h3>
-          <div id="pendingList"></div>
-        </div>
-        <div>
-          <h3>Recent decisions</h3>
-          <div id="decisionsList"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CALENDAR -->
-    <section class="panel" data-panel="calendar" hidden>
-      <h2>Team calendar</h2>
-      <div class="grid">
-        <div>
-          <h3>Filters</h3>
-          <div class="row">
-            <div>
-              <label for="calEmployee">Employee</label>
-              <select id="calEmployee"></select>
-            </div>
-            <div>
-              <label for="calFrom">From</label>
-              <input id="calFrom" type="date" />
-            </div>
-            <div>
-              <label for="calTo">To</label>
-              <input id="calTo" type="date" />
-            </div>
-          </div>
-          <div class="row">
-            <button id="calApplyBtn" class="btn">Apply filters</button>
-            <button id="calResetBtn" class="btn secondary">Reset</button>
-          </div>
-          <div class="hint">
-            This list view is intentionally lightweight for fast use.
-          </div>
-        </div>
-        <div>
-          <h3>Approved leave (list)</h3>
-          <div id="calendarList"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- REPORTS -->
-    <section class="panel" data-panel="reports" hidden>
-      <h2>Reports & Backup</h2>
-      <div class="grid">
-        <div>
-          <h3>Allowance summary</h3>
-          <div id="reportTableWrap"></div>
-
-          <div class="section">
-            <div class="row">
-              <button id="exportCsvBtn" class="btn ghost">Export CSV summary</button>
-              <button id="refreshReportsBtn" class="btn secondary">Refresh</button>
-            </div>
-            <div class="hint">
-              CSV exports the allowance summary for the current holiday year.
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3>Backup</h3>
-          <div class="row">
-            <button id="exportJsonBtn" class="btn">Export data (JSON)</button>
-            <label class="btn secondary" for="importJsonInput" style="display:inline-flex;align-items:center;justify-content:center;">
-              Import data (JSON)
-            </label>
-            <input id="importJsonInput" type="file" accept="application/json" hidden />
-          </div>
-
-          <div class="section">
-            <h3>Data safety</h3>
-            <div class="empty">
-              This version stores data only on this device/browser.
-              Use JSON export for backups or when moving computers.
-            </div>
-          </div>
-
-          <div class="section danger-zone">
-            <h3>Reset</h3>
-            <div class="row">
-              <button id="resetAllBtn" class="btn bad">Delete all data</button>
-            </div>
-            <div class="hint">
-              This cannot be undone.
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SETTINGS -->
-    <section class="panel" data-panel="settings" hidden>
-      <h2>Settings</h2>
-      <div class="grid">
-        <div>
-          <h3>Holiday year</h3>
-          <div class="row">
-            <div>
-              <label for="yearStart">Holiday year start date</label>
-              <input id="yearStart" type="date" />
-              <div class="hint">
-                Used to calculate allowance usage for reports and remaining days.
-              </div>
-            </div>
-            <div>
-              <label for="defaultAllowance">Default allowance (days)</label>
-              <input id="defaultAllowance" type="number" min="0" step="0.5" />
-              <div class="hint">
-                Applied as the suggested allowance when adding new employees.
-              </div>
-            </div>
-          </div>
-
-          <div class="section">
-            <h3>Working pattern</h3>
-            <div class="hint">
-              Leave days are calculated using this working week.
-              Default is Monday–Friday.
-            </div>
-            <div class="row">
-              <div>
-                <label>
-                  <input type="checkbox" class="workday" value="1" />
-                  Monday
-                </label>
-              </div>
-              <div>
-                <label>
-                  <input type="checkbox" class="workday" value="2" />
-                  Tuesday
-                </label>
-              </div>
-              <div>
-                <label>
-                  <input type="checkbox" class="workday" value="3" />
-                  Wednesday
-                </label>
-              </div>
-              <div>
-                <label>
-                  <input type="checkbox" class="workday" value="4" />
-                  Thursday
-                </label>
-              </div>
-              <div>
-                <label>
-                  <input type="checkbox" class="workday" value="5" />
-                  Friday
-                </label>
-              </div>
-              <div>
-                <label>
-                  <input type="checkbox" class="workday" value="6" />
-                  Saturday
-                </label>
-              </div>
-              <div>
-                <label>
-                  <input type="checkbox" class="workday" value="0" />
-                  Sunday
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="section">
-            <button id="saveSettingsBtn" class="btn">Save settings</button>
-            <div class="hint">
-              Tip: For typical UK office/admin schedules, keep Mon–Fri checked.
-              For driver rota patterns, you can include weekends if appropriate.
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3>Quick help</h3>
-          <div class="empty">
-            <div class="spacer"></div>
-            <div><span class="kbd">Employees</span> Add staff and allowances.</div>
-            <div class="spacer"></div>
-            <div><span class="kbd">Request Leave</span> Submit requests (defaults to pending).</div>
-            <div class="spacer"></div>
-            <div><span class="kbd">Approvals</span> Approve or reject.</div>
-            <div class="spacer"></div>
-            <div><span class="kbd">Reports</span> View used/remaining and export CSV.</div>
-            <div class="spacer"></div>
-            <div><span class="kbd">Backup</span> Export/import JSON regularly.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="footer">
-      <div>Leave Tool v1 (local-only MVP)</div>
-      <div class="muted">Designed for small teams. Upgradeable to a shared online version.</div>
+  <aside>
+    <div class="panel">
+      <h2>Rooms</h2>
+      <div class="list" id="roomList"></div>
     </div>
+
+    <div class="panel">
+      <h2>Stats</h2>
+      <div class="card">
+        <div class="row"><span class="muted small">Name</span><span class="small" id="statName"></span></div>
+        <div class="row"><span class="muted small">Pixels</span><span class="small" id="statPixels"></span></div>
+        <div class="row"><span class="muted small">Steps</span><span class="small" id="statSteps"></span></div>
+        <div class="row"><span class="muted small">Room</span><span class="small" id="statRoom"></span></div>
+        <div class="divider"></div>
+        <div class="row"><span class="muted small">Achievement</span><span class="small" id="statAch"></span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Minimap</h2>
+      <div class="card">
+        <canvas id="minimap" width="260" height="160" style="width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,0.02)"></canvas>
+      </div>
+      <div class="tiny muted" style="margin-top:8px">
+        Click a tile to walk. In build mode: select item → click tile to place.
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="hud">
+      <div class="pill" id="hudTip">Tip: click to walk • /help for commands • build mode places furniture</div>
+      <div class="pill" id="hudQuest">Quest: —</div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <canvas id="game"></canvas>
   </main>
 
-  <script>
-    // -----------------------------
-    // Local Annual Leave Tool v1
-    // -----------------------------
-
-    const STORAGE_KEY = "leaveTool.v1";
-
-    const defaultState = () => ({
-      companyName: "",
-      settings: {
-        holidayYearStart: new Date(new Date().getFullYear(), 0, 1).toISOString().slice(0,10),
-        defaultAllowance: 28,
-        workWeek: [1,2,3,4,5] // Mon-Fri
-      },
-      employees: [],
-      requests: []
-    });
-
-    const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
-
-    function loadState(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return defaultState();
-        const parsed = JSON.parse(raw);
-
-        // Gentle migration/safety defaults
-        parsed.settings = parsed.settings || {};
-        if(!parsed.settings.holidayYearStart) parsed.settings.holidayYearStart = defaultState().settings.holidayYearStart;
-        if(parsed.settings.defaultAllowance == null) parsed.settings.defaultAllowance = 28;
-        if(!Array.isArray(parsed.settings.workWeek)) parsed.settings.workWeek = [1,2,3,4,5];
-
-        parsed.employees = Array.isArray(parsed.employees) ? parsed.employees : [];
-        parsed.requests = Array.isArray(parsed.requests) ? parsed.requests : [];
-
-        return parsed;
-      }catch(e){
-        console.warn("Failed to load state", e);
-        return defaultState();
-      }
-    }
-
-    function saveState(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      renderAll();
-    }
-
-    let state = loadState();
-
-    // -----------------------------
-    // Date + calculation helpers
-    // -----------------------------
-
-    function toDate(str){
-      const d = new Date(str + "T00:00:00");
-      return isNaN(d.getTime()) ? null : d;
-    }
-
-    function fmtDate(str){
-      const d = toDate(str);
-      if(!d) return str || "";
-      return d.toLocaleDateString();
-    }
-
-    function isWorkday(dateObj){
-      const day = dateObj.getDay(); // 0=Sun
-      return state.settings.workWeek.includes(day);
-    }
-
-    function eachDay(start, end){
-      const days = [];
-      const cur = new Date(start);
-      while(cur <= end){
-        days.push(new Date(cur));
-        cur.setDate(cur.getDate()+1);
-      }
-      return days;
-    }
-
-    function workingDaysBetween(startStr, endStr){
-      const s = toDate(startStr);
-      const e = toDate(endStr);
-      if(!s || !e || e < s) return 0;
-      const all = eachDay(s, e);
-      return all.filter(isWorkday).length;
-    }
-
-    function getHolidayYearRange(){
-      const start = toDate(state.settings.holidayYearStart);
-      if(!start) {
-        const fallback = new Date(new Date().getFullYear(),0,1);
-        return { start: fallback, end: new Date(fallback.getFullYear()+1,0,0) };
-      }
-      const end = new Date(start);
-      end.setFullYear(start.getFullYear()+1);
-      end.setDate(end.getDate()-1);
-      return { start, end };
-    }
-
-    function inHolidayYear(dateStr){
-      const d = toDate(dateStr);
-      if(!d) return false;
-      const { start, end } = getHolidayYearRange();
-      return d >= start && d <= end;
-    }
-
-    function requestDays(req){
-      return workingDaysBetween(req.start, req.end);
-    }
-
-    function approvedAnnualForEmployee(empId){
-      return state.requests.filter(r =>
-        r.employeeId === empId &&
-        r.status === "approved" &&
-        r.type === "annual" &&
-        inHolidayYear(r.start) // simple rule: count by start date
-      );
-    }
-
-    function usedDays(empId){
-      return approvedAnnualForEmployee(empId)
-        .reduce((sum, r) => sum + requestDays(r), 0);
-    }
-
-    function allowanceTotal(emp){
-      const carry = Number(emp.carryOver || 0);
-      const base = Number(emp.allowance || 0);
-      return base + carry;
-    }
-
-    function remainingDays(emp){
-      const total = allowanceTotal(emp);
-      return Math.max(0, roundHalf(total - usedDays(emp.id)));
-    }
-
-    function roundHalf(num){
-      // keep 0.5 increments tidy
-      return Math.round(num * 2) / 2;
-    }
-
-    function overlapWarning(empId, startStr, endStr){
-      const s = toDate(startStr);
-      const e = toDate(endStr);
-      if(!s || !e) return false;
-
-      const relevant = state.requests.filter(r =>
-        r.employeeId === empId &&
-        r.status !== "rejected"
-      );
-
-      return relevant.some(r => {
-        const rs = toDate(r.start);
-        const re = toDate(r.end);
-        if(!rs || !re) return false;
-        return (s <= re && e >= rs);
-      });
-    }
-
-    // -----------------------------
-    // DOM references
-    // -----------------------------
-
-    const brandTitle = document.getElementById("brandTitle");
-    const brandSub = document.getElementById("brandSub");
-    const companyNameInput = document.getElementById("companyName");
-
-    // Tabs
-    const tabsEl = document.getElementById("tabs");
-    const panels = Array.from(document.querySelectorAll("[data-panel]"));
-
-    // Employees
-    const empName = document.getElementById("empName");
-    const empEmail = document.getElementById("empEmail");
-    const empAllowance = document.getElementById("empAllowance");
-    const empCarry = document.getElementById("empCarry");
-    const addEmployeeBtn = document.getElementById("addEmployeeBtn");
-    const seedDemoBtn = document.getElementById("seedDemoBtn");
-    const employeesList = document.getElementById("employeesList");
-
-    // Request
-    const reqEmployee = document.getElementById("reqEmployee");
-    const reqType = document.getElementById("reqType");
-    const reqStart = document.getElementById("reqStart");
-    const reqEnd = document.getElementById("reqEnd");
-    const reqNotes = document.getElementById("reqNotes");
-    const submitRequestBtn = document.getElementById("submitRequestBtn");
-    const calcDaysBtn = document.getElementById("calcDaysBtn");
-    const reqSummary = document.getElementById("reqSummary");
-    const requestsList = document.getElementById("requestsList");
-
-    // Approvals
-    const pendingList = document.getElementById("pendingList");
-    const decisionsList = document.getElementById("decisionsList");
-
-    // Calendar
-    const calEmployee = document.getElementById("calEmployee");
-    const calFrom = document.getElementById("calFrom");
-    const calTo = document.getElementById("calTo");
-    const calApplyBtn = document.getElementById("calApplyBtn");
-    const calResetBtn = document.getElementById("calResetBtn");
-    const calendarList = document.getElementById("calendarList");
-
-    // Reports & backup
-    const reportTableWrap = document.getElementById("reportTableWrap");
-    const exportJsonBtn = document.getElementById("exportJsonBtn");
-    const importJsonInput = document.getElementById("importJsonInput");
-    const resetAllBtn = document.getElementById("resetAllBtn");
-    const exportCsvBtn = document.getElementById("exportCsvBtn");
-    const refreshReportsBtn = document.getElementById("refreshReportsBtn");
-
-    // Settings
-    const yearStart = document.getElementById("yearStart");
-    const defaultAllowanceInput = document.getElementById("defaultAllowance");
-    const saveSettingsBtn = document.getElementById("saveSettingsBtn");
-    const workdayChecks = Array.from(document.querySelectorAll(".workday"));
-
-    // -----------------------------
-    // Renderers
-    // -----------------------------
-
-    function renderBrand(){
-      const name = (state.companyName || "").trim();
-      brandTitle.textContent = name ? `${name} Leave Tool` : "Annual Leave Tool";
-      brandSub.textContent = "Local browser-based leave tracker";
-      companyNameInput.value = state.companyName || "";
-    }
-
-    function renderEmployees(){
-      if(state.employees.length === 0){
-        employeesList.innerHTML = `<div class="empty">No employees yet. Add one on the left.</div>`;
-        return;
-      }
-
-      const rows = state.employees
-        .slice()
-        .sort((a,b) => (a.name||"").localeCompare(b.name||""))
-        .map(emp => {
-          const used = usedDays(emp.id);
-          const total = allowanceTotal(emp);
-          const remaining = remainingDays(emp);
-
-          return `
-            <tr>
-              <td>
-                <div style="font-weight:650;">${escapeHtml(emp.name)}</div>
-                <div class="muted" style="font-size:10.5px;">${emp.email ? escapeHtml(emp.email) : ""}</div>
-              </td>
-              <td>${Number(emp.allowance || 0)}</td>
-              <td>${Number(emp.carryOver || 0)}</td>
-              <td>${roundHalf(used)}</td>
-              <td>${roundHalf(total)}</td>
-              <td><strong>${roundHalf(remaining)}</strong></td>
-              <td class="right">
-                <button class="btn small secondary" data-action="edit-emp" data-id="${emp.id}">Edit</button>
-                <button class="btn small bad" data-action="delete-emp" data-id="${emp.id}">Remove</button>
-              </td>
-            </tr>
-          `;
-        }).join("");
-
-      employeesList.innerHTML = `
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Allowance</th>
-              <th>Carry</th>
-              <th>Used</th>
-              <th>Total</th>
-              <th>Remaining</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <div class="hint">Used/remaining reflect approved annual leave within the current holiday year.</div>
-      `;
-
-      // Attach row actions
-      employeesList.querySelectorAll("button[data-action]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const id = btn.dataset.id;
-          const action = btn.dataset.action;
-          if(action === "delete-emp") deleteEmployee(id);
-          if(action === "edit-emp") editEmployeePrompt(id);
-        });
-      });
-    }
-
-    function renderEmployeeSelects(){
-      const active = state.employees.slice().sort((a,b)=> (a.name||"").localeCompare(b.name||""));
-      const opts = active.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join("");
-
-      reqEmployee.innerHTML = active.length
-        ? `<option value="" disabled selected>Select employee</option>${opts}`
-        : `<option value="" disabled selected>No employees added</option>`;
-
-      calEmployee.innerHTML = active.length
-        ? `<option value="all">All employees</option>${opts}`
-        : `<option value="all">All employees</option>`;
-    }
-
-    function renderRequests(){
-      if(state.requests.length === 0){
-        requestsList.innerHTML = `<div class="empty">No leave requests yet.</div>`;
-        return;
-      }
-
-      const sorted = state.requests.slice().sort((a,b) => {
-        const da = toDate(a.createdAt) || new Date(0);
-        const db = toDate(b.createdAt) || new Date(0);
-        return db - da;
-      });
-
-      const rows = sorted.map(r => {
-        const emp = state.employees.find(e => e.id === r.employeeId);
-        const days = requestDays(r);
-        const typeLabel = leaveTypeLabel(r.type);
-
-        return `
-          <tr>
-            <td>${emp ? escapeHtml(emp.name) : `<span class="muted">Unknown</span>`}</td>
-            <td>${typeLabel}</td>
-            <td>${fmtDate(r.start)} → ${fmtDate(r.end)}</td>
-            <td>${days}</td>
-            <td>${r.notes ? escapeHtml(r.notes) : ""}</td>
-            <td><span class="pill ${r.status}">${r.status}</span></td>
-            <td class="right">
-              ${r.status === "pending"
-                ? `<button class="btn small bad" data-action="cancel-req" data-id="${r.id}">Cancel</button>`
-                : `<span class="muted" style="font-size:10px;">${r.decisionAt ? fmtDate(r.decisionAt) : ""}</span>`
-              }
-            </td>
-          </tr>
-        `;
-      }).join("");
-
-      requestsList.innerHTML = `
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Employee</th>
-              <th>Type</th>
-              <th>Dates</th>
-              <th>Days</th>
-              <th>Notes</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-
-      requestsList.querySelectorAll("button[data-action='cancel-req']").forEach(btn => {
-        btn.addEventListener("click", () => cancelRequest(btn.dataset.id));
-      });
-    }
-
-    function renderApprovals(){
-      const pending = state.requests
-        .filter(r => r.status === "pending")
-        .slice()
-        .sort((a,b) => (toDate(a.start)||0) - (toDate(b.start)||0));
-
-      if(pending.length === 0){
-        pendingList.innerHTML = `<div class="empty">No pending requests.</div>`;
-      }else{
-        pendingList.innerHTML = pending.map(r => {
-          const emp = state.employees.find(e => e.id === r.employeeId);
-          const days = requestDays(r);
-          const typeLabel = leaveTypeLabel(r.type);
-
-          let allowanceNote = "";
-          if(emp && r.type === "annual"){
-            const rem = remainingDays(emp);
-            if(days > rem){
-              allowanceNote = `<div class="hint" style="color: var(--warn);">Warning: request exceeds remaining allowance (${rem}).</div>`;
-            }
-          }
-
-          return `
-            <div class="panel" style="padding:14px;margin-bottom:10px;background:var(--panel-2);">
-              <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                <div>
-                  <div style="font-weight:700;">${emp ? escapeHtml(emp.name) : "Unknown employee"}</div>
-                  <div class="muted" style="font-size:11px;">${typeLabel} • ${fmtDate(r.start)} → ${fmtDate(r.end)} • ${days} day(s)</div>
-                  ${r.notes ? `<div class="hint">${escapeHtml(r.notes)}</div>` : ""}
-                  ${allowanceNote}
-                </div>
-                <div class="right">
-                  <button class="btn small good" data-action="approve" data-id="${r.id}">Approve</button>
-                  <button class="btn small bad" data-action="reject" data-id="${r.id}">Reject</button>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join("");
-
-        pendingList.querySelectorAll("button[data-action='approve']").forEach(btn => {
-          btn.addEventListener("click", () => decideRequest(btn.dataset.id, "approved"));
-        });
-        pendingList.querySelectorAll("button[data-action='reject']").forEach(btn => {
-          btn.addEventListener("click", () => decideRequest(btn.dataset.id, "rejected"));
-        });
-      }
-
-      const decided = state.requests
-        .filter(r => r.status !== "pending")
-        .slice()
-        .sort((a,b) => (toDate(b.decisionAt)||0) - (toDate(a.decisionAt)||0))
-        .slice(0, 12);
-
-      if(decided.length === 0){
-        decisionsList.innerHTML = `<div class="empty">No decisions yet.</div>`;
-      }else{
-        decisionsList.innerHTML = decided.map(r => {
-          const emp = state.employees.find(e => e.id === r.employeeId);
-          const days = requestDays(r);
-          const typeLabel = leaveTypeLabel(r.type);
-
-          return `
-            <div style="border-bottom:1px solid var(--line);padding:10px 0;">
-              <div style="display:flex;justify-content:space-between;gap:10px;">
-                <div>
-                  <div style="font-weight:650;">${emp ? escapeHtml(emp.name) : "Unknown"}</div>
-                  <div class="muted" style="font-size:11px;">
-                    ${typeLabel} • ${fmtDate(r.start)} → ${fmtDate(r.end)} • ${days} day(s)
-                  </div>
-                </div>
-                <div>
-                  <span class="pill ${r.status}">${r.status}</span>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join("");
-      }
-    }
-
-    function renderCalendar(){
-      const filterEmp = calEmployee.value || "all";
-      const from = calFrom.value ? toDate(calFrom.value) : null;
-      const to = calTo.value ? toDate(calTo.value) : null;
-
-      let list = state.requests.filter(r => r.status === "approved");
-
-      if(filterEmp !== "all"){
-        list = list.filter(r => r.employeeId === filterEmp);
-      }
-
-      if(from){
-        list = list.filter(r => {
-          const re = toDate(r.end);
-          return re && re >= from;
-        });
-      }
-      if(to){
-        list = list.filter(r => {
-          const rs = toDate(r.start);
-          return rs && rs <= to;
-        });
-      }
-
-      list.sort((a,b) => (toDate(a.start)||0) - (toDate(b.start)||0));
-
-      if(list.length === 0){
-        calendarList.innerHTML = `<div class="empty">No approved leave matches your filters.</div>`;
-        return;
-      }
-
-      calendarList.innerHTML = list.map(r => {
-        const emp = state.employees.find(e => e.id === r.employeeId);
-        const days = requestDays(r);
-        const typeLabel = leaveTypeLabel(r.type);
-        return `
-          <div style="border-bottom:1px solid var(--line);padding:10px 0;">
-            <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-              <div>
-                <div style="font-weight:650;">${emp ? escapeHtml(emp.name) : "Unknown"}</div>
-                <div class="muted" style="font-size:11px;">
-                  ${typeLabel} • ${fmtDate(r.start)} → ${fmtDate(r.end)} • ${days} day(s)
-                </div>
-              </div>
-              <div><span class="pill approved">approved</span></div>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function renderReports(){
-      if(state.employees.length === 0){
-        reportTableWrap.innerHTML = `<div class="empty">Add employees to generate reports.</div>`;
-        return;
-      }
-
-      const rows = state.employees
-        .slice()
-        .sort((a,b)=> (a.name||"").localeCompare(b.name||""))
-        .map(emp => {
-          const used = roundHalf(usedDays(emp.id));
-          const base = Number(emp.allowance || 0);
-          const carry = Number(emp.carryOver || 0);
-          const total = roundHalf(base + carry);
-          const remaining = roundHalf(Math.max(0, total - used));
-
-          return `
-            <tr>
-              <td>${escapeHtml(emp.name)}</td>
-              <td>${base}</td>
-              <td>${carry}</td>
-              <td>${total}</td>
-              <td>${used}</td>
-              <td><strong>${remaining}</strong></td>
-            </tr>
-          `;
-        }).join("");
-
-      const { start, end } = getHolidayYearRange();
-
-      reportTableWrap.innerHTML = `
-        <div class="hint">
-          Holiday year: ${start.toLocaleDateString()} → ${end.toLocaleDateString()}
+  <aside class="right">
+    <div class="panel">
+      <h2>Inventory</h2>
+      <div class="list" id="invList"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Shop</h2>
+      <div class="grid2" id="shopGrid"></div>
+      <div class="tiny muted" style="margin-top:10px">
+        Earn pixels from quests + achievements. Items placeable in build mode.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>People</h2>
+      <div class="card">
+        <div class="row">
+          <span class="tag">You</span>
+          <span class="small">+ NPCs</span>
         </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Employee</th>
-              <th>Allowance</th>
-              <th>Carry</th>
-              <th>Total</th>
-              <th>Used (approved)</th>
-              <th>Remaining</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+        <div class="divider"></div>
+        <div class="tiny muted">
+          This is a single-player “social room” sandbox — you can extend it to multiplayer with WebSockets.
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <footer>
+    <div class="chatbox">
+      <div class="chatlog" id="chatlog"></div>
+      <div class="chatinput">
+        <input id="chat" type="text" autocomplete="off" placeholder="Type message… (try /help, /dance, /quest, /buy sofa, /place sofa)" />
+        <button class="btn" id="btnSend">Send</button>
+      </div>
+    </div>
+    <div class="rightbar">
+      <span class="kbd">R rotate</span>
+      <span class="kbd">Esc cancel</span>
+      <span class="kbd">WASD pan</span>
+      <span class="kbd">Mouse wheel zoom</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* -----------------------------
+     Utilities
+  ------------------------------*/
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a,b,t)=>a+(b-a)*t;
+  const now = ()=>performance.now();
+  const fmtTime = () => {
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2,"0");
+    const m = String(d.getMinutes()).padStart(2,"0");
+    return `${h}:${m}`;
+  };
+
+  function makeId(prefix="id"){
+    return prefix + "_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+  }
+
+  function deepClone(obj){
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  /* -----------------------------
+     Toasts + Audio
+  ------------------------------*/
+  const toastEl = document.getElementById("toast");
+  function toast(msg, kind="good", ms=2200){
+    const div = document.createElement("div");
+    div.className = `t ${kind}`;
+    div.textContent = msg;
+    toastEl.appendChild(div);
+    setTimeout(()=> {
+      div.style.opacity = "0";
+      div.style.transform = "translateY(-6px)";
+      div.style.transition = "opacity .25s ease, transform .25s ease";
+      setTimeout(()=> div.remove(), 260);
+    }, ms);
+  }
+
+  let soundOn = true;
+  let audioCtx = null;
+  function beep(freq=660, dur=0.06, type="sine", gain=0.03){
+    if(!soundOn) return;
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = gain;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t0);
+    o.stop(t0 + dur);
+  }
+
+  /* -----------------------------
+     Game config
+  ------------------------------*/
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  const mini = document.getElementById("minimap");
+  const mctx = mini.getContext("2d");
+
+  // Isometric tile geometry
+  const TILE_W = 56;
+  const TILE_H = 28;
+  const HEIGHT_UNIT = 12;  // pixels per "z" height
+  const MAX_STEP = 1;      // max climb per move
+
+  // Camera
+  const camera = {
+    x: 0,
+    y: 0,
+    zoom: 1,
+    targetZoom: 1,
+    panSpeed: 520, // px/s
+  };
+
+  // UI
+  const statusPill = document.getElementById("statusPill");
+  const hudQuest = document.getElementById("hudQuest");
+  const invList = document.getElementById("invList");
+  const shopGrid = document.getElementById("shopGrid");
+  const roomList = document.getElementById("roomList");
+  const chatlog = document.getElementById("chatlog");
+  const chatInput = document.getElementById("chat");
+  const btnSend = document.getElementById("btnSend");
+  const btnBuild = document.getElementById("btnBuild");
+  const btnSave = document.getElementById("btnSave");
+  const btnLoad = document.getElementById("btnLoad");
+  const btnExport = document.getElementById("btnExport");
+  const btnImport = document.getElementById("btnImport");
+  const btnHelp = document.getElementById("btnHelp");
+  const btnSound = document.getElementById("btnSound");
+
+  const statName = document.getElementById("statName");
+  const statPixels = document.getElementById("statPixels");
+  const statSteps = document.getElementById("statSteps");
+  const statRoom = document.getElementById("statRoom");
+  const statAch = document.getElementById("statAch");
+
+  /* -----------------------------
+     Data: furniture types
+  ------------------------------*/
+  const FURNI = {
+    sofa:   { key:"sofa",   name:"Sofa",   desc:"Sit + chill", price:35, w:1, h:1, blocks:false, sit:true,  color:"#d6d6de" },
+    plant:  { key:"plant",  name:"Plant",  desc:"Vibes",       price:18, w:1, h:1, blocks:true,  sit:false, color:"#9fe2b1" },
+    rug:    { key:"rug",    name:"Rug",    desc:"Soft step",   price:22, w:1, h:1, blocks:false, sit:false, color:"#cbb9ff" },
+    lamp:   { key:"lamp",   name:"Lamp",   desc:"Warm light",  price:28, w:1, h:1, blocks:true,  sit:false, color:"#ffd28a" },
+    table:  { key:"table",  name:"Table",  desc:"Meet here",   price:26, w:1, h:1, blocks:true,  sit:false, color:"#c8c8c8" },
+    poster: { key:"poster", name:"Poster", desc:"Wall deco",   price:16, w:1, h:1, blocks:false, sit:false, color:"#9bbcff", wall:true },
+    arcade: { key:"arcade", name:"Arcade", desc:"Beep boop",   price:55, w:1, h:1, blocks:true,  sit:false, color:"#ff86c4" }
+  };
+
+  const SHOP = [
+    "sofa","plant","rug","lamp","table","poster","arcade"
+  ];
+
+  /* -----------------------------
+     Rooms: tile maps (heights + walkable)
+  ------------------------------*/
+  function makeRoom({
+    key, name, w, h, heights, walls, spawn, decor
+  }){
+    return { key, name, w, h, heights, walls, spawn, decor };
+  }
+
+  function flatHeights(w,h, base=0){
+    const a = new Array(w*h).fill(base);
+    return a;
+  }
+
+  function idx(w,x,y){ return y*w + x; }
+
+  // Generate a cozy lounge with a raised platform
+  function loungeRoom(){
+    const w=12, h=12;
+    const heights = flatHeights(w,h,0);
+
+    // Raised stage
+    for(let y=3;y<=8;y++){
+      for(let x=6;x<=9;x++){
+        heights[idx(w,x,y)] = 1;
+      }
+    }
+    // Tiny slope edges
+    heights[idx(w,6,3)] = 0;
+    heights[idx(w,6,8)] = 0;
+
+    // Walls mask (true = not part of floor)
+    const walls = new Array(w*h).fill(false);
+    // cut corners
+    walls[idx(w,0,0)] = true; walls[idx(w,11,0)] = true;
+    walls[idx(w,0,11)] = true; walls[idx(w,11,11)] = true;
+
+    const decor = [
+      { id:makeId("f"), type:"sofa", x:3,y:7, rot:0 },
+      { id:makeId("f"), type:"table", x:3,y:6, rot:0 },
+      { id:makeId("f"), type:"lamp", x:2,y:6, rot:0 },
+      { id:makeId("f"), type:"plant", x:9,y:4, rot:0 },
+      { id:makeId("f"), type:"arcade", x:7,y:6, rot:0 },
+      { id:makeId("f"), type:"rug", x:4,y:6, rot:0 }
+    ];
+
+    return makeRoom({
+      key:"lounge",
+      name:"The Lounge",
+      w,h,
+      heights,
+      walls,
+      spawn:{x:2,y:2},
+      decor
+    });
+  }
+
+  // A tiny courtyard with varied heights
+  function courtyardRoom(){
+    const w=14, h=10;
+    const heights = flatHeights(w,h,0);
+    const walls = new Array(w*h).fill(false);
+
+    // Shape it: remove a little top-left chunk
+    for(let y=0;y<2;y++){
+      for(let x=0;x<2;x++){
+        walls[idx(w,x,y)]=true;
+      }
+    }
+
+    // Make a little hill
+    const hill = [
+      [8,4,1],[9,4,1],[10,4,1],
+      [8,5,1],[9,5,2],[10,5,1],
+      [8,6,1],[9,6,1],[10,6,1]
+    ];
+    for(const [x,y,z] of hill){
+      heights[idx(w,x,y)] = z;
+    }
+
+    const decor = [
+      { id:makeId("f"), type:"plant", x:5,y:7, rot:0 },
+      { id:makeId("f"), type:"plant", x:6,y:7, rot:0 },
+      { id:makeId("f"), type:"lamp", x:12,y:2, rot:0 },
+      { id:makeId("f"), type:"rug", x:3,y:4, rot:0 }
+    ];
+
+    return makeRoom({
+      key:"courtyard",
+      name:"Courtyard",
+      w,h, heights, walls,
+      spawn:{x:3,y:2},
+      decor
+    });
+  }
+
+  // Workshop: more “grid-like” for building
+  function workshopRoom(){
+    const w=16, h=12;
+    const heights = flatHeights(w,h,0);
+    const walls = new Array(w*h).fill(false);
+
+    // border cut
+    for(let x=0;x<w;x++){
+      walls[idx(w,x,0)]=true;
+      walls[idx(w,x,h-1)]=true;
+    }
+    for(let y=0;y<h;y++){
+      walls[idx(w,0,y)]=true;
+      walls[idx(w,w-1,y)]=true;
+    }
+
+    const decor = [
+      { id:makeId("f"), type:"table", x:4,y:4, rot:0 },
+      { id:makeId("f"), type:"arcade", x:6,y:4, rot:0 },
+      { id:makeId("f"), type:"sofa", x:4,y:6, rot:0 },
+      { id:makeId("f"), type:"lamp", x:6,y:6, rot:0 }
+    ];
+
+    return makeRoom({
+      key:"workshop",
+      name:"Workshop",
+      w,h, heights, walls,
+      spawn:{x:2,y:2},
+      decor
+    });
+  }
+
+  const ROOMS = {
+    lounge: loungeRoom(),
+    courtyard: courtyardRoom(),
+    workshop: workshopRoom(),
+  };
+
+  /* -----------------------------
+     Game State
+  ------------------------------*/
+  const state = {
+    version: "1.0",
+    buildMode: false,
+    selectedItemKey: null,
+    rotate: 0,
+    steps: 0,
+    pixels: 90,
+    roomKey: "lounge",
+    // Placed furniture is per-room (clone room decor into runtime)
+    roomFurni: {},
+
+    // Achievements
+    ach: {
+      firstChat: false,
+      walked100: false,
+      placed10: false,
+      questDone: false
+    },
+
+    // Quest
+    quest: {
+      active: true,
+      id: "coffee_run",
+      stage: 0, // 0=go NPC, 1=go arcade, 2=return
+      done: false
+    }
+  };
+
+  // Player + NPCs
+  const entities = {
+    player: {
+      id:"player",
+      name: "Allan",
+      color: "#ffffff",
+      x: 2, y: 2, z: 0,
+      px: 0, py: 0, pz: 0, // rendered (interpolated)
+      moving: false,
+      path: [],
+      t: 0,
+      dir: 0,
+      emote: null,
+      emoteUntil: 0,
+      sit: null, // {x,y} if sitting
+      bubble: null, // {text, until}
+    },
+    npcs: [
+      {
+        id:"npc_bean",
+        name:"Bean",
+        role:"Barista NPC",
+        color:"#ffcf66",
+        x: 4, y: 3, z: 0,
+        bubble:null
+      },
+      {
+        id:"npc_ivy",
+        name:"Ivy",
+        role:"Guide NPC",
+        color:"#9fe2b1",
+        x: 8, y: 7, z: 1, // on stage in lounge
+        bubble:null
+      }
+    ]
+  };
+
+  // Runtime: room, obstacles, etc.
+  const runtime = {
+    room: null,
+    furni: [],
+    // For placement previews
+    placing: null, // {typeKey, x,y, ok}
+    // Day/night cycle
+    timeOfDay: 0, // 0..1
+    // Speech bubbles list (ephemeral)
+    bubbles: [],
+    // Notifications
+    lastTick: now(),
+    fps: 0,
+  };
+
+  /* -----------------------------
+     Local Storage Save
+  ------------------------------*/
+  const SAVE_KEY = "isosocial_save_v1";
+
+  function buildSaveBlob(){
+    return {
+      version: state.version,
+      buildMode: state.buildMode,
+      selectedItemKey: state.selectedItemKey,
+      rotate: state.rotate,
+      steps: state.steps,
+      pixels: state.pixels,
+      roomKey: state.roomKey,
+      roomFurni: state.roomFurni,
+      ach: state.ach,
+      quest: state.quest,
+      player: {
+        name: entities.player.name,
+        color: entities.player.color,
+        x: entities.player.x,
+        y: entities.player.y
+      }
+    };
+  }
+
+  function applySaveBlob(blob){
+    if(!blob || typeof blob !== "object") throw new Error("Invalid save.");
+    state.buildMode = !!blob.buildMode;
+    state.selectedItemKey = blob.selectedItemKey ?? null;
+    state.rotate = blob.rotate ?? 0;
+    state.steps = blob.steps ?? 0;
+    state.pixels = blob.pixels ?? 0;
+    state.roomKey = blob.roomKey ?? "lounge";
+    state.roomFurni = blob.roomFurni ?? {};
+    state.ach = blob.ach ?? state.ach;
+    state.quest = blob.quest ?? state.quest;
+    entities.player.name = blob.player?.name ?? entities.player.name;
+    entities.player.color = blob.player?.color ?? entities.player.color;
+
+    // Move player to saved position (if valid)
+    const r = ROOMS[state.roomKey] ?? ROOMS.lounge;
+    entities.player.x = clamp(blob.player?.x ?? r.spawn.x, 0, r.w-1);
+    entities.player.y = clamp(blob.player?.y ?? r.spawn.y, 0, r.h-1);
+    entities.player.sit = null;
+    entities.player.path = [];
+    entities.player.moving = false;
+    entities.player.t = 0;
+
+    loadRoom(state.roomKey);
+  }
+
+  function saveToLocal(){
+    localStorage.setItem(SAVE_KEY, JSON.stringify(buildSaveBlob()));
+    toast("Saved.", "good");
+    beep(880,0.05,"triangle",0.02);
+  }
+
+  function loadFromLocal(){
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw){ toast("No save found.", "warn"); return; }
+    try{
+      const blob = JSON.parse(raw);
+      applySaveBlob(blob);
+      toast("Loaded.", "good");
+      beep(660,0.06,"sine",0.02);
+    }catch(e){
+      toast("Load failed.", "bad");
+      console.error(e);
+    }
+  }
+
+  function exportSave(){
+    const blob = buildSaveBlob();
+    const text = JSON.stringify(blob, null, 2);
+    navigator.clipboard?.writeText(text).then(()=>{
+      toast("Save JSON copied to clipboard.", "good");
+      beep(990,0.06,"square",0.02);
+    }).catch(()=>{
+      // fallback prompt
+      prompt("Copy your save JSON:", text);
+    });
+  }
+
+  function importSave(){
+    const txt = prompt("Paste save JSON:");
+    if(!txt) return;
+    try{
+      const blob = JSON.parse(txt);
+      applySaveBlob(blob);
+      toast("Imported.", "good");
+      beep(740,0.06,"triangle",0.02);
+    }catch(e){
+      toast("Import failed.", "bad");
+    }
+  }
+
+  /* -----------------------------
+     Chat system
+  ------------------------------*/
+  function logChat(html, isSys=false){
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    if(isSys) div.classList.add("sys");
+    chatlog.appendChild(div);
+    chatlog.scrollTop = chatlog.scrollHeight;
+  }
+
+  function say(entity, text){
+    const until = now() + 4200;
+    entity.bubble = { text, until };
+    // also push to global bubbles for rendering order
+    runtime.bubbles.push({ id: makeId("b"), entId: entity.id, text, until });
+  }
+
+  function sys(msg){
+    logChat(`<span class="sys">[${fmtTime()}] ${msg}</span>`, true);
+  }
+
+  function chat(name, msg){
+    logChat(`<span class="muted">[${fmtTime()}]</span> <b>${escapeHtml(name)}:</b> ${escapeHtml(msg)}`);
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;");
+  }
+
+  /* -----------------------------
+     Inventory
+  ------------------------------*/
+  const inventory = {
+    // counts
+    sofa: 1,
+    plant: 1,
+    rug: 1,
+    lamp: 0,
+    table: 0,
+    poster: 0,
+    arcade: 0
+  };
+
+  function addItem(key, n=1){
+    inventory[key] = (inventory[key]||0) + n;
+    renderInventory();
+  }
+
+  function removeItem(key, n=1){
+    inventory[key] = (inventory[key]||0) - n;
+    if(inventory[key] < 0) inventory[key] = 0;
+    renderInventory();
+  }
+
+  function renderInventory(){
+    invList.innerHTML = "";
+    const keys = Object.keys(inventory).filter(k => (inventory[k]||0) > 0);
+    if(keys.length === 0){
+      const empty = document.createElement("div");
+      empty.className="card tiny muted";
+      empty.textContent="No items. Buy from shop.";
+      invList.appendChild(empty);
+      return;
+    }
+    for(const k of keys){
+      const def = FURNI[k];
+      const item = document.createElement("div");
+      item.className = "item" + (state.selectedItemKey===k ? " active":"");
+      item.innerHTML = `
+        <div class="meta">
+          <div class="name">${def.name}</div>
+          <div class="desc">${def.desc}</div>
+        </div>
+        <div class="badge">x${inventory[k]}</div>
       `;
+      item.onclick = () => {
+        state.selectedItemKey = (state.selectedItemKey === k) ? null : k;
+        runtime.placing = null;
+        renderInventory();
+        renderBuildButton();
+        if(state.selectedItemKey){
+          toast(`Selected: ${def.name}`, "good", 1400);
+          beep(720,0.04,"sine",0.02);
+        }else{
+          toast("Selection cleared.", "warn", 1200);
+          beep(420,0.04,"sine",0.02);
+        }
+      };
+      invList.appendChild(item);
     }
+  }
 
-    function renderSettings(){
-      yearStart.value = state.settings.holidayYearStart;
-      defaultAllowanceInput.value = state.settings.defaultAllowance;
-
-      workdayChecks.forEach(chk => {
-        const val = Number(chk.value);
-        chk.checked = state.settings.workWeek.includes(val);
-      });
-    }
-
-    function renderAll(){
-      renderBrand();
-      renderEmployeeSelects();
-
-      // Suggest default allowance when adding
-      if(!empAllowance.value){
-        empAllowance.value = state.settings.defaultAllowance;
-      }
-
-      renderEmployees();
-      renderRequests();
-      renderApprovals();
-      renderCalendar();
-      renderReports();
-      renderSettings();
-      renderRequestSummary();
-    }
-
-    // -----------------------------
-    // Actions
-    // -----------------------------
-
-    function addEmployee(){
-      const name = (empName.value || "").trim();
-      const email = (empEmail.value || "").trim();
-      const allowance = Number(empAllowance.value);
-      const carry = Number(empCarry.value || 0);
-
-      if(!name){
-        alert("Please enter a name.");
-        return;
-      }
-      if(isNaN(allowance) || allowance < 0){
-        alert("Please enter a valid allowance.");
-        return;
-      }
-      if(isNaN(carry) || carry < 0){
-        alert("Please enter a valid carry-over.");
-        return;
-      }
-
-      state.employees.push({
-        id: uid(),
-        name,
-        email,
-        allowance: roundHalf(allowance),
-        carryOver: roundHalf(carry),
-        active: true,
-        createdAt: new Date().toISOString().slice(0,10)
-      });
-
-      empName.value = "";
-      empEmail.value = "";
-      empCarry.value = "0";
-      empAllowance.value = state.settings.defaultAllowance;
-
-      saveState();
-    }
-
-    function deleteEmployee(id){
-      const emp = state.employees.find(e => e.id === id);
-      if(!emp) return;
-
-      const hasRequests = state.requests.some(r => r.employeeId === id);
-      const msg = hasRequests
-        ? `Remove ${emp.name}? Their requests will remain for record but show as "Unknown employee".`
-        : `Remove ${emp.name}?`;
-
-      if(!confirm(msg)) return;
-
-      state.employees = state.employees.filter(e => e.id !== id);
-      saveState();
-    }
-
-    function editEmployeePrompt(id){
-      const emp = state.employees.find(e => e.id === id);
-      if(!emp) return;
-
-      const newName = prompt("Edit name", emp.name);
-      if(newName === null) return;
-
-      const newAllowanceStr = prompt("Edit annual allowance (days)", emp.allowance);
-      if(newAllowanceStr === null) return;
-
-      const newCarryStr = prompt("Edit carry-over (days)", emp.carryOver ?? 0);
-      if(newCarryStr === null) return;
-
-      const allowance = Number(newAllowanceStr);
-      const carry = Number(newCarryStr);
-
-      if(!newName.trim()){
-        alert("Name cannot be empty.");
-        return;
-      }
-      if(isNaN(allowance) || allowance < 0){
-        alert("Invalid allowance.");
-        return;
-      }
-      if(isNaN(carry) || carry < 0){
-        alert("Invalid carry-over.");
-        return;
-      }
-
-      emp.name = newName.trim();
-      emp.allowance = roundHalf(allowance);
-      emp.carryOver = roundHalf(carry);
-
-      saveState();
-    }
-
-    function submitRequest(){
-      const employeeId = reqEmployee.value;
-      const type = reqType.value;
-      const start = reqStart.value;
-      const end = reqEnd.value;
-      const notes = (reqNotes.value || "").trim();
-
-      if(!employeeId){
-        alert("Please select an employee.");
-        return;
-      }
-      if(!start || !end){
-        alert("Please choose start and end dates.");
-        return;
-      }
-
-      const s = toDate(start);
-      const e = toDate(end);
-      if(!s || !e || e < s){
-        alert("End date must be the same as or after start date.");
-        return;
-      }
-
-      const days = workingDaysBetween(start, end);
-      if(days <= 0){
-        alert("This date range includes no working days based on your working pattern.");
-        return;
-      }
-
-      const emp = state.employees.find(e => e.id === employeeId);
-
-      if(type === "annual" && emp){
-        const rem = remainingDays(emp);
-        if(days > rem){
-          alert(`This annual leave request is ${days} day(s), but ${emp.name} only has ${rem} remaining.\n\nAdjust dates or allowance/carry-over.`);
+  function renderShop(){
+    shopGrid.innerHTML = "";
+    for(const k of SHOP){
+      const def = FURNI[k];
+      const box = document.createElement("div");
+      box.className = "card";
+      box.innerHTML = `
+        <div class="row">
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+            <div style="font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${def.name}</div>
+            <div class="tiny muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${def.desc}</div>
+          </div>
+          <div class="tag">${def.price} px</div>
+        </div>
+        <div class="divider"></div>
+        <button class="btn" style="width:100%" data-buy="${k}">Buy</button>
+      `;
+      box.querySelector("button").onclick = () => {
+        if(state.pixels < def.price){
+          toast("Not enough pixels.", "warn");
+          beep(220,0.06,"sawtooth",0.02);
           return;
         }
-      }
-
-      const overlap = overlapWarning(employeeId, start, end);
-      if(overlap){
-        const proceed = confirm("This request overlaps an existing pending/approved request for this employee.\n\nDo you want to submit it anyway?");
-        if(!proceed) return;
-      }
-
-      state.requests.push({
-        id: uid(),
-        employeeId,
-        type,
-        start,
-        end,
-        notes,
-        status: "pending",
-        createdAt: new Date().toISOString().slice(0,10),
-        decisionAt: "",
-        decidedBy: ""
-      });
-
-      reqNotes.value = "";
-      saveState();
-    }
-
-    function cancelRequest(id){
-      const r = state.requests.find(x => x.id === id);
-      if(!r || r.status !== "pending") return;
-      if(!confirm("Cancel this pending request?")) return;
-      state.requests = state.requests.filter(x => x.id !== id);
-      saveState();
-    }
-
-    function decideRequest(id, status){
-      const r = state.requests.find(x => x.id === id);
-      if(!r || r.status !== "pending") return;
-
-      // Guard allowance on approval just in case settings/employees changed
-      if(status === "approved" && r.type === "annual"){
-        const emp = state.employees.find(e => e.id === r.employeeId);
-        if(emp){
-          const days = requestDays(r);
-          const rem = remainingDays(emp);
-          if(days > rem){
-            alert(`Cannot approve: this request is ${days} day(s) but ${emp.name} has only ${rem} remaining.`);
-            return;
-          }
-        }
-      }
-
-      r.status = status;
-      r.decisionAt = new Date().toISOString().slice(0,10);
-      r.decidedBy = "manager";
-      saveState();
-    }
-
-    function renderRequestSummary(){
-      const employeeId = reqEmployee.value;
-      const start = reqStart.value;
-      const end = reqEnd.value;
-      const type = reqType.value;
-
-      if(!employeeId || !start || !end){
-        reqSummary.textContent = "";
-        return;
-      }
-
-      const emp = state.employees.find(e => e.id === employeeId);
-      const days = workingDaysBetween(start, end);
-
-      if(days <= 0){
-        reqSummary.textContent = "This range contains no working days based on your settings.";
-        return;
-      }
-
-      let text = `${days} working day(s) selected.`;
-      if(emp && type === "annual"){
-        const rem = remainingDays(emp);
-        text += ` ${emp.name} has ${rem} remaining.`;
-        if(days > rem){
-          text += " This would exceed their remaining allowance.";
-        }
-      }
-
-      reqSummary.textContent = text;
-    }
-
-    function applyCalendarFilters(){
-      renderCalendar();
-    }
-
-    function resetCalendarFilters(){
-      calEmployee.value = "all";
-      calFrom.value = "";
-      calTo.value = "";
-      renderCalendar();
-    }
-
-    function saveSettings(){
-      const start = yearStart.value;
-      const def = Number(defaultAllowanceInput.value);
-
-      if(!start){
-        alert("Please choose a holiday year start date.");
-        return;
-      }
-      if(isNaN(def) || def < 0){
-        alert("Please enter a valid default allowance.");
-        return;
-      }
-
-      const selectedDays = workdayChecks
-        .filter(c => c.checked)
-        .map(c => Number(c.value));
-
-      if(selectedDays.length === 0){
-        alert("Please select at least one working day.");
-        return;
-      }
-
-      state.settings.holidayYearStart = start;
-      state.settings.defaultAllowance = roundHalf(def);
-      state.settings.workWeek = selectedDays;
-
-      saveState();
-    }
-
-    function seedDemo(){
-      if(state.employees.length || state.requests.length){
-        const ok = confirm("This will add demo employees and requests alongside your existing data. Continue?");
-        if(!ok) return;
-      }
-
-      const e1 = { id: uid(), name:"Jamie Carter", email:"", allowance:28, carryOver:2, active:true };
-      const e2 = { id: uid(), name:"Priya Shah", email:"", allowance:25, carryOver:0, active:true };
-      const e3 = { id: uid(), name:"Sam O'Neill", email:"", allowance:30, carryOver:1, active:true };
-
-      state.employees.push(e1, e2, e3);
-
-      const today = new Date();
-      const addDays = (d, n) => {
-        const x = new Date(d);
-        x.setDate(x.getDate()+n);
-        return x.toISOString().slice(0,10);
+        state.pixels -= def.price;
+        addItem(k,1);
+        toast(`Bought ${def.name}.`, "good");
+        beep(920,0.05,"square",0.02);
+        renderStats();
       };
+      shopGrid.appendChild(box);
+    }
+  }
 
-      state.requests.push(
-        { id: uid(), employeeId:e1.id, type:"annual", start:addDays(today, 10), end:addDays(today, 14), notes:"", status:"pending", createdAt: new Date().toISOString().slice(0,10), decisionAt:"", decidedBy:"" },
-        { id: uid(), employeeId:e2.id, type:"annual", start:addDays(today, 3), end:addDays(today, 3), notes:"One day off", status:"approved", createdAt: new Date().toISOString().slice(0,10), decisionAt:addDays(today, 1), decidedBy:"manager" },
-        { id: uid(), employeeId:e3.id, type:"unpaid", start:addDays(today, 20), end:addDays(today, 21), notes:"", status:"approved", createdAt: new Date().toISOString().slice(0,10), decisionAt:addDays(today, 5), decidedBy:"manager" }
-      );
+  /* -----------------------------
+     Room loading & furniture
+  ------------------------------*/
+  function getRoomRuntimeKey(roomKey){
+    return "room_" + roomKey;
+  }
 
-      saveState();
+  function loadRoom(roomKey){
+    const room = ROOMS[roomKey] ?? ROOMS.lounge;
+    runtime.room = deepClone(room);
+
+    // If we have saved custom furniture for this room, use it. Otherwise start from decor.
+    if(!state.roomFurni[getRoomRuntimeKey(roomKey)]){
+      state.roomFurni[getRoomRuntimeKey(roomKey)] = deepClone(room.decor || []);
+    }
+    runtime.furni = deepClone(state.roomFurni[getRoomRuntimeKey(roomKey)]);
+
+    // Keep NPC positions sensible if room changes
+    if(roomKey === "lounge"){
+      entities.npcs[0].x=4; entities.npcs[0].y=3; entities.npcs[0].z=heightAt(4,3);
+      entities.npcs[1].x=8; entities.npcs[1].y=7; entities.npcs[1].z=heightAt(8,7);
+    }else if(roomKey === "courtyard"){
+      entities.npcs[0].x=5; entities.npcs[0].y=2; entities.npcs[0].z=heightAt(5,2);
+      entities.npcs[1].x=10; entities.npcs[1].y=6; entities.npcs[1].z=heightAt(10,6);
+    }else{
+      entities.npcs[0].x=3; entities.npcs[0].y=3; entities.npcs[0].z=heightAt(3,3);
+      entities.npcs[1].x=11; entities.npcs[1].y=8; entities.npcs[1].z=heightAt(11,8);
     }
 
-    function exportJson(){
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${(state.companyName || "company").replace(/\s+/g,"-").toLowerCase()}-leave-data.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+    // Clamp player into bounds
+    entities.player.x = clamp(entities.player.x, 0, room.w-1);
+    entities.player.y = clamp(entities.player.y, 0, room.h-1);
+    entities.player.z = heightAt(entities.player.x, entities.player.y);
+    entities.player.px = entities.player.x;
+    entities.player.py = entities.player.y;
+    entities.player.pz = entities.player.z;
+
+    // Center camera
+    centerCameraOn(entities.player.x, entities.player.y, true);
+
+    renderRoomList();
+    renderStats();
+    renderQuestHUD();
+  }
+
+  function heightAt(x,y){
+    const r = runtime.room;
+    if(!r) return 0;
+    return r.heights[idx(r.w,x,y)] ?? 0;
+  }
+
+  function isFloor(x,y){
+    const r = runtime.room;
+    if(!r) return false;
+    if(x<0||y<0||x>=r.w||y>=r.h) return false;
+    return !r.walls[idx(r.w,x,y)];
+  }
+
+  function furniAt(x,y){
+    // return topmost furni at tile
+    for(let i=runtime.furni.length-1;i>=0;i--){
+      const f = runtime.furni[i];
+      if(f.x===x && f.y===y) return f;
+    }
+    return null;
+  }
+
+  function blocksTile(x,y){
+    const f = furniAt(x,y);
+    if(!f) return false;
+    const def = FURNI[f.type];
+    return !!def.blocks;
+  }
+
+  function walkable(x,y, fromX=null, fromY=null){
+    if(!isFloor(x,y)) return false;
+    if(blocksTile(x,y)) return false;
+    // height delta constraint
+    if(fromX!==null && fromY!==null){
+      const dz = Math.abs(heightAt(x,y) - heightAt(fromX,fromY));
+      if(dz > MAX_STEP) return false;
+    }
+    return true;
+  }
+
+  /* -----------------------------
+     Isometric projection
+  ------------------------------*/
+  function isoToScreen(x,y,z){
+    const ox = canvas.width/2 + camera.x;
+    const oy = canvas.height*0.22 + camera.y;
+    const sx = (x - y) * (TILE_W/2);
+    const sy = (x + y) * (TILE_H/2) - z*HEIGHT_UNIT;
+    return { x: (ox + sx) * camera.zoom, y: (oy + sy) * camera.zoom };
+  }
+
+  function screenToIso(sx,sy){
+    // Convert screen coords to approximate iso tile (ignoring z)
+    const ox = canvas.width/2 + camera.x;
+    const oy = canvas.height*0.22 + camera.y;
+    const x0 = sx / camera.zoom - ox;
+    const y0 = sy / camera.zoom - oy;
+
+    const tx = x0 / (TILE_W/2);
+    const ty = y0 / (TILE_H/2);
+
+    const x = (tx + ty) / 2;
+    const y = (ty - tx) / 2;
+
+    return { x, y };
+  }
+
+  function centerCameraOn(x,y, instant=false){
+    const p = isoToScreen(x,y,heightAt(x,y));
+    const targetX = (canvas.width/2) - p.x;
+    const targetY = (canvas.height*0.50) - p.y;
+    if(instant){
+      camera.x += targetX;
+      camera.y += targetY;
+    }else{
+      camera.x = lerp(camera.x, camera.x + targetX, 0.15);
+      camera.y = lerp(camera.y, camera.y + targetY, 0.15);
+    }
+  }
+
+  /* -----------------------------
+     A* Pathfinding on tile grid
+  ------------------------------*/
+  function findPath(sx,sy,gx,gy){
+    const r = runtime.room;
+    if(!r) return [];
+
+    if(!walkable(gx,gy, sx,sy)) return [];
+
+    const W = r.w, H = r.h;
+
+    const start = {x:sx,y:sy};
+    const goal = {x:gx,y:gy};
+
+    const key = (x,y)=> x+","+y;
+    const h = (x,y)=> Math.abs(x-goal.x)+Math.abs(y-goal.y);
+
+    const open = new Map();
+    const came = new Map();
+    const gScore = new Map();
+
+    const startK = key(start.x,start.y);
+    open.set(startK, {x:start.x,y:start.y,f:h(start.x,start.y)});
+    gScore.set(startK, 0);
+
+    const dirs = [
+      [1,0],[-1,0],[0,1],[0,-1]
+    ];
+
+    function lowestOpen(){
+      let bestK=null, bestF=Infinity, best=null;
+      for(const [k,n] of open){
+        if(n.f < bestF){ bestF=n.f; bestK=k; best=n; }
+      }
+      return {k:bestK, n:best};
     }
 
-    function importJson(file){
-      const reader = new FileReader();
-      reader.onload = () => {
-        try{
-          const parsed = JSON.parse(reader.result);
-          if(!parsed || typeof parsed !== "object") throw new Error("Invalid data");
+    const closed = new Set();
 
-          // minimal validation
-          parsed.settings = parsed.settings || defaultState().settings;
-          parsed.employees = Array.isArray(parsed.employees) ? parsed.employees : [];
-          parsed.requests = Array.isArray(parsed.requests) ? parsed.requests : [];
+    while(open.size){
+      const {k:ck, n:cur} = lowestOpen();
+      if(!cur) break;
 
-          state = parsed;
-          saveState();
-        }catch(e){
-          alert("Import failed. Please check the file.");
+      if(cur.x===goal.x && cur.y===goal.y){
+        // reconstruct
+        const path = [];
+        let tk = ck;
+        while(tk !== startK){
+          const p = came.get(tk);
+          if(!p) break;
+          const [px,py] = tk.split(",").map(Number);
+          path.push({x:px,y:py});
+          tk = p;
         }
-      };
-      reader.readAsText(file);
+        path.reverse();
+        return path;
+      }
+
+      open.delete(ck);
+      closed.add(ck);
+
+      for(const [dx,dy] of dirs){
+        const nx = cur.x + dx, ny = cur.y + dy;
+        if(nx<0||ny<0||nx>=W||ny>=H) continue;
+        const nk = key(nx,ny);
+        if(closed.has(nk)) continue;
+        if(!walkable(nx,ny, cur.x,cur.y)) continue;
+
+        const tentativeG = (gScore.get(ck) ?? Infinity) + 1 + (Math.abs(heightAt(nx,ny)-heightAt(cur.x,cur.y))*0.25);
+        if(tentativeG < (gScore.get(nk) ?? Infinity)){
+          came.set(nk, ck);
+          gScore.set(nk, tentativeG);
+          const f = tentativeG + h(nx,ny);
+          open.set(nk, {x:nx,y:ny,f});
+        }
+      }
+    }
+    return [];
+  }
+
+  /* -----------------------------
+     Build mode: placing furniture
+  ------------------------------*/
+  function canPlace(typeKey,x,y){
+    if(!isFloor(x,y)) return false;
+    if(furniAt(x,y)) return false;
+    // don't place on player or NPC
+    if(entities.player.x===x && entities.player.y===y) return false;
+    for(const n of entities.npcs){
+      if(n.x===x && n.y===y) return false;
+    }
+    // Posters as wall items: only allow along boundary-ish (simple rule)
+    const def = FURNI[typeKey];
+    if(def.wall){
+      const r = runtime.room;
+      const isEdge = (x===1 || y===1 || x===r.w-2 || y===r.h-2);
+      if(!isEdge) return false;
+    }
+    return true;
+  }
+
+  function placeSelectedAt(x,y){
+    const key = state.selectedItemKey;
+    if(!key) return;
+    if((inventory[key]||0) <= 0) return;
+
+    if(!canPlace(key,x,y)){
+      toast("Can't place there.", "warn");
+      beep(260,0.06,"sawtooth",0.02);
+      return;
+    }
+    const f = { id: makeId("f"), type:key, x,y, rot: state.rotate%4 };
+    runtime.furni.push(f);
+    state.roomFurni[getRoomRuntimeKey(state.roomKey)] = deepClone(runtime.furni);
+
+    removeItem(key,1);
+    state.steps += 0; // no change
+    toast(`Placed ${FURNI[key].name}.`, "good");
+    beep(860,0.05,"triangle",0.02);
+
+    // achievement: placed 10
+    const placedCount = runtime.furni.length;
+    if(!state.ach.placed10 && placedCount >= 10){
+      state.ach.placed10 = true;
+      state.pixels += 40;
+      toast("Achievement: Decorator (+40 px)", "good", 3000);
+      sys("Achievement unlocked: Decorator (+40 px).");
+      beep(1040,0.09,"square",0.03);
+    }
+    renderStats();
+  }
+
+  /* -----------------------------
+     Interactions (sit, NPC talk)
+  ------------------------------*/
+  function tryInteractAt(x,y){
+    // Furniture interaction first
+    const f = furniAt(x,y);
+    if(f){
+      const def = FURNI[f.type];
+      if(def.sit){
+        // sit adjacent or on tile if you are there
+        if(entities.player.x===x && entities.player.y===y){
+          entities.player.sit = {x,y};
+          entities.player.moving = false;
+          entities.player.path = [];
+          say(entities.player, "…");
+          sys("You sit down.");
+          beep(520,0.05,"sine",0.015);
+          return true;
+        }else{
+          // walk there
+          walkTo(x,y,true);
+          sys("Walking to sit…");
+          return true;
+        }
+      }
+      if(f.type==="arcade"){
+        // mini “arcade”
+        const win = Math.random() < 0.28;
+        if(win){
+          state.pixels += 12;
+          toast("Arcade: you won +12 px!", "good", 2200);
+          sys("Arcade payout: +12 pixels.");
+          beep(980,0.08,"square",0.03);
+        }else{
+          toast("Arcade: no win this time.", "warn", 1700);
+          beep(220,0.06,"triangle",0.02);
+        }
+        renderStats();
+        // quest stage trigger
+        if(state.quest.active && state.quest.id==="coffee_run" && state.quest.stage===1){
+          state.quest.stage = 2;
+          renderQuestHUD();
+          sys("Quest updated: Return to Bean.");
+          say(entities.player, "Got it!");
+        }
+        return true;
+      }
+      if(f.type==="lamp"){
+        // toggle lamp (store on instance)
+        f.on = !f.on;
+        toast(f.on ? "Lamp on." : "Lamp off.", "good", 1200);
+        beep(680,0.04,"sine",0.02);
+        state.roomFurni[getRoomRuntimeKey(state.roomKey)] = deepClone(runtime.furni);
+        return true;
+      }
+      // default
+      toast(`${def.name}: ${def.desc}`, "good", 1400);
+      return true;
     }
 
-    function resetAll(){
-      if(!confirm("Delete all employees and requests? This cannot be undone.")) return;
-      state = defaultState();
-      saveState();
+    // NPC interactions
+    for(const n of entities.npcs){
+      if(n.x===x && n.y===y){
+        onTalkNPC(n);
+        return true;
+      }
     }
+    return false;
+  }
 
-    function exportCsv(){
-      if(state.employees.length === 0){
-        alert("No employees to export.");
+  function onTalkNPC(npc){
+    const q = state.quest;
+    if(npc.id==="npc_bean"){
+      if(q.active && q.id==="coffee_run" && !q.done){
+        if(q.stage===0){
+          q.stage = 1;
+          sys("Quest started: Use the Arcade to fetch a coffee token, then return.");
+          say(npc, "Hey! Can you grab a coffee token from the Arcade?");
+          say(entities.player, "On it.");
+          renderQuestHUD();
+          beep(740,0.06,"triangle",0.02);
+          return;
+        }
+        if(q.stage===2){
+          q.done = true;
+          q.active = false;
+          state.pixels += 60;
+          state.ach.questDone = true;
+          sys("Quest complete: +60 pixels.");
+          toast("Quest complete! +60 px", "good", 2600);
+          say(npc, "Legend. Enjoy the pixels.");
+          say(entities.player, "Cheers.");
+          renderQuestHUD();
+          renderStats();
+          beep(1020,0.1,"square",0.03);
+          return;
+        }
+        say(npc, "Still waiting on that token… try the Arcade.");
         return;
       }
-
-      const { start, end } = getHolidayYearRange();
-      const header = [
-        "Holiday year start",
-        "Holiday year end",
-        "Employee",
-        "Allowance",
-        "CarryOver",
-        "Total",
-        "UsedApprovedAnnual",
-        "Remaining"
-      ];
-
-      const lines = [header.join(",")];
-
-      state.employees
-        .slice()
-        .sort((a,b)=> (a.name||"").localeCompare(b.name||""))
-        .forEach(emp => {
-          const base = Number(emp.allowance || 0);
-          const carry = Number(emp.carryOver || 0);
-          const total = roundHalf(base + carry);
-          const used = roundHalf(usedDays(emp.id));
-          const rem = roundHalf(Math.max(0, total - used));
-
-          const row = [
-            start.toISOString().slice(0,10),
-            end.toISOString().slice(0,10),
-            csvSafe(emp.name),
-            base,
-            carry,
-            total,
-            used,
-            rem
-          ];
-          lines.push(row.join(","));
-        });
-
-      const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${(state.companyName || "company").replace(/\s+/g,"-").toLowerCase()}-leave-summary.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      say(npc, "Fresh brews, quiet vibes.");
+      return;
     }
 
-    // -----------------------------
-    // Utilities
-    // -----------------------------
+    if(npc.id==="npc_ivy"){
+      say(npc, "Try build mode. Make the room yours.");
+      sys("Tip: Build Mode → select item → click tile to place. Rotate with R.");
+      beep(660,0.05,"sine",0.015);
+      return;
+    }
 
-    function leaveTypeLabel(type){
-      switch(type){
-        case "annual": return "Annual leave";
-        case "unpaid": return "Unpaid leave";
-        case "sick": return "Sick leave";
-        case "other": return "Other";
-        default: return type || "Unknown";
+    say(npc, "Hello.");
+  }
+
+  /* -----------------------------
+     Movement
+  ------------------------------*/
+  function walkTo(tx,ty, allowInteract=false){
+    const p = entities.player;
+    if(!walkable(tx,ty, p.x,p.y)) {
+      if(allowInteract) tryInteractAt(tx,ty);
+      return;
+    }
+    p.sit = null;
+    const path = findPath(p.x,p.y,tx,ty);
+    if(path.length===0){
+      if(allowInteract) tryInteractAt(tx,ty);
+      return;
+    }
+    p.path = path;
+    p.moving = true;
+    p.t = 0;
+    beep(520,0.02,"sine",0.01);
+  }
+
+  function stepPlayer(dt){
+    const p = entities.player;
+    if(!p.moving || p.path.length===0) return;
+
+    const speed = 4.2; // tiles per second
+    p.t += dt * speed;
+
+    if(p.t >= 1){
+      // complete a tile step
+      const next = p.path.shift();
+      if(!next){ p.moving=false; p.t=0; return; }
+
+      // update direction for “feel”
+      const dx = next.x - p.x;
+      const dy = next.y - p.y;
+      p.dir = (dx===1)?0:(dx===-1)?2:(dy===1)?1:3;
+
+      p.x = next.x;
+      p.y = next.y;
+      p.z = heightAt(p.x,p.y);
+      state.steps += 1;
+
+      // achievements
+      if(!state.ach.walked100 && state.steps >= 100){
+        state.ach.walked100 = true;
+        state.pixels += 50;
+        toast("Achievement: Walker (+50 px)", "good", 3000);
+        sys("Achievement unlocked: Walker (+50 px).");
+        beep(1040,0.09,"square",0.03);
+        renderStats();
+      }
+
+      // if we arrived
+      if(p.path.length===0){
+        p.moving = false;
+        p.t = 0;
+      }else{
+        p.t -= 1;
       }
     }
 
-    function escapeHtml(str){
-      return String(str ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    // interpolate render position
+    const next = p.path[0];
+    if(next){
+      p.px = lerp(p.x, next.x, p.t);
+      p.py = lerp(p.y, next.y, p.t);
+      p.pz = lerp(p.z, heightAt(next.x,next.y), p.t);
+    }else{
+      p.px = lerp(p.px, p.x, 0.25);
+      p.py = lerp(p.py, p.y, 0.25);
+      p.pz = lerp(p.pz, p.z, 0.25);
     }
+  }
 
-    function csvSafe(str){
-      const s = String(str ?? "");
-      if(s.includes(",") || s.includes('"') || s.includes("\n")){
-        return `"${s.replaceAll('"','""')}"`;
+  /* -----------------------------
+     Rendering
+  ------------------------------*/
+  function resize(){
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels coordinates
+
+    // minimap is fixed size; just clear on update
+  }
+  window.addEventListener("resize", resize);
+
+  function draw(){
+    const w = canvas.getBoundingClientRect().width;
+    const h = canvas.getBoundingClientRect().height;
+
+    // Clear
+    ctx.clearRect(0,0,w,h);
+
+    // day/night tint
+    runtime.timeOfDay = (runtime.timeOfDay + 0.00055) % 1;
+    const night = 0.5 + 0.5*Math.sin(runtime.timeOfDay * Math.PI*2);
+    const vignette = 0.10 + 0.14*(1-night);
+
+    // Background gradient
+    const g = ctx.createLinearGradient(0,0,0,h);
+    g.addColorStop(0, `rgba(255,255,255,${0.03 + 0.05*night})`);
+    g.addColorStop(1, `rgba(0,0,0,${0.0})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
+
+    // Camera zoom easing
+    camera.zoom = lerp(camera.zoom, camera.targetZoom, 0.12);
+
+    // Draw room tiles back-to-front (by y then x)
+    const r = runtime.room;
+    if(!r) return;
+
+    // Collect drawables: tiles + furni + entities
+    const drawables = [];
+
+    for(let y=0;y<r.h;y++){
+      for(let x=0;x<r.w;x++){
+        if(!isFloor(x,y)) continue;
+        const z = heightAt(x,y);
+        drawables.push({ kind:"tile", x,y,z, sort: (x+y)*10 + z });
       }
-      return s;
     }
 
-    // -----------------------------
-    // Tab navigation
-    // -----------------------------
-
-    function showTab(tabName){
-      // buttons
-      tabsEl.querySelectorAll(".tab-btn").forEach(btn => {
-        btn.classList.toggle("active", btn.dataset.tab === tabName);
-      });
-      // panels
-      panels.forEach(p => {
-        p.hidden = p.dataset.panel !== tabName;
-      });
-
-      // Render specific panels fresh
-      if(tabName === "calendar") renderCalendar();
-      if(tabName === "reports") renderReports();
+    for(const f of runtime.furni){
+      drawables.push({ kind:"furni", f, x:f.x,y:f.y,z:heightAt(f.x,f.y), sort:(f.x+f.y)*10 + heightAt(f.x,f.y)+1 });
     }
 
-    tabsEl.addEventListener("click", (e) => {
-      const btn = e.target.closest(".tab-btn");
-      if(!btn) return;
-      showTab(btn.dataset.tab);
-    });
-
-    // -----------------------------
-    // Event wiring
-    // -----------------------------
-
-    companyNameInput.addEventListener("input", () => {
-      state.companyName = companyNameInput.value;
-      // don't spam renderAll on every keystroke
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      renderBrand();
-    });
-
-    addEmployeeBtn.addEventListener("click", addEmployee);
-    seedDemoBtn.addEventListener("click", seedDemo);
-
-    submitRequestBtn.addEventListener("click", submitRequest);
-    calcDaysBtn.addEventListener("click", renderRequestSummary);
-    reqEmployee.addEventListener("change", renderRequestSummary);
-    reqType.addEventListener("change", renderRequestSummary);
-    reqStart.addEventListener("change", renderRequestSummary);
-    reqEnd.addEventListener("change", renderRequestSummary);
-
-    calApplyBtn.addEventListener("click", applyCalendarFilters);
-    calResetBtn.addEventListener("click", resetCalendarFilters);
-
-    exportJsonBtn.addEventListener("click", exportJson);
-    importJsonInput.addEventListener("change", (e) => {
-      const file = e.target.files && e.target.files[0];
-      if(file) importJson(file);
-      importJsonInput.value = "";
-    });
-
-    resetAllBtn.addEventListener("click", resetAll);
-    exportCsvBtn.addEventListener("click", exportCsv);
-    refreshReportsBtn.addEventListener("click", renderReports);
-
-    saveSettingsBtn.addEventListener("click", saveSettings);
-
-    // -----------------------------
-    // Init
-    // -----------------------------
-
-    function initDefaultsIntoUI(){
-      empAllowance.value = state.settings.defaultAllowance;
-      empCarry.value = "0";
-      yearStart.value = state.settings.holidayYearStart;
-      defaultAllowanceInput.value = state.settings.defaultAllowance;
-
-      workdayChecks.forEach(chk => {
-        const val = Number(chk.value);
-        chk.checked = state.settings.workWeek.includes(val);
-      });
+    // NPCs
+    for(const n of entities.npcs){
+      drawables.push({ kind:"npc", e:n, x:n.x,y:n.y,z:heightAt(n.x,n.y), sort:(n.x+n.y)*10 + heightAt(n.x,n.y)+2 });
     }
 
-    initDefaultsIntoUI();
-    renderAll();
-  </script>
+    // Player last
+    const p = entities.player;
+    drawables.push({ kind:"player", e:p, x:p.px,y:p.py,z:p.pz, sort:(p.px+p.py)*10 + p.pz+3 });
+
+    drawables.sort((a,b)=> a.sort - b.sort);
+
+    // soft shadows layer
+    for(const d of drawables){
+      if(d.kind==="player" || d.kind==="npc" || d.kind==="furni"){
+        drawShadow(d);
+      }
+    }
+
+    for(const d of drawables){
+      if(d.kind==="tile") drawTile(d.x,d.y,d.z, night);
+      else if(d.kind==="furni") drawFurni(d.f, night);
+      else if(d.kind==="npc") drawAvatar(d.e, night, true);
+      else if(d.kind==="player") drawAvatar(d.e, night, false);
+    }
+
+    // Placement preview
+    if(state.buildMode && state.selectedItemKey && runtime.placing){
+      drawPlacement(runtime.placing.x, runtime.placing.y, runtime.placing.ok);
+    }
+
+    // Speech bubbles
+    drawBubbles();
+
+    // Vignette
+    ctx.fillStyle = `rgba(0,0,0,${vignette})`;
+    ctx.fillRect(0,0,w,Math.min(140,h));
+    ctx.fillRect(0,h-160,w,Math.min(160,h));
+  }
+
+  function drawTile(x,y,z, night){
+    const p = isoToScreen(x,y,z);
+    const cx = p.x, cy = p.y;
+
+    const tw = TILE_W * camera.zoom;
+    const th = TILE_H * camera.zoom;
+
+    // Color based on height
+    const base = 36 + z*10;
+    const c1 = `rgba(${base},${base},${base+6},${0.92})`;
+    const c2 = `rgba(${base-10},${base-10},${base-4},${0.92})`;
+
+    // Diamond
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - th/2);
+    ctx.lineTo(cx + tw/2, cy);
+    ctx.lineTo(cx, cy + th/2);
+    ctx.lineTo(cx - tw/2, cy);
+    ctx.closePath();
+
+    // Fill with subtle gradient illusion
+    ctx.fillStyle = c1;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Side face if raised
+    if(z>0){
+      // right face
+      ctx.beginPath();
+      ctx.moveTo(cx + tw/2, cy);
+      ctx.lineTo(cx + tw/2, cy + z*HEIGHT_UNIT*camera.zoom);
+      ctx.lineTo(cx, cy + th/2 + z*HEIGHT_UNIT*camera.zoom);
+      ctx.lineTo(cx, cy + th/2);
+      ctx.closePath();
+      ctx.fillStyle = c2;
+      ctx.fill();
+
+      // left face
+      ctx.beginPath();
+      ctx.moveTo(cx - tw/2, cy);
+      ctx.lineTo(cx - tw/2, cy + z*HEIGHT_UNIT*camera.zoom);
+      ctx.lineTo(cx, cy + th/2 + z*HEIGHT_UNIT*camera.zoom);
+      ctx.lineTo(cx, cy + th/2);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(${base-16},${base-16},${base-12},0.92)`;
+      ctx.fill();
+    }
+
+    // Night tint
+    if(night < 0.35){
+      ctx.fillStyle = `rgba(0,0,0,${(0.35-night)*0.35})`;
+      ctx.fill();
+    }
+  }
+
+  function drawShadow(d){
+    let x=d.x, y=d.y, z=d.z;
+    // Use iso center for entity
+    const p = isoToScreen(x,y, heightAt(Math.round(x),Math.round(y)));
+    const cx=p.x, cy=p.y + (TILE_H*0.10)*camera.zoom + (heightAt(Math.round(x),Math.round(y))*HEIGHT_UNIT*camera.zoom);
+
+    ctx.beginPath();
+    const rx = 12*camera.zoom;
+    const ry = 6*camera.zoom;
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.fill();
+  }
+
+  function drawFurni(f, night){
+    const def = FURNI[f.type];
+    const z = heightAt(f.x,f.y);
+    const p = isoToScreen(f.x,f.y,z);
+    const cx=p.x, cy=p.y;
+
+    const tw = TILE_W*camera.zoom;
+    const th = TILE_H*camera.zoom;
+
+    // Rug: flat
+    if(f.type==="rug"){
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - th/2);
+      ctx.lineTo(cx + tw/2, cy);
+      ctx.lineTo(cx, cy + th/2);
+      ctx.lineTo(cx - tw/2, cy);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(203,185,255,0.26)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.10)";
+      ctx.stroke();
+      return;
+    }
+
+    // Poster: draw a “wall-ish” placard
+    if(def.wall){
+      const o = isoToScreen(f.x,f.y,z);
+      ctx.save();
+      ctx.translate(o.x, o.y - th/2 - 18*camera.zoom);
+      ctx.rotate((f.rot%4===1 ? 0.12 : f.rot%4===3 ? -0.12 : 0));
+      ctx.fillStyle = "rgba(155,188,255,0.22)";
+      ctx.strokeStyle = "rgba(255,255,255,0.14)";
+      ctx.lineWidth = 1;
+      const ww = 26*camera.zoom, hh = 18*camera.zoom;
+      ctx.beginPath();
+      ctx.roundRect(-ww/2, -hh/2, ww, hh, 6*camera.zoom);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
+    // Lamp light
+    const lampOn = (f.type==="lamp" && f.on);
+
+    // Simple block furniture
+    const height = (f.type==="sofa") ? 14 : (f.type==="arcade") ? 24 : (f.type==="plant") ? 22 : 18;
+    const hpx = height*camera.zoom;
+
+    // top diamond
+    const topY = cy - hpx;
+    ctx.beginPath();
+    ctx.moveTo(cx, topY - th/2);
+    ctx.lineTo(cx + tw/2, topY);
+    ctx.lineTo(cx, topY + th/2);
+    ctx.lineTo(cx - tw/2, topY);
+    ctx.closePath();
+    ctx.fillStyle = hexToRgba(def.color, 0.92);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.10)";
+    ctx.stroke();
+
+    // right face
+    ctx.beginPath();
+    ctx.moveTo(cx + tw/2, topY);
+    ctx.lineTo(cx + tw/2, cy);
+    ctx.lineTo(cx, cy + th/2);
+    ctx.lineTo(cx, topY + th/2);
+    ctx.closePath();
+    ctx.fillStyle = hexToRgba(shade(def.color, -18), 0.88);
+    ctx.fill();
+
+    // left face
+    ctx.beginPath();
+    ctx.moveTo(cx - tw/2, topY);
+    ctx.lineTo(cx - tw/2, cy);
+    ctx.lineTo(cx, cy + th/2);
+    ctx.lineTo(cx, topY + th/2);
+    ctx.closePath();
+    ctx.fillStyle = hexToRgba(shade(def.color, -30), 0.88);
+    ctx.fill();
+
+    // Sofa detail
+    if(f.type==="sofa"){
+      ctx.fillStyle = "rgba(0,0,0,0.14)";
+      ctx.fillRect(cx - 12*camera.zoom, topY - 2*camera.zoom, 24*camera.zoom, 4*camera.zoom);
+    }
+
+    // Plant detail
+    if(f.type==="plant"){
+      ctx.beginPath();
+      ctx.arc(cx, topY - 6*camera.zoom, 9*camera.zoom, 0, Math.PI*2);
+      ctx.fillStyle = "rgba(159,226,177,0.45)";
+      ctx.fill();
+    }
+
+    // Arcade detail
+    if(f.type==="arcade"){
+      ctx.fillStyle = "rgba(0,0,0,0.20)";
+      ctx.fillRect(cx - 10*camera.zoom, topY - 4*camera.zoom, 20*camera.zoom, 6*camera.zoom);
+      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      ctx.fillRect(cx - 6*camera.zoom, topY + 2*camera.zoom, 12*camera.zoom, 2*camera.zoom);
+    }
+
+    // Lamp glow
+    if(lampOn){
+      const glow = ctx.createRadialGradient(cx, topY - 10*camera.zoom, 4*camera.zoom, cx, topY - 10*camera.zoom, 80*camera.zoom);
+      glow.addColorStop(0, "rgba(255,210,138,0.32)");
+      glow.addColorStop(1, "rgba(255,210,138,0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(cx, topY - 10*camera.zoom, 80*camera.zoom, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // Night dim
+    if(night < 0.35 && !lampOn){
+      ctx.fillStyle = `rgba(0,0,0,${(0.35-night)*0.28})`;
+      ctx.fill();
+    }
+  }
+
+  function drawAvatar(e, night, npc=false){
+    const z = heightAt(Math.round(e.x),Math.round(e.y));
+    const p = isoToScreen(e.px ?? e.x, e.py ?? e.y, e.pz ?? z);
+    const cx=p.x, cy=p.y;
+
+    const bob = (e.moving ? Math.sin((performance.now()/85)) * 1.5 : 0) * camera.zoom;
+    const sit = (!npc && entities.player.sit) ? 6*camera.zoom : 0;
+
+    // body
+    const bodyY = cy - 26*camera.zoom + bob + sit;
+    const headY = bodyY - 14*camera.zoom;
+
+    // shadow outline
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.lineWidth = 3*camera.zoom;
+
+    // torso
+    ctx.beginPath();
+    ctx.roundRect(cx - 8*camera.zoom, bodyY, 16*camera.zoom, 18*camera.zoom, 6*camera.zoom);
+    ctx.fillStyle = hexToRgba(e.color || "#ffffff", npc ? 0.70 : 0.88);
+    ctx.fill();
+    ctx.stroke();
+
+    // head
+    ctx.beginPath();
+    ctx.arc(cx, headY, 8*camera.zoom, 0, Math.PI*2);
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fill();
+    ctx.stroke();
+
+    // face (simple)
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.fillRect(cx - 4*camera.zoom, headY - 2*camera.zoom, 2*camera.zoom, 2*camera.zoom);
+    ctx.fillRect(cx + 2*camera.zoom, headY - 2*camera.zoom, 2*camera.zoom, 2*camera.zoom);
+
+    // nameplate
+    ctx.font = `${12*camera.zoom}px ui-sans-serif, system-ui`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.fillStyle = npc ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.85)";
+    ctx.fillText(e.name, cx, headY - 10*camera.zoom);
+
+    // emote
+    if(!npc && e.emote && now() < e.emoteUntil){
+      ctx.font = `${14*camera.zoom}px ui-sans-serif, system-ui`;
+      ctx.fillStyle = "rgba(255,255,255,0.82)";
+      ctx.fillText(e.emote, cx, headY - 28*camera.zoom);
+    }
+
+    // Night dim
+    if(night < 0.35){
+      ctx.fillStyle = `rgba(0,0,0,${(0.35-night)*0.22})`;
+      ctx.beginPath();
+      ctx.arc(cx, headY, 10*camera.zoom, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  function drawPlacement(x,y, ok){
+    const z = heightAt(x,y);
+    const p = isoToScreen(x,y,z);
+    const cx=p.x, cy=p.y;
+    const tw = TILE_W*camera.zoom;
+    const th = TILE_H*camera.zoom;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - th/2);
+    ctx.lineTo(cx + tw/2, cy);
+    ctx.lineTo(cx, cy + th/2);
+    ctx.lineTo(cx - tw/2, cy);
+    ctx.closePath();
+
+    ctx.fillStyle = ok ? "rgba(126,240,179,0.20)" : "rgba(255,107,107,0.20)";
+    ctx.fill();
+    ctx.strokeStyle = ok ? "rgba(126,240,179,0.55)" : "rgba(255,107,107,0.55)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  function drawBubbles(){
+    // Remove expired
+    runtime.bubbles = runtime.bubbles.filter(b => now() < b.until);
+
+    // draw for entities that still have bubble
+    const all = [entities.player, ...entities.npcs];
+    for(const ent of all){
+      if(!ent.bubble || now() > ent.bubble.until) continue;
+      const z = heightAt(Math.round(ent.x),Math.round(ent.y));
+      const p = isoToScreen(ent.px ?? ent.x, ent.py ?? ent.y, ent.pz ?? z);
+      const cx=p.x, cy=p.y;
+
+      const text = ent.bubble.text;
+      ctx.font = `${12*camera.zoom}px ui-sans-serif, system-ui`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const padX = 10*camera.zoom, padY = 6*camera.zoom;
+      const metrics = ctx.measureText(text);
+      const bw = (metrics.width + padX*2);
+      const bh = (18*camera.zoom + padY*2);
+
+      const bx = cx - bw/2;
+      const by = cy - 78*camera.zoom;
+
+      ctx.fillStyle = "rgba(16,16,18,0.88)";
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      roundRectPath(ctx, bx, by, bw, bh, 10*camera.zoom);
+      ctx.fill();
+      ctx.stroke();
+
+      // tail
+      ctx.beginPath();
+      ctx.moveTo(cx, by+bh);
+      ctx.lineTo(cx-7*camera.zoom, by+bh+10*camera.zoom);
+      ctx.lineTo(cx+7*camera.zoom, by+bh+10*camera.zoom);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(16,16,18,0.88)";
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255,255,255,0.88)";
+      ctx.fillText(text, cx, by+bh/2);
+    }
+  }
+
+  function roundRectPath(ctx, x, y, w, h, r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+
+  function hexToRgba(hex, a=1){
+    const c = hex.replace("#","");
+    const n = parseInt(c,16);
+    const r = (n>>16)&255;
+    const g = (n>>8)&255;
+    const b = (n)&255;
+    return `rgba(${r},${g},${b},${a})`;
+  }
+
+  function shade(hex, amt){
+    const c = hex.replace("#","");
+    const n = parseInt(c,16);
+    let r = (n>>16)&255;
+    let g = (n>>8)&255;
+    let b = (n)&255;
+    r = clamp(r+amt,0,255);
+    g = clamp(g+amt,0,255);
+    b = clamp(b+amt,0,255);
+    return "#" + ((1<<24) + (r<<16) + (g<<8) + b).toString(16).slice(1);
+  }
+
+  /* -----------------------------
+     Minimap
+  ------------------------------*/
+  function drawMinimap(){
+    const r = runtime.room;
+    if(!r) return;
+    const W = mini.width, H = mini.height;
+    mctx.clearRect(0,0,W,H);
+
+    const pad = 10;
+    const cell = Math.min((W-2*pad)/r.w, (H-2*pad)/r.h);
+
+    // floor
+    for(let y=0;y<r.h;y++){
+      for(let x=0;x<r.w;x++){
+        if(!isFloor(x,y)) continue;
+        const z = heightAt(x,y);
+        const v = 26 + z*20;
+        mctx.fillStyle = `rgba(${v},${v},${v+8},0.9)`;
+        mctx.fillRect(pad + x*cell, pad + y*cell, cell-1, cell-1);
+      }
+    }
+
+    // furni
+    for(const f of runtime.furni){
+      mctx.fillStyle = "rgba(255,255,255,0.15)";
+      mctx.fillRect(pad + f.x*cell, pad + f.y*cell, cell-1, cell-1);
+    }
+
+    // npcs
+    for(const n of entities.npcs){
+      mctx.fillStyle = "rgba(255,207,102,0.65)";
+      mctx.fillRect(pad + n.x*cell, pad + n.y*cell, cell-1, cell-1);
+    }
+
+    // player
+    mctx.fillStyle = "rgba(255,255,255,0.9)";
+    mctx.fillRect(pad + entities.player.x*cell, pad + entities.player.y*cell, cell-1, cell-1);
+
+    // border
+    mctx.strokeStyle = "rgba(255,255,255,0.10)";
+    mctx.strokeRect(pad-1, pad-1, r.w*cell+1, r.h*cell+1);
+  }
+
+  /* -----------------------------
+     UI Rendering
+  ------------------------------*/
+  function renderStats(){
+    statName.textContent = entities.player.name;
+    statPixels.textContent = state.pixels.toString();
+    statSteps.textContent = state.steps.toString();
+    statRoom.textContent = ROOMS[state.roomKey]?.name ?? state.roomKey;
+
+    const achList = [];
+    if(state.ach.firstChat) achList.push("Chatter");
+    if(state.ach.walked100) achList.push("Walker");
+    if(state.ach.placed10) achList.push("Decorator");
+    if(state.ach.questDone) achList.push("Helper");
+    statAch.textContent = achList.length ? achList.join(", ") : "—";
+
+    statusPill.textContent = `Pixels: ${state.pixels} • Build: ${state.buildMode ? "On":"Off"} • Zoom: ${camera.zoom.toFixed(2)}`;
+  }
+
+  function renderQuestHUD(){
+    const q = state.quest;
+    if(q.active && q.id==="coffee_run" && !q.done){
+      if(q.stage===0) hudQuest.textContent = "Quest: Talk to Bean (NPC)";
+      if(q.stage===1) hudQuest.textContent = "Quest: Use the Arcade";
+      if(q.stage===2) hudQuest.textContent = "Quest: Return to Bean";
+    }else{
+      hudQuest.textContent = "Quest: Completed";
+    }
+  }
+
+  function renderBuildButton(){
+    btnBuild.textContent = `Build: ${state.buildMode ? "On" : "Off"}`;
+    btnBuild.classList.toggle("primary", state.buildMode);
+  }
+
+  function renderRoomList(){
+    roomList.innerHTML = "";
+    for(const key of Object.keys(ROOMS)){
+      const r = ROOMS[key];
+      const div = document.createElement("div");
+      div.className = "item" + (state.roomKey===key ? " active":"");
+      div.innerHTML = `
+        <div class="meta">
+          <div class="name">${r.name}</div>
+          <div class="desc">${r.w}×${r.h} • heights • decor</div>
+        </div>
+        <div class="badge">Go</div>
+      `;
+      div.onclick = () => {
+        if(state.roomKey===key) return;
+        state.roomKey = key;
+        // move player to spawn
+        entities.player.x = ROOMS[key].spawn.x;
+        entities.player.y = ROOMS[key].spawn.y;
+        entities.player.sit = null;
+        entities.player.path = [];
+        entities.player.moving = false;
+        loadRoom(key);
+        sys(`You entered: ${r.name}.`);
+        toast(`Entered ${r.name}`, "good", 1600);
+        beep(880,0.05,"triangle",0.02);
+      };
+      roomList.appendChild(div);
+    }
+  }
+
+  /* -----------------------------
+     Input
+  ------------------------------*/
+  const keysDown = new Set();
+
+  window.addEventListener("keydown", (e)=>{
+    if(e.key==="Escape"){
+      runtime.placing = null;
+      state.selectedItemKey = null;
+      entities.player.sit = null;
+      renderInventory();
+      toast("Cancelled.", "warn", 1200);
+      return;
+    }
+    keysDown.add(e.key.toLowerCase());
+
+    if(e.key.toLowerCase()==="r"){
+      state.rotate = (state.rotate + 1) % 4;
+      toast(`Rotate: ${state.rotate}`, "good", 900);
+      beep(660,0.03,"sine",0.02);
+    }
+  });
+  window.addEventListener("keyup", (e)=> keysDown.delete(e.key.toLowerCase()));
+
+  canvas.addEventListener("mousemove", (e)=>{
+    if(!state.buildMode || !state.selectedItemKey) return;
+    const rect = canvas.getBoundingClientRect();
+    const sx = (e.clientX - rect.left);
+    const sy = (e.clientY - rect.top);
+    const iso = screenToIso(sx,sy);
+    const tx = Math.round(iso.x);
+    const ty = Math.round(iso.y);
+    if(!runtime.room) return;
+    if(tx<0||ty<0||tx>=runtime.room.w||ty>=runtime.room.h) return;
+    runtime.placing = { typeKey: state.selectedItemKey, x:tx, y:ty, ok: canPlace(state.selectedItemKey, tx, ty) };
+  });
+
+  canvas.addEventListener("click", (e)=>{
+    const rect = canvas.getBoundingClientRect();
+    const sx = (e.clientX - rect.left);
+    const sy = (e.clientY - rect.top);
+
+    const iso = screenToIso(sx,sy);
+    const tx = Math.round(iso.x);
+    const ty = Math.round(iso.y);
+
+    if(!runtime.room) return;
+    if(tx<0||ty<0||tx>=runtime.room.w||ty>=runtime.room.h) return;
+
+    // Build mode placement
+    if(state.buildMode && state.selectedItemKey){
+      placeSelectedAt(tx,ty);
+      return;
+    }
+
+    // Interact if clicking on furni/NPC tile (or walk)
+    if(tryInteractAt(tx,ty)) return;
+
+    // Walk
+    walkTo(tx,ty,false);
+  });
+
+  canvas.addEventListener("wheel", (e)=>{
+    e.preventDefault();
+    const delta = Math.sign(e.deltaY);
+    camera.targetZoom = clamp(camera.targetZoom + (-delta)*0.08, 0.70, 1.45);
+    renderStats();
+  }, { passive:false });
+
+  btnBuild.onclick = () => {
+    state.buildMode = !state.buildMode;
+    runtime.placing = null;
+    renderBuildButton();
+    renderStats();
+    toast(state.buildMode ? "Build mode on." : "Build mode off.", "good", 1500);
+    beep(state.buildMode ? 860 : 420, 0.05, "sine", 0.02);
+  };
+
+  btnSave.onclick = saveToLocal;
+  btnLoad.onclick = loadFromLocal;
+  btnExport.onclick = exportSave;
+  btnImport.onclick = importSave;
+
+  btnHelp.onclick = () => {
+    sys("Commands: /help /dance /wave /sit /stand /quest /buy <item> /place <item> /name <newname>");
+    sys("Tips: Click to walk. Build mode places selected item. R rotates placement. WASD pans. Wheel zooms.");
+    toast("Help printed to chat.", "good", 1600);
+  };
+
+  btnSound.onclick = () => {
+    soundOn = !soundOn;
+    btnSound.textContent = `Sound: ${soundOn ? "On" : "Off"}`;
+    toast(`Sound ${soundOn ? "on" : "off"}.`, "good", 1200);
+    if(soundOn) beep(880,0.05,"triangle",0.02);
+  };
+
+  btnSend.onclick = () => sendChat();
+  chatInput.addEventListener("keydown", (e)=>{
+    if(e.key==="Enter") sendChat();
+  });
+
+  function sendChat(){
+    const raw = chatInput.value.trim();
+    if(!raw) return;
+    chatInput.value = "";
+
+    // command?
+    if(raw.startsWith("/")){
+      runCommand(raw.slice(1));
+      return;
+    }
+
+    // normal chat
+    chat(entities.player.name, raw);
+    say(entities.player, raw.length>28 ? raw.slice(0,28)+"…" : raw);
+
+    if(!state.ach.firstChat){
+      state.ach.firstChat = true;
+      state.pixels += 15;
+      toast("Achievement: Chatter (+15 px)", "good", 2600);
+      sys("Achievement unlocked: Chatter (+15 px).");
+      beep(1040,0.08,"square",0.03);
+      renderStats();
+    }
+  }
+
+  function runCommand(cmdLine){
+    const parts = cmdLine.split(" ").filter(Boolean);
+    const cmd = (parts.shift()||"").toLowerCase();
+    const arg = parts.join(" ");
+
+    switch(cmd){
+      case "help":
+        btnHelp.click();
+        break;
+      case "dance":
+        entities.player.emote = "✦";
+        entities.player.emoteUntil = now() + 4000;
+        sys("You dance.");
+        beep(920,0.05,"square",0.02);
+        break;
+      case "wave":
+        entities.player.emote = "⟡";
+        entities.player.emoteUntil = now() + 2500;
+        sys("You wave.");
+        beep(740,0.05,"triangle",0.02);
+        break;
+      case "sit":
+        // sit if on sofa else sit anyway
+        entities.player.sit = {x:entities.player.x,y:entities.player.y};
+        sys("You sit.");
+        beep(520,0.05,"sine",0.015);
+        break;
+      case "stand":
+        entities.player.sit = null;
+        sys("You stand.");
+        beep(620,0.04,"sine",0.015);
+        break;
+      case "quest":
+        if(state.quest.active && !state.quest.done){
+          sys(`Quest: Coffee Run • stage ${state.quest.stage} (0=talk,1=arcade,2=return)`);
+        }else{
+          sys("Quest: Completed. (You can add more quests in code!)");
+        }
+        break;
+      case "buy": {
+        const key = (arg||"").toLowerCase();
+        if(!FURNI[key]){ sys("Unknown item. Try: /buy sofa /buy plant /buy lamp /buy arcade"); break; }
+        const def = FURNI[key];
+        if(state.pixels < def.price){
+          sys("Not enough pixels.");
+          toast("Not enough pixels.", "warn");
+          break;
+        }
+        state.pixels -= def.price;
+        addItem(key,1);
+        sys(`Bought ${def.name} for ${def.price} px.`);
+        toast(`Bought ${def.name}.`, "good");
+        beep(920,0.05,"square",0.02);
+        renderStats();
+        break;
+      }
+      case "place": {
+        const key = (arg||"").toLowerCase();
+        if(!FURNI[key]){ sys("Unknown item."); break; }
+        if((inventory[key]||0)<=0){ sys("You don't have that item."); break; }
+        state.selectedItemKey = key;
+        state.buildMode = true;
+        runtime.placing = null;
+        renderInventory();
+        renderBuildButton();
+        renderStats();
+        sys(`Build mode on. Selected ${FURNI[key].name}. Click a tile to place.`);
+        toast("Build mode on.", "good");
+        beep(860,0.05,"triangle",0.02);
+        break;
+      }
+      case "name": {
+        if(!arg){ sys("Usage: /name YourName"); break; }
+        entities.player.name = arg.slice(0,18);
+        sys(`Name set to ${entities.player.name}.`);
+        renderStats();
+        break;
+      }
+      default:
+        sys("Unknown command. Try /help.");
+    }
+  }
+
+  /* -----------------------------
+     Game loop
+  ------------------------------*/
+  function tick(){
+    const t = now();
+    const dt = Math.min(0.033, (t - runtime.lastTick) / 1000);
+    runtime.lastTick = t;
+    runtime.fps = lerp(runtime.fps, (1/dt), 0.08);
+
+    // WASD pan
+    const pan = camera.panSpeed * dt;
+    if(keysDown.has("a")) camera.x += pan;
+    if(keysDown.has("d")) camera.x -= pan;
+    if(keysDown.has("w")) camera.y += pan;
+    if(keysDown.has("s")) camera.y -= pan;
+
+    // Player movement
+    stepPlayer(dt);
+
+    // Keep player z synced when not moving
+    if(!entities.player.moving){
+      entities.player.z = heightAt(entities.player.x, entities.player.y);
+      entities.player.px = lerp(entities.player.px, entities.player.x, 0.22);
+      entities.player.py = lerp(entities.player.py, entities.player.y, 0.22);
+      entities.player.pz = lerp(entities.player.pz, entities.player.z, 0.22);
+    }
+
+    // Update placement preview if hovering
+    if(state.buildMode && state.selectedItemKey && runtime.placing){
+      runtime.placing.ok = canPlace(state.selectedItemKey, runtime.placing.x, runtime.placing.y);
+    }
+
+    // If player reached a sit-target sofa tile, auto sit
+    if(!entities.player.moving && !entities.player.sit){
+      const f = furniAt(entities.player.x, entities.player.y);
+      if(f && FURNI[f.type]?.sit){
+        entities.player.sit = {x:f.x,y:f.y};
+      }
+    }
+
+    // Update minimap occasionally
+    if(Math.random() < 0.12) drawMinimap();
+
+    // Render
+    draw();
+
+    // UI
+    renderStats();
+
+    // Status pill
+    statusPill.textContent = `Pixels: ${state.pixels} • Build: ${state.buildMode ? "On":"Off"} • FPS: ${runtime.fps.toFixed(0)}`;
+
+    requestAnimationFrame(tick);
+  }
+
+  /* -----------------------------
+     Boot
+  ------------------------------*/
+  function boot(){
+    resize();
+
+    // Init player name nicer
+    entities.player.name = entities.player.name || "Guest";
+
+    // Load room
+    loadRoom(state.roomKey);
+
+    // Render UI
+    renderShop();
+    renderInventory();
+    renderBuildButton();
+    renderStats();
+    drawMinimap();
+
+    // Welcome chat
+    sys("Welcome to IsoSocial.");
+    sys("Click tiles to walk. Talk to NPCs by clicking them. Build Mode to place furniture.");
+    sys("Try: /help");
+    toast("Welcome. Talk to Bean for a quest.", "good", 2500);
+
+    // Seed quest HUD
+    renderQuestHUD();
+
+    // Start loop
+    requestAnimationFrame(tick);
+  }
+
+  boot();
+
+})();
+</script>
 </body>
 </html>
+
 
