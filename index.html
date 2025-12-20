@@ -2,1202 +2,917 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Space Invaders: Advanced (Single-File)</title>
-  <style>
-    :root { color-scheme: dark; }
-    html, body { margin:0; height:100%; background:#05060a; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    canvas { display:block; width:100vw; height:100vh; image-rendering: pixelated; }
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="RITE — modern ritual care. Two core formulas: LUMEN (day) and VEIL (night)." />
+  <title>RITE — LUMEN & VEIL</title>
 
-    .hud {
-      position: fixed; left: 0; top: 0; right: 0;
-      padding: 10px 12px;
-      display: flex; gap: 10px; align-items: center; justify-content: space-between;
-      pointer-events: none;
-      color: #e7ecff;
-      text-shadow: 0 1px 0 rgba(0,0,0,.4);
-      font-size: 14px;
+  <style>
+    :root{
+      --bg: #07070a;
+      --bg2:#0b0c10;
+      --card:#0f1117;
+      --line: rgba(255,255,255,.10);
+      --line2: rgba(255,255,255,.16);
+      --text:#f4f5f7;
+      --muted: rgba(244,245,247,.72);
+      --soft: rgba(244,245,247,.08);
+      --glow: rgba(255,255,255,.06);
+      --focus: rgba(255,255,255,.22);
+
+      --radius: 18px;
+      --radius2: 26px;
+
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --shadow2: 0 10px 28px rgba(0,0,0,.45);
+
+      --max: 1120px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --serif: ui-serif, "Iowan Old Style", Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
     }
-    .hud .left, .hud .right { display:flex; gap:12px; align-items:center; }
-    .pill {
-      pointer-events: none;
-      padding: 6px 10px; border: 1px solid rgba(255,255,255,.12);
-      background: rgba(10,12,20,.55);
-      border-radius: 999px;
-      backdrop-filter: blur(6px);
+
+    *{ box-sizing: border-box; }
+    html,body{ height: 100%; }
+    body{
+      margin: 0;
+      background:
+        radial-gradient(800px 500px at 25% 0%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(600px 420px at 90% 20%, rgba(255,255,255,.04), transparent 55%),
+        radial-gradient(900px 700px at 50% 100%, rgba(255,255,255,.03), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--text);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    .container{ width: min(var(--max), calc(100% - 48px)); margin: 0 auto; }
+
+    /* Subtle film grain */
+    .grain{
+      pointer-events:none;
+      position: fixed; inset: 0;
+      opacity: .08;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      background-size: 220px 220px;
+    }
+
+    /* Top nav */
+    .nav{
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(7,7,10,.76), rgba(7,7,10,.34));
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 0;
+      gap: 16px;
+    }
+    .brand{
+      display:flex; align-items:center; gap: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 650;
+      font-size: 13px;
+    }
+    .sigil{
+      width: 26px; height: 26px;
+      border: 1px solid var(--line2);
+      border-radius: 8px;
+      display:grid; place-items:center;
+      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.09), transparent 60%);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    .sigil svg{ opacity: .9; }
+    .nav-links{
+      display:flex; align-items:center; gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .nav-links a{
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      transition: border-color .18s ease, background .18s ease, color .18s ease;
+    }
+    .nav-links a:hover{
+      color: var(--text);
+      border-color: var(--line2);
+      background: rgba(255,255,255,.03);
+    }
+    .nav-cta{
+      display:flex; gap: 10px; align-items:center;
+    }
+    .btn{
+      appearance: none;
+      border: 1px solid var(--line2);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: transform .14s ease, background .14s ease, border-color .14s ease;
+      box-shadow: 0 10px 24px rgba(0,0,0,.32);
       white-space: nowrap;
     }
-    .btnrow {
-      pointer-events: auto;
-      display:flex; gap:8px; align-items:center;
+    .btn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.26);
     }
-    button {
-      pointer-events:auto;
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(20,25,40,.65);
-      color: #e7ecff;
-      border-radius: 10px;
+    .btn.primary{
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.28);
+    }
+    .btn.primary:hover{
+      background: rgba(255,255,255,.12);
+    }
+
+    /* Hero */
+    .hero{
+      padding: 64px 0 30px;
+    }
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 26px;
+      align-items: start;
+    }
+    .kicker{
+      display:inline-flex; align-items:center; gap: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      padding: 10px 12px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+    }
+    .dot{
+      width: 8px; height: 8px; border-radius: 999px;
+      background: rgba(255,255,255,.35);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
+    }
+    h1{
+      margin: 18px 0 12px;
+      font-family: var(--serif);
+      font-size: clamp(38px, 4vw, 56px);
+      line-height: 1.02;
+      letter-spacing: -.02em;
+    }
+    .sub{
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.55;
+      max-width: 60ch;
+    }
+    .hero-actions{
+      display:flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 18px;
+    }
+    .meta-row{
+      display:flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .pill{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
       padding: 8px 10px;
-      cursor: pointer;
-      font-weight: 600;
+      border-radius: 999px;
     }
-    button:hover { background: rgba(30,40,65,.7); }
-    button:active { transform: translateY(1px); }
 
-    .overlay {
-      position: fixed; inset: 0;
-      display: grid; place-items: center;
-      background: radial-gradient(1200px 900px at 50% 40%, rgba(20,30,70,.35), rgba(0,0,0,.85));
-      color: #e7ecff;
-      padding: 24px;
+    /* Right column hero card */
+    .hero-card{
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border-radius: var(--radius2);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
     }
-    .card {
-      width: min(760px, 92vw);
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(10,12,20,.7);
-      border-radius: 16px;
-      padding: 18px 18px 14px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.55);
-      backdrop-filter: blur(10px);
-    }
-    .title { font-size: 22px; font-weight: 800; letter-spacing: .2px; margin: 0 0 8px; }
-    .sub { margin: 0 0 12px; opacity: .9; line-height: 1.35; }
-    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .box {
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(20,25,40,.35);
-      border-radius: 12px;
-      padding: 12px;
-    }
-    .box h3 { margin:0 0 6px; font-size: 14px; opacity:.95; }
-    .box p { margin:0; font-size: 13px; opacity:.85; line-height: 1.35; }
-    .actions { display:flex; gap: 10px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap; }
-    .small { font-size: 12px; opacity:.8; margin-top: 10px; line-height: 1.35; }
-
-    /* Touch controls */
-    .touch {
-      position: fixed; inset: 0;
-      pointer-events: none;
-    }
-    .touch .pad {
-      position: absolute; bottom: 18px; left: 18px;
-      width: 160px; height: 160px;
-      border-radius: 999px;
-      background: rgba(20,25,40,.25);
-      border: 1px solid rgba(255,255,255,.10);
-      backdrop-filter: blur(6px);
-      pointer-events: auto;
-      touch-action: none;
-      display: none;
-    }
-    .touch .stick {
-      position: absolute; left: 50%; top: 50%;
-      width: 64px; height: 64px;
-      margin-left: -32px; margin-top: -32px;
-      border-radius: 999px;
-      background: rgba(220,230,255,.08);
-      border: 1px solid rgba(255,255,255,.16);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.2);
-    }
-    .touch .fire {
-      position: absolute; bottom: 28px; right: 24px;
-      width: 110px; height: 110px;
-      border-radius: 999px;
-      background: rgba(180,220,255,.10);
-      border: 1px solid rgba(255,255,255,.16);
-      pointer-events: auto;
-      touch-action: none;
-      display: none;
-    }
-    .touch .fire:after {
-      content: "FIRE";
-      position:absolute; inset:0;
-      display:grid; place-items:center;
-      font-weight: 800; letter-spacing: .6px;
+    .hero-card::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(600px 300px at 10% 10%, rgba(255,255,255,.08), transparent 60%),
+        radial-gradient(600px 300px at 90% 40%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(600px 300px at 50% 110%, rgba(255,255,255,.05), transparent 60%);
       opacity: .9;
+      pointer-events:none;
     }
-    @media (pointer: coarse) {
-      .touch .pad, .touch .fire { display:block; }
+    .hero-card > *{ position: relative; }
+
+    .hero-card h3{
+      margin: 0 0 12px;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      font-size: 12px;
+      color: rgba(244,245,247,.78);
+    }
+    .mini-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .mini{
+      border: 1px solid var(--line);
+      background: rgba(7,7,10,.55);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow2);
+      min-height: 116px;
+    }
+    .mini .tag{
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(244,245,247,.62);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .mini .name{
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: 740;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .mini .desc{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .mini .chiprow{
+      display:flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 10px;
+    }
+    .chip{
+      font-size: 11px;
+      color: rgba(244,245,247,.68);
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+    }
+
+    /* Section baseline */
+    section{ padding: 30px 0; }
+    .section-head{
+      display:flex; align-items:flex-end; justify-content:space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .h2{
+      font-family: var(--serif);
+      font-size: 28px;
+      letter-spacing: -.01em;
+      margin: 0;
+    }
+    .lead{
+      color: var(--muted);
+      margin: 0;
+      max-width: 70ch;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Product cards */
+    .products{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .card{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--radius2);
+      padding: 18px;
+      box-shadow: var(--shadow2);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(520px 240px at 20% 20%, rgba(255,255,255,.05), transparent 60%);
+      opacity: .9;
+      pointer-events:none;
+    }
+    .card > *{ position: relative; }
+
+    .card-top{
+      display:flex; justify-content:space-between; gap: 14px; align-items:flex-start;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap: 8px;
+      border: 1px solid var(--line2);
+      background: rgba(255,255,255,.03);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      color: rgba(244,245,247,.70);
+      white-space: nowrap;
+    }
+    .badge .rune{
+      width: 18px; height: 18px;
+      border-radius: 7px;
+      border: 1px solid rgba(255,255,255,.14);
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.03);
+    }
+
+    .product-name{
+      margin: 10px 0 6px;
+      font-size: 30px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-weight: 820;
+    }
+    .product-copy{
+      color: var(--muted);
+      margin: 0 0 14px;
+      line-height: 1.6;
+      font-size: 14px;
+      max-width: 62ch;
+    }
+    .list{
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display:grid;
+      gap: 10px;
+    }
+    .list li{
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      display:flex;
+      justify-content:space-between;
+      gap: 16px;
+      color: rgba(244,245,247,.84);
+      font-size: 13px;
+    }
+    .list .key{
+      font-family: var(--mono);
+      color: rgba(244,245,247,.60);
+      font-size: 12px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .card-actions{
+      display:flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 16px;
+    }
+
+    /* Science strip */
+    .strip{
+      border: 1px solid var(--line);
+      border-radius: var(--radius2);
+      background: rgba(255,255,255,.02);
+      padding: 16px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .strip .item{
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(7,7,10,.55);
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 104px;
+    }
+    .strip .item .t{
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(244,245,247,.62);
+    }
+    .strip .item .b{
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: rgba(244,245,247,.84);
+    }
+
+    /* Ritual */
+    .ritual{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .steps{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      border-radius: var(--radius2);
+      padding: 18px;
+      box-shadow: var(--shadow2);
+    }
+    .steps ol{
+      margin: 0;
+      padding-left: 18px;
+      color: rgba(244,245,247,.86);
+      line-height: 1.7;
+    }
+    .steps li{ margin: 10px 0; }
+    .steps .note{
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    /* Email capture */
+    .signup{
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border-radius: var(--radius2);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+    .signup::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(620px 260px at 20% 20%, rgba(255,255,255,.07), transparent 60%),
+        radial-gradient(620px 260px at 80% 70%, rgba(255,255,255,.05), transparent 60%);
+      opacity: .9;
+      pointer-events:none;
+    }
+    .signup > *{ position: relative; }
+    .signup h3{
+      margin: 0 0 8px;
+      font-family: var(--serif);
+      font-size: 22px;
+      letter-spacing: -.01em;
+    }
+    .signup p{
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+      max-width: 70ch;
+    }
+    form{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    input[type="email"]{
+      flex: 1 1 260px;
+      min-width: 220px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line2);
+      background: rgba(7,7,10,.55);
+      color: var(--text);
+      outline: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    input[type="email"]:focus{
+      border-color: rgba(255,255,255,.35);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
+    }
+    .fineprint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(244,245,247,.58);
+      line-height: 1.5;
+    }
+
+    /* FAQ */
+    .faq{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    details{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.02);
+      border-radius: 16px;
+      padding: 12px 14px;
+    }
+    summary{
+      cursor: pointer;
+      font-weight: 650;
+      color: rgba(244,245,247,.88);
+      outline: none;
+    }
+    details p{
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    /* Footer */
+    footer{
+      padding: 26px 0 40px;
+      border-top: 1px solid var(--line);
+      color: rgba(244,245,247,.60);
+      font-size: 12px;
+    }
+    .footer-grid{
+      display:flex; justify-content:space-between; gap: 16px; flex-wrap: wrap;
+      align-items: center;
+    }
+    .foot-links{
+      display:flex; gap: 14px; flex-wrap: wrap;
+      color: rgba(244,245,247,.62);
+    }
+    .foot-links a{
+      border-bottom: 1px solid transparent;
+    }
+    .foot-links a:hover{
+      border-color: rgba(255,255,255,.25);
+      color: rgba(244,245,247,.85);
+    }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .hero-grid{ grid-template-columns: 1fr; }
+      .products{ grid-template-columns: 1fr; }
+      .strip{ grid-template-columns: 1fr; }
+      .ritual{ grid-template-columns: 1fr; }
+      .faq{ grid-template-columns: 1fr; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ transition: none !important; scroll-behavior: auto !important; }
     }
   </style>
 </head>
+
 <body>
-  <canvas id="c"></canvas>
+  <div class="grain" aria-hidden="true"></div>
 
-  <div class="hud" id="hud" style="display:none">
-    <div class="left">
-      <div class="pill" id="hudScore">Score 0</div>
-      <div class="pill" id="hudWave">Wave 1</div>
-      <div class="pill" id="hudLives">Lives 3</div>
-      <div class="pill" id="hudMult">x1.0</div>
-      <div class="pill" id="hudHigh">High 0</div>
-    </div>
-    <div class="right btnrow">
-      <button id="btnPause" title="P">Pause</button>
-      <button id="btnMute" title="M">Mute</button>
-      <button id="btnRestart">Restart</button>
-    </div>
-  </div>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="#top" aria-label="RITE home">
+        <span class="sigil" aria-hidden="true">
+          <!-- simple “sigil” -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2v20M2 12h20" stroke="rgba(244,245,247,.85)" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M12 4.5c4.14 0 7.5 3.36 7.5 7.5S16.14 19.5 12 19.5 4.5 16.14 4.5 12 7.86 4.5 12 4.5Z"
+                  stroke="rgba(244,245,247,.38)" stroke-width="1.2"/>
+          </svg>
+        </span>
+        <span>RITE</span>
+      </a>
 
-  <div class="overlay" id="overlay">
-    <div class="card">
-      <h1 class="title">Space Invaders: Advanced</h1>
-      <p class="sub">
-        Survive escalating waves, grab power-ups, and face a boss every few rounds.
-        Works on desktop + mobile.
-      </p>
-      <div class="grid">
-        <div class="box">
-          <h3>Controls</h3>
-          <p>
-            Desktop: <b>A/D</b> or <b>←/→</b> move, <b>Space</b> shoot, <b>P</b> pause, <b>M</b> mute.
-            <br/>Mobile: left stick + Fire button.
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#formulas">Formulas</a>
+        <a href="#method">Method</a>
+        <a href="#ritual">Ritual</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="nav-cta">
+        <a class="btn" href="#formulas">Explore</a>
+        <button class="btn primary" type="button" id="joinBtn">Join the list</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top" class="container">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="kicker">
+            <span class="dot" aria-hidden="true"></span>
+            <span>Modern ritual care — clinical clarity, occult restraint</span>
+          </div>
+
+          <h1>Two core rites.<br/>One daily system.</h1>
+
+          <p class="sub">
+            <strong>RITE</strong> is a minimal, science-led routine with a quiet, ritual edge.
+            <br/>
+            <strong>LUMEN</strong> (day) and <strong>VEIL</strong> (night) are designed to feel deliberate: clean textures, transparent intent, no gimmicks.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn primary" href="#formulas">Meet LUMEN & VEIL</a>
+            <a class="btn" href="#method">Our method</a>
+          </div>
+
+          <div class="meta-row" aria-label="Highlights">
+            <span class="pill">Monochrome design</span>
+            <span class="pill">Ingredient transparency</span>
+            <span class="pill">Batch-first mindset</span>
+            <span class="pill">No medical claims</span>
+          </div>
+        </div>
+
+        <aside class="hero-card" aria-label="Quick view">
+          <h3>Core system</h3>
+          <div class="mini-grid">
+            <div class="mini">
+              <div class="tag">Day</div>
+              <div class="name">LUMEN</div>
+              <div class="desc">Bright, steady, resilient. Built for barrier-first mornings.</div>
+              <div class="chiprow">
+                <span class="chip">Lightweight</span>
+                <span class="chip">Layerable</span>
+              </div>
+            </div>
+            <div class="mini">
+              <div class="tag">Night</div>
+              <div class="name">VEIL</div>
+              <div class="desc">Calm, repair, soften. A controlled finish to the day.</div>
+              <div class="chiprow">
+                <span class="chip">Restorative</span>
+                <span class="chip">Comforting</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
+            <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
+              <div style="color:var(--muted); font-size:12px; line-height:1.5;">
+                Launch as a tight 2-product stack. Expand later with mists, patches, or sublingual formats.
+              </div>
+              <a class="btn" href="#join">Get updates</a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="formulas">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">LUMEN & VEIL</h2>
+          <p class="lead">
+            Built as a pair: one for daytime resilience, one for night-time recovery.
+            Keep it minimal. Keep it consistent.
           </p>
         </div>
-        <div class="box">
-          <h3>Power-ups</h3>
-          <p>
-            <b>Rapid</b> (faster fire), <b>Spread</b> (3-shot), <b>Shield</b> (temporary), <b>Heal</b> (+1 life).
+      </div>
+
+      <div class="products">
+        <article class="card" aria-label="LUMEN product">
+          <div class="card-top">
+            <span class="badge">
+              <span class="rune" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3l3 6 6 .8-4.5 4.4 1.2 6.2L12 17.8 6.3 20.4l1.2-6.2L3 9.8 9 9z"
+                        stroke="rgba(244,245,247,.70)" stroke-width="1.2" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              Day formula
+            </span>
+            <span class="badge">Barrier-first</span>
+          </div>
+
+          <div class="product-name">LUMEN</div>
+          <p class="product-copy">
+            A clean, modern day serum designed to support the look of clarity and resilience.
+            Built to sit under SPF without drama.
+          </p>
+
+          <ul class="list" aria-label="LUMEN details">
+            <li><span class="key">Texture</span><span>Feather-light gel-serum</span></li>
+            <li><span class="key">Focus</span><span>Glow, balance, daily comfort</span></li>
+            <li><span class="key">Pairing</span><span>SPF + simple cleanser</span></li>
+            <li><span class="key">Scent</span><span>Low / optional fragrance-free</span></li>
+          </ul>
+
+          <div class="card-actions">
+            <a class="btn primary" href="#join">Join prelaunch</a>
+            <a class="btn" href="#method">See method</a>
+          </div>
+        </article>
+
+        <article class="card" aria-label="VEIL product">
+          <div class="card-top">
+            <span class="badge">
+              <span class="rune" aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 12.2A9 9 0 1 1 11.8 3a7 7 0 1 0 9.2 9.2Z"
+                        stroke="rgba(244,245,247,.70)" stroke-width="1.2" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              Night formula
+            </span>
+            <span class="badge">Recovery-first</span>
+          </div>
+
+          <div class="product-name">VEIL</div>
+          <p class="product-copy">
+            A night serum made to feel like the room gets quieter.
+            Designed to support the look of smoothness and rested skin by morning.
+          </p>
+
+          <ul class="list" aria-label="VEIL details">
+            <li><span class="key">Texture</span><span>Velvet serum-oil hybrid</span></li>
+            <li><span class="key">Focus</span><span>Comfort, softness, overnight reset</span></li>
+            <li><span class="key">Pairing</span><span>Gentle cleanse + LUMEN AM</span></li>
+            <li><span class="key">Scent</span><span>Low / optional fragrance-free</span></li>
+          </ul>
+
+          <div class="card-actions">
+            <a class="btn primary" href="#join">Join prelaunch</a>
+            <a class="btn" href="#ritual">See ritual</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="method">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">The RITE method</h2>
+          <p class="lead">
+            “Occult” here means intention, not pseudoscience.
+            Minimal formulas, clear purpose, consistent use.
           </p>
         </div>
       </div>
-      <div class="actions">
-        <button id="btnStart">Start</button>
-        <button id="btnHow">Show Tips</button>
+
+      <div class="strip" role="list" aria-label="Method pillars">
+        <div class="item" role="listitem">
+          <div class="t">Transparency</div>
+          <div class="b">Ingredient list that reads like a label, not a spell book. Clear percentages where possible.</div>
+        </div>
+        <div class="item" role="listitem">
+          <div class="t">Tolerability</div>
+          <div class="b">If you can’t stick with it, it doesn’t work. Designed for repeatable daily use.</div>
+        </div>
+        <div class="item" role="listitem">
+          <div class="t">Ritual</div>
+          <div class="b">A short sequence you actually do. The brand lives in the routine, not the hype.</div>
+        </div>
       </div>
-      <div class="small" id="tips" style="display:none">
-        • Keep a shield alive; it’s your “oh no” button. • Swoopers aim at you — sidestep, don’t panic.
-        • Bosses punish standing still. • Multiplier grows with streaks; getting hit resets it.
+    </section>
+
+    <section id="ritual">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">The daily ritual</h2>
+          <p class="lead">
+            Two minutes. Same order. No chaos. You’re building a system, not a shelf.
+          </p>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="touch" id="touch">
-    <div class="pad" id="pad"><div class="stick" id="stick"></div></div>
-    <div class="fire" id="fire"></div>
-  </div>
+      <div class="ritual">
+        <div class="steps" aria-label="Morning ritual">
+          <div class="badge" style="display:inline-flex;margin-bottom:10px;">Morning — LUMEN</div>
+          <ol>
+            <li>Cleanse gently (or rinse if you’re dry-prone).</li>
+            <li>Apply LUMEN: one pump, full face.</li>
+            <li>Moisturiser only if needed.</li>
+            <li>Finish with SPF every day.</li>
+          </ol>
+          <div class="note">
+            Tip: LUMEN should layer cleanly under SPF. Keep your AM routine boring on purpose.
+          </div>
+        </div>
 
-<script>
-(() => {
-  // ---------- Canvas / scaling ----------
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d', { alpha: false });
+        <div class="steps" aria-label="Night ritual">
+          <div class="badge" style="display:inline-flex;margin-bottom:10px;">Night — VEIL</div>
+          <ol>
+            <li>Cleanse (double-cleanse if you wore SPF/makeup).</li>
+            <li>Apply VEIL: slow, even layer.</li>
+            <li>Optional: moisturiser on top if you’re dry.</li>
+            <li>Stop. Let the night do the work.</li>
+          </ol>
+          <div class="note">
+            Tip: Consistency beats intensity. If you add actives later, keep VEIL as the comfort anchor.
+          </div>
+        </div>
+      </div>
+    </section>
 
-  // Internal resolution (scaled to fit). Keep it "pixel-ish".
-  const W = 420, H = 720;
-  canvas.width = W; canvas.height = H;
+    <section id="join" aria-label="Join the list">
+      <div class="signup">
+        <h3>Join the list for launch access</h3>
+        <p>
+          Get early access, ingredient deep-dives, and the first production run announcement.
+          No spam. You can unsubscribe anytime.
+        </p>
 
-  function fit() {
-    // CSS handles full screen; internal remains W/H for stable gameplay.
-    // No-op by design.
-  }
-  window.addEventListener('resize', fit);
-  fit();
+        <form id="signupForm">
+          <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+          <button class="btn primary" type="submit">Request access</button>
+          <button class="btn" type="button" id="sampleBtn">See sample copy</button>
+        </form>
 
-  // ---------- UI ----------
-  const hud = document.getElementById('hud');
-  const overlay = document.getElementById('overlay');
-  const tips = document.getElementById('tips');
+        <div class="fineprint" id="formMessage">
+          This site is a concept landing page. Replace the form handler with Mailchimp/Klaviyo/Supabase when ready.
+        </div>
 
-  const hudScore = document.getElementById('hudScore');
-  const hudWave  = document.getElementById('hudWave');
-  const hudLives = document.getElementById('hudLives');
-  const hudMult  = document.getElementById('hudMult');
-  const hudHigh  = document.getElementById('hudHigh');
+        <div class="fineprint" style="margin-top:12px;">
+          Disclaimer: RITE products are cosmetic/wellness concepts and are not intended to diagnose, treat, cure, or prevent any disease.
+        </div>
+      </div>
+    </section>
 
-  const btnStart   = document.getElementById('btnStart');
-  const btnHow     = document.getElementById('btnHow');
-  const btnPause   = document.getElementById('btnPause');
-  const btnMute    = document.getElementById('btnMute');
-  const btnRestart = document.getElementById('btnRestart');
+    <section id="faq">
+      <div class="section-head">
+        <div>
+          <h2 class="h2">FAQ</h2>
+          <p class="lead">The basics, in plain language.</p>
+        </div>
+      </div>
 
-  btnHow.onclick = () => tips.style.display = (tips.style.display === 'none' ? 'block' : 'none');
+      <div class="faq">
+        <details>
+          <summary>Is this “occult” or “clinical”?</summary>
+          <p>
+            Both in tone, clinical in practice. The ritual is the experience. The formulation philosophy stays grounded: clear purpose, tolerability, transparency.
+          </p>
+        </details>
 
-  // ---------- Helpers ----------
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const rand = (a=1, b=0) => b + Math.random() * (a-b);
-  const lerp = (a,b,t) => a + (b-a)*t;
+        <details>
+          <summary>Will LUMEN/VEIL be fragrance-free?</summary>
+          <p>
+            You can offer fragrance-free as the default and keep any scented variant subtle. Fragrance-free makes the brand feel more serious and inclusive.
+          </p>
+        </details>
 
-  // Tiny deterministic-ish shake
-  let shakeT = 0, shakeAmp = 0;
-  function shake(amp, t=0.15) { shakeAmp = Math.max(shakeAmp, amp); shakeT = Math.max(shakeT, t); }
+        <details>
+          <summary>How do I expand the line later without ruining it?</summary>
+          <p>
+            Keep a “two-core” rule. Add only supporting satellites: mist, patches, cleansing balm, or a single targeted active later—never ten serums.
+          </p>
+        </details>
 
-  // ---------- Input ----------
-  const keys = new Set();
-  window.addEventListener('keydown', (e) => {
-    const k = e.key.toLowerCase();
-    if (['arrowleft','arrowright',' ','p','m','a','d'].includes(e.key.toLowerCase()) || e.key === ' ') e.preventDefault();
-    keys.add(k === ' ' ? 'space' : k);
-    if (k === 'p') togglePause();
-    if (k === 'm') toggleMute();
-  }, { passive:false });
-  window.addEventListener('keyup', (e) => {
-    const k = e.key.toLowerCase();
-    keys.delete(k === ' ' ? 'space' : k);
-  });
+        <details>
+          <summary>Where do ingredients and claims go on this page?</summary>
+          <p>
+            Add an “Ingredients” section per product with a short, non-medical benefit line. Save deeper proof for a PDF or blog post linked from the page.
+          </p>
+        </details>
+      </div>
+    </section>
 
-  // Touch controls
-  const pad = document.getElementById('pad');
-  const stick = document.getElementById('stick');
-  const fireBtn = document.getElementById('fire');
+    <footer>
+      <div class="footer-grid">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="sigil" aria-hidden="true" style="width:22px;height:22px;border-radius:7px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2v20M2 12h20" stroke="rgba(244,245,247,.80)" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span>© <span id="year"></span> RITE. All rights reserved.</span>
+        </div>
+        <div class="foot-links" aria-label="Footer links">
+          <a href="#formulas">Formulas</a>
+          <a href="#method">Method</a>
+          <a href="#join">Join</a>
+          <a href="#faq">FAQ</a>
+        </div>
+      </div>
+    </footer>
+  </main>
 
-  let touchMove = 0; // -1..+1
-  let touchFiring = false;
+  <script>
+    // Tiny, self-contained interactions (safe to remove).
+    const yearEl = document.getElementById('year');
+    yearEl.textContent = new Date().getFullYear();
 
-  function setupStick() {
-    let active = false;
-    let cx=0, cy=0;
-
-    const pos = (ev) => {
-      const t = ev.touches ? ev.touches[0] : ev;
-      return { x: t.clientX, y: t.clientY };
-    };
-    const setStick = (dx, dy) => {
-      const r = 50;
-      const mag = Math.hypot(dx, dy);
-      const k = mag > r ? r / mag : 1;
-      const sx = dx * k, sy = dy * k;
-      stick.style.transform = `translate(${sx}px, ${sy}px)`;
-      touchMove = clamp(dx / r, -1, 1);
-    };
-
-    pad.addEventListener('pointerdown', (e) => {
-      active = true;
-      const r = pad.getBoundingClientRect();
-      cx = r.left + r.width/2; cy = r.top + r.height/2;
-      pad.setPointerCapture(e.pointerId);
-      setStick(e.clientX - cx, e.clientY - cy);
+    const joinBtn = document.getElementById('joinBtn');
+    joinBtn.addEventListener('click', () => {
+      document.getElementById('join').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => document.querySelector('input[type="email"]').focus(), 250);
     });
-    pad.addEventListener('pointermove', (e) => {
-      if (!active) return;
-      setStick(e.clientX - cx, e.clientY - cy);
-    });
-    pad.addEventListener('pointerup', () => {
-      active = false;
-      stick.style.transform = `translate(0px, 0px)`;
-      touchMove = 0;
-    });
-    pad.addEventListener('pointercancel', () => {
-      active = false;
-      stick.style.transform = `translate(0px, 0px)`;
-      touchMove = 0;
+
+    const form = document.getElementById('signupForm');
+    const msg = document.getElementById('formMessage');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = new FormData(form).get('email');
+      msg.textContent = `Thanks — request received for ${email}. (Hook this up to your email provider when you’re ready.)`;
+      form.reset();
     });
 
-    fireBtn.addEventListener('pointerdown', (e) => {
-      touchFiring = true;
-      fireBtn.setPointerCapture(e.pointerId);
+    const sampleBtn = document.getElementById('sampleBtn');
+    sampleBtn.addEventListener('click', () => {
+      msg.textContent =
+        "Sample product copy: “LUMEN supports the look of calm brightness. VEIL supports the look of overnight recovery. Minimal steps. Consistent use. No noise.”";
     });
-    fireBtn.addEventListener('pointerup', () => touchFiring = false);
-    fireBtn.addEventListener('pointercancel', () => touchFiring = false);
-  }
-  setupStick();
-
-  // ---------- Audio (WebAudio, lightweight) ----------
-  let audioCtx = null;
-  let muted = false;
-
-  function ensureAudio() {
-    if (audioCtx) return;
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch {}
-  }
-  function beep({ type='square', freq=440, dur=0.08, gain=0.05, slide=0, noise=false } = {}) {
-    if (muted) return;
-    ensureAudio();
-    if (!audioCtx) return;
-    const t0 = audioCtx.currentTime;
-    const g = audioCtx.createGain();
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    g.connect(audioCtx.destination);
-
-    if (noise) {
-      const bufferSize = Math.floor(audioCtx.sampleRate * dur);
-      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i=0;i<bufferSize;i++) data[i] = (Math.random()*2-1) * (1 - i/bufferSize);
-      const src = audioCtx.createBufferSource();
-      src.buffer = buffer;
-      src.connect(g);
-      src.start(t0);
-      src.stop(t0 + dur);
-      return;
-    }
-
-    const o = audioCtx.createOscillator();
-    o.type = type;
-    o.frequency.setValueAtTime(freq, t0);
-    if (slide !== 0) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t0 + dur);
-    o.connect(g);
-    o.start(t0);
-    o.stop(t0 + dur);
-  }
-
-  function sfxShoot() { beep({ type:'square', freq:820, dur:0.05, gain:0.04, slide:-200 }); }
-  function sfxHit()   { beep({ type:'sawtooth', freq:240, dur:0.09, gain:0.06, slide:-80 }); }
-  function sfxBoom()  { beep({ noise:true, dur:0.14, gain:0.08 }); }
-  function sfxPower() { beep({ type:'triangle', freq:520, dur:0.10, gain:0.05, slide:200 }); }
-  function sfxBoss()  { beep({ type:'sine', freq:120, dur:0.22, gain:0.07, slide:-30 }); }
-
-  function toggleMute() {
-    muted = !muted;
-    btnMute.textContent = muted ? 'Unmute' : 'Mute';
-  }
-
-  // ---------- Game state ----------
-  const SAVE_KEY = 'invaders_adv_highscore_v1';
-  let highScore = Number(localStorage.getItem(SAVE_KEY) || 0);
-
-  const STATE = { MENU:0, PLAY:1, PAUSE:2, GAMEOVER:3 };
-  let state = STATE.MENU;
-
-  const stars = [];
-  for (let i=0;i<120;i++) stars.push({ x: Math.random()*W, y: Math.random()*H, s: rand(2.2,0.5), v: rand(120,30) });
-
-  const particles = [];
-  function spawnBurst(x,y,n=18,spd=160,life=0.55) {
-    for (let i=0;i<n;i++) {
-      const a = Math.random()*Math.PI*2;
-      const r = rand(1,0.2);
-      particles.push({
-        x, y, vx: Math.cos(a)*spd*rand(1,0.3), vy: Math.sin(a)*spd*rand(1,0.3),
-        life: rand(life, life*0.35), t:0, r, glow: rand(1,0.2)
-      });
-    }
-  }
-
-  // Entities
-  const bullets = [];
-  const eBullets = [];
-  const enemies = [];
-  const powerups = [];
-  const shields = [];
-
-  const player = {
-    x: W/2, y: H-72, w: 28, h: 18,
-    vx: 0,
-    lives: 3,
-    invuln: 0,
-    shieldT: 0,   // temporary personal shield
-    fireCd: 0,
-    fireRate: 0.16,
-    spread: 0,
-    rapidT: 0,
-    spreadT: 0,
-  };
-
-  let wave = 1;
-  let score = 0;
-  let multiplier = 1;
-  let streakT = 0; // time window to keep multiplier rising
-  let bossActive = false;
-
-  function resetRun() {
-    bullets.length = 0; eBullets.length = 0; enemies.length = 0; powerups.length = 0; shields.length = 0; particles.length = 0;
-    player.x = W/2; player.vx = 0;
-    player.lives = 3;
-    player.invuln = 1.2;
-    player.shieldT = 0;
-    player.fireCd = 0;
-    player.fireRate = 0.16;
-    player.spread = 0;
-    player.rapidT = 0;
-    player.spreadT = 0;
-
-    wave = 1;
-    score = 0;
-    multiplier = 1;
-    streakT = 0;
-    bossActive = false;
-
-    buildBarriers();
-    spawnWave(wave);
-  }
-
-  function buildBarriers() {
-    shields.length = 0;
-    const baseY = H - 170;
-    const count = 3;
-    for (let i=0;i<count;i++) {
-      const x = (W*(i+1)/(count+1));
-      shields.push(makeBarrier(x, baseY));
-    }
-  }
-
-  function makeBarrier(cx, cy) {
-    // Pixel mask barrier (classic-ish)
-    const cols = 22, rows = 14;
-    const mask = [];
-    for (let y=0;y<rows;y++) {
-      mask[y] = [];
-      for (let x=0;x<cols;x++) {
-        // carve shape
-        const dx = Math.abs(x - (cols-1)/2);
-        const top = y < 3 ? 1 : 0;
-        const notch = (y > 8 && dx < 3) ? 0 : 1;
-        const curve = (y < 2 && dx > 8) ? 0 : 1;
-        const fill = (y < 12) ? 1 : (dx < 6 ? 1 : 0);
-        mask[y][x] = (fill && notch && curve && !(top && dx > 9)) ? 1 : 0;
-      }
-    }
-    return { cx, cy, cols, rows, mask, hp: 999 };
-  }
-
-  function damageBarrier(b, x, y, r=6) {
-    // x,y are world coords; convert to mask indices
-    const left = b.cx - b.cols*3/2;
-    const top  = b.cy - b.rows*3/2;
-    let hit = false;
-    for (let j=0;j<b.rows;j++) {
-      for (let i=0;i<b.cols;i++) {
-        if (!b.mask[j][i]) continue;
-        const px = left + i*3 + 1.5;
-        const py = top + j*3 + 1.5;
-        if (Math.hypot(px - x, py - y) <= r) {
-          b.mask[j][i] = 0;
-          hit = true;
-        }
-      }
-    }
-    if (hit) spawnBurst(x,y,8,120,0.25);
-    return hit;
-  }
-
-  // ---------- Enemy factory ----------
-  function spawnWave(n) {
-    enemies.length = 0;
-    eBullets.length = 0;
-    bossActive = false;
-
-    const isBossWave = (n % 5 === 0);
-    if (isBossWave) {
-      spawnBoss(n);
-      return;
-    }
-
-    const rows = clamp(3 + Math.floor(n/2), 3, 7);
-    const cols = clamp(9 + Math.floor(n/3), 9, 13);
-
-    const typeMix = [
-      { kind:'march', w:1.0 },
-      { kind:'zig',   w: Math.min(0.65, 0.15 + n*0.03) },
-      { kind:'swoop', w: Math.min(0.55, 0.10 + n*0.025) }
-    ];
-
-    const totalW = typeMix.reduce((a,b)=>a+b.w,0);
-
-    const startX = W/2 - (cols-1)*26/2;
-    const startY = 88;
-    let id = 0;
-
-    for (let r=0;r<rows;r++) {
-      for (let c=0;c<cols;c++) {
-        const roll = Math.random()*totalW;
-        let acc=0, kind='march';
-        for (const t of typeMix) { acc += t.w; if (roll <= acc) { kind = t.kind; break; } }
-
-        const tier = (rows - r); // top row tougher
-        const hp = kind === 'march' ? (r<2 ? 2 : 1) : (kind==='zig' ? 2 : 3);
-        const points = 20 + tier*6 + (kind==='swoop' ? 14 : kind==='zig' ? 8 : 0) + n*2;
-
-        enemies.push({
-          id: id++,
-          kind,
-          x: startX + c*26,
-          y: startY + r*24,
-          w: 18, h: 14,
-          hp,
-          baseHp: hp,
-          points,
-          t: Math.random()*10,
-          phase: Math.random()*Math.PI*2,
-          fireT: rand(2.2, 0.6),
-          swooping: false,
-          vx: 0,
-          vy: 0,
-        });
-      }
-    }
-
-    // Marching group movement parameters
-    march.dir = 1;
-    march.xOff = 0;
-    march.yOff = 0;
-    march.speed = 14 + n*2.2;
-    march.drop = 14;
-    march.edgePad = 26;
-    march.fireRate = clamp(0.55 - n*0.03, 0.18, 0.55);
-  }
-
-  function spawnBoss(n) {
-    bossActive = true;
-    enemies.length = 0;
-    eBullets.length = 0;
-
-    const hp = 60 + n*10;
-    enemies.push({
-      kind: 'boss',
-      x: W/2, y: 120,
-      w: 86, h: 36,
-      hp, baseHp: hp,
-      t: 0,
-      phase: 0,
-      fireT: 0.8,
-      mode: 0, // 0 spread, 1 sweep, 2 burst
-      modeT: 3.2,
-      vx: 0,
-    });
-    sfxBoss();
-    shake(6, 0.25);
-  }
-
-  const march = { dir:1, xOff:0, yOff:0, speed: 18, drop: 14, edgePad: 26, fireRate: 0.45 };
-
-  // ---------- Power-ups ----------
-  const PU = {
-    RAPID:'rapid',
-    SPREAD:'spread',
-    SHIELD:'shield',
-    HEAL:'heal',
-  };
-  function maybeDropPowerup(x,y, waveN) {
-    const chance = clamp(0.08 + waveN*0.01, 0.08, 0.18);
-    if (Math.random() > chance) return;
-    const roll = Math.random();
-    let kind = PU.RAPID;
-    if (roll < 0.25) kind = PU.SPREAD;
-    else if (roll < 0.50) kind = PU.RAPID;
-    else if (roll < 0.75) kind = PU.SHIELD;
-    else kind = PU.HEAL;
-
-    powerups.push({ kind, x, y, vy: 50 + waveN*6, t: 0 });
-  }
-
-  // ---------- Spawning bullets ----------
-  function shootPlayer() {
-    if (player.fireCd > 0) return;
-
-    const base = { x: player.x, y: player.y - 12, vy: -520, r: 2.2, dmg: 1 };
-    if (player.spread) {
-      bullets.push({ ...base, vx: -140 });
-      bullets.push({ ...base, vx: 0, r: 2.6 });
-      bullets.push({ ...base, vx: 140 });
-    } else {
-      bullets.push({ ...base, vx: 0, r: 2.6 });
-    }
-    player.fireCd = player.fireRate;
-    sfxShoot();
-  }
-
-  function shootEnemy(e, aim=false) {
-    // Enemy bullet with slight variation
-    const speed = 160 + wave*10 + (bossActive ? 40 : 0);
-    let vx = rand(40,-40);
-    if (aim) {
-      const dx = (player.x - e.x);
-      vx = clamp(dx*0.35, -160, 160);
-    }
-    eBullets.push({ x: e.x, y: e.y + e.h/2, vx, vy: speed, r: 2.2, t: 0, kind: bossActive ? 'plasma' : 'bolt' });
-  }
-
-  // ---------- Collision ----------
-  function hitAABB(cx, cy, r, x, y, w, h) {
-    // circle vs rect
-    const px = clamp(cx, x - w/2, x + w/2);
-    const py = clamp(cy, y - h/2, y + h/2);
-    const dx = cx - px, dy = cy - py;
-    return (dx*dx + dy*dy) <= r*r;
-  }
-
-  // ---------- Game flow ----------
-  let paused = false;
-  function togglePause() {
-    if (state !== STATE.PLAY && state !== STATE.PAUSE) return;
-    paused = !paused;
-    state = paused ? STATE.PAUSE : STATE.PLAY;
-    btnPause.textContent = paused ? 'Resume' : 'Pause';
-  }
-
-  function startGame() {
-    overlay.style.display = 'none';
-    hud.style.display = 'flex';
-    resetRun();
-    state = STATE.PLAY;
-    paused = false;
-    btnPause.textContent = 'Pause';
-    ensureAudio(); // attempt init
-  }
-
-  function gameOver() {
-    state = STATE.GAMEOVER;
-    paused = false;
-    btnPause.textContent = 'Pause';
-    overlay.style.display = 'grid';
-    hud.style.display = 'none';
-    // Update overlay content
-    overlay.querySelector('.title').textContent = 'Game Over';
-    overlay.querySelector('.sub').innerHTML =
-      `Final score: <b>${Math.floor(score)}</b> &middot; Wave: <b>${wave}</b> &middot; High score: <b>${highScore}</b>`;
-    tips.style.display = 'none';
-  }
-
-  btnStart.onclick = () => {
-    // restore overlay title if it was game over
-    overlay.querySelector('.title').textContent = 'Space Invaders: Advanced';
-    overlay.querySelector('.sub').textContent =
-      'Survive escalating waves, grab power-ups, and face a boss every few rounds. Works on desktop + mobile.';
-    startGame();
-  };
-  btnRestart.onclick = () => {
-    overlay.querySelector('.title').textContent = 'Space Invaders: Advanced';
-    overlay.querySelector('.sub').textContent =
-      'Survive escalating waves, grab power-ups, and face a boss every few rounds. Works on desktop + mobile.';
-    overlay.style.display = 'none';
-    hud.style.display = 'flex';
-    resetRun();
-    state = STATE.PLAY;
-    paused = false;
-  };
-  btnPause.onclick = togglePause;
-  btnMute.onclick = toggleMute;
-
-  // Resume audio on first interaction (mobile policy)
-  window.addEventListener('pointerdown', () => {
-    ensureAudio();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
-  }, { once:false });
-
-  // ---------- Update / Draw ----------
-  let last = performance.now();
-  let acc = 0;
-  const FIXED = 1/120;
-
-  function step(dt) {
-    // stars
-    for (const s of stars) {
-      s.y += s.v * dt;
-      if (s.y > H+10) { s.y = -10; s.x = Math.random()*W; s.s = rand(2.2,0.5); s.v = rand(140,30); }
-    }
-
-    // timers
-    shakeT = Math.max(0, shakeT - dt);
-    if (shakeT === 0) shakeAmp = 0;
-
-    if (state !== STATE.PLAY) return;
-
-    // multiplier decay window
-    streakT = Math.max(0, streakT - dt);
-    if (streakT === 0) multiplier = lerp(multiplier, 1, clamp(dt*0.8,0,1));
-
-    // player power-up timers
-    player.invuln = Math.max(0, player.invuln - dt);
-    player.shieldT = Math.max(0, player.shieldT - dt);
-    player.rapidT  = Math.max(0, player.rapidT  - dt);
-    player.spreadT = Math.max(0, player.spreadT - dt);
-    if (player.rapidT <= 0) player.fireRate = 0.16;
-    if (player.spreadT <= 0) player.spread = 0;
-
-    player.fireCd = Math.max(0, player.fireCd - dt);
-
-    // input -> movement
-    const left  = keys.has('a') || keys.has('arrowleft');
-    const right = keys.has('d') || keys.has('arrowright');
-    const shoot = keys.has('space') || touchFiring;
-
-    let move = 0;
-    if (left) move -= 1;
-    if (right) move += 1;
-    move += touchMove;
-
-    const speed = 240;
-    player.vx = lerp(player.vx, move * speed, clamp(dt*10,0,1));
-    player.x = clamp(player.x + player.vx*dt, 18, W-18);
-
-    if (shoot) shootPlayer();
-
-    // enemies update
-    if (bossActive) {
-      const b = enemies[0];
-      if (b) {
-        b.t += dt;
-        b.modeT -= dt;
-        // boss horizontal movement
-        const targetX = W/2 + Math.sin(b.t*0.9)* (W*0.32);
-        b.x = lerp(b.x, targetX, clamp(dt*1.6,0,1));
-
-        // mode switching
-        if (b.modeT <= 0) {
-          b.mode = (b.mode + 1) % 3;
-          b.modeT = 3.0 + Math.random()*1.2;
-        }
-
-        b.fireT -= dt;
-        if (b.fireT <= 0) {
-          if (b.mode === 0) {
-            // spread fan
-            for (const vx of [-180,-90,0,90,180]) eBullets.push({ x:b.x, y:b.y+b.h/2, vx, vy: 220+wave*10, r:2.4, t:0, kind:'plasma' });
-            b.fireT = clamp(0.85 - wave*0.02, 0.35, 0.85);
-          } else if (b.mode === 1) {
-            // aimed sweep
-            shootEnemy(b, true);
-            b.fireT = clamp(0.22 - wave*0.003, 0.11, 0.22);
-          } else {
-            // burst rings
-            const n = 10;
-            for (let i=0;i<n;i++) {
-              const a = (i/n)*Math.PI*2;
-              eBullets.push({ x:b.x, y:b.y+b.h/2, vx: Math.cos(a)*170, vy: 230 + Math.sin(a)*60, r:2.2, t:0, kind:'plasma' });
-            }
-            b.fireT = 1.25;
-          }
-        }
-      }
-    } else {
-      // marching block logic (classic with tweaks)
-      // compute extents
-      let minX = Infinity, maxX = -Infinity, maxY = -Infinity;
-      for (const e of enemies) { minX = Math.min(minX, e.x); maxX = Math.max(maxX, e.x); maxY = Math.max(maxY, e.y); }
-      const leftEdge  = minX + march.xOff - 9;
-      const rightEdge = maxX + march.xOff + 9;
-
-      march.xOff += march.dir * march.speed * dt;
-      if (rightEdge > W - march.edgePad || leftEdge < march.edgePad) {
-        march.dir *= -1;
-        march.yOff += march.drop;
-        march.xOff += march.dir * 4; // little nudge away from edge
-      }
-
-      // If invaders descend too far -> lose
-      if (maxY + march.yOff > H - 150) {
-        // tough luck
-        player.lives = 0;
-        gameOver();
-        return;
-      }
-
-      for (const e of enemies) {
-        e.t += dt;
-        const bx = e.x + march.xOff;
-        const by = e.y + march.yOff;
-
-        if (e.kind === 'zig') {
-          // zig is offset around its grid position
-          e._x = bx + Math.sin(e.t*3 + e.phase)*10;
-          e._y = by + Math.cos(e.t*2 + e.phase)*4;
-        } else if (e.kind === 'swoop') {
-          // occasionally break formation and dive
-          if (!e.swooping && Math.random() < (0.0008 + wave*0.00012)) {
-            e.swooping = true;
-            e.vx = clamp((player.x - bx) * 1.1, -220, 220);
-            e.vy = 90 + wave*8;
-          }
-          if (e.swooping) {
-            e._x = bx + e.vx*dt*2;
-            e._y = by + e.vy*dt*2 + Math.sin(e.t*8)*2;
-            // accelerate slightly
-            e.vy += 60*dt;
-            // if off screen, reset near top
-            if (e._y > H + 40) {
-              e.swooping = false;
-              e.vx = 0; e.vy = 0;
-              // snap back into formation area (keep offsets)
-              e.y = 88 + (e.id % 7)*24;
-            }
-          } else {
-            e._x = bx;
-            e._y = by;
-          }
-        } else {
-          e._x = bx;
-          e._y = by;
-        }
-
-        // enemy shooting
-        e.fireT -= dt;
-        if (e.fireT <= 0) {
-          // choose who shoots: prefer lower enemies
-          const aim = (e.kind === 'swoop') || (wave >= 3 && Math.random() < 0.22);
-          shootEnemy({ x:e._x, y:e._y, h:e.h }, aim);
-          e.fireT = rand(2.2, 0.6) * (0.92 - wave*0.01) + rand(0.35,0.12);
-        }
-      }
-    }
-
-    // bullets update
-    for (let i=bullets.length-1;i>=0;i--) {
-      const b = bullets[i];
-      b.x += (b.vx||0) * dt;
-      b.y += b.vy * dt;
-      if (b.y < -20 || b.x < -30 || b.x > W+30) bullets.splice(i,1);
-    }
-    for (let i=eBullets.length-1;i>=0;i--) {
-      const b = eBullets[i];
-      b.x += b.vx * dt;
-      b.y += b.vy * dt;
-      b.t += dt;
-      if (b.y > H+30 || b.x < -40 || b.x > W+40) eBullets.splice(i,1);
-    }
-
-    // particles
-    for (let i=particles.length-1;i>=0;i--) {
-      const p = particles[i];
-      p.t += dt;
-      p.x += p.vx*dt;
-      p.y += p.vy*dt;
-      p.vx *= Math.pow(0.02, dt); // strong damping
-      p.vy *= Math.pow(0.02, dt);
-      if (p.t > p.life) particles.splice(i,1);
-    }
-
-    // powerups
-    for (let i=powerups.length-1;i>=0;i--) {
-      const pu = powerups[i];
-      pu.t += dt;
-      pu.y += pu.vy*dt;
-      if (pu.y > H+20) { powerups.splice(i,1); continue; }
-      // pickup
-      if (hitAABB(pu.x, pu.y, 10, player.x, player.y, player.w, player.h)) {
-        applyPowerup(pu.kind);
-        powerups.splice(i,1);
-        sfxPower();
-      }
-    }
-
-    // collisions: player bullets vs enemies & barriers
-    for (let i=bullets.length-1;i>=0;i--) {
-      const b = bullets[i];
-
-      // barriers first
-      let eaten = false;
-      for (const sh of shields) {
-        if (damageBarrier(sh, b.x, b.y, 4.6)) { bullets.splice(i,1); eaten = true; break; }
-      }
-      if (eaten) continue;
-
-      // enemies
-      let hit = false;
-      for (let j=enemies.length-1;j>=0;j--) {
-        const e = enemies[j];
-        const ex = bossActive ? e.x : (e._x ?? e.x);
-        const ey = bossActive ? e.y : (e._y ?? e.y);
-        if (hitAABB(b.x, b.y, b.r, ex, ey, e.w, e.h)) {
-          e.hp -= b.dmg;
-          bullets.splice(i,1);
-          hit = true;
-
-          spawnBurst(b.x,b.y,10,140,0.32);
-          sfxHit();
-          shake(2.2, 0.10);
-
-          if (e.hp <= 0) {
-            const gained = e.points ? e.points : (bossActive ? 400 : 50);
-            score += gained * multiplier;
-            multiplier = clamp(multiplier + 0.05, 1, 4);
-            streakT = 2.4;
-
-            spawnBurst(ex,ey,24,220,0.55);
-            sfxBoom();
-            shake(5.5, 0.18);
-
-            maybeDropPowerup(ex, ey, wave);
-
-            enemies.splice(j,1);
-
-            if (bossActive && enemies.length === 0) {
-              score += (900 + wave*80) * multiplier;
-              wave++;
-              buildBarriers(); // refresh a bit each boss
-              spawnWave(wave);
-              bossActive = false;
-            }
-          } else {
-            // small score for damage on boss
-            if (bossActive) { score += 6 * multiplier; streakT = 1.2; }
-          }
-          break;
-        }
-      }
-      if (hit) continue;
-    }
-
-    // collisions: enemy bullets vs player & barriers
-    for (let i=eBullets.length-1;i>=0;i--) {
-      const b = eBullets[i];
-
-      // barriers
-      let absorbed = false;
-      for (const sh of shields) {
-        if (damageBarrier(sh, b.x, b.y, 5.2)) { eBullets.splice(i,1); absorbed = true; break; }
-      }
-      if (absorbed) continue;
-
-      // player
-      if (hitAABB(b.x, b.y, b.r, player.x, player.y, player.w, player.h)) {
-        eBullets.splice(i,1);
-        if (player.invuln > 0) continue;
-        if (player.shieldT > 0) {
-          // shield takes it
-          player.shieldT = Math.max(0, player.shieldT - 0.35);
-          spawnBurst(player.x, player.y, 14, 160, 0.35);
-          sfxHit();
-          shake(2.5,0.1);
-          continue;
-        }
-        // take damage
-        player.lives -= 1;
-        player.invuln = 1.4;
-        multiplier = 1; streakT = 0;
-        spawnBurst(player.x, player.y, 30, 240, 0.65);
-        sfxBoom();
-        shake(7,0.25);
-
-        if (player.lives <= 0) {
-          if (score > highScore) {
-            highScore = Math.floor(score);
-            localStorage.setItem(SAVE_KEY, String(highScore));
-          }
-          gameOver();
-          return;
-        }
-      }
-    }
-
-    // wave clear
-    if (!bossActive && enemies.length === 0) {
-      wave++;
-      // small heal chance between waves: restore some barrier pixels by rebuilding every 3 waves
-      if (wave % 3 === 1) buildBarriers();
-      spawnWave(wave);
-      // reward
-      score += 120 * multiplier;
-      sfxPower();
-    }
-
-    // keep highscore updated
-    if (Math.floor(score) > highScore) {
-      highScore = Math.floor(score);
-      localStorage.setItem(SAVE_KEY, String(highScore));
-    }
-  }
-
-  function applyPowerup(kind) {
-    if (kind === PU.RAPID) {
-      player.rapidT = 8;
-      player.fireRate = 0.09;
-    } else if (kind === PU.SPREAD) {
-      player.spreadT = 10;
-      player.spread = 1;
-    } else if (kind === PU.SHIELD) {
-      player.shieldT = 7;
-    } else if (kind === PU.HEAL) {
-      player.lives = Math.min(6, player.lives + 1);
-    }
-  }
-
-  function draw() {
-    // background
-    ctx.fillStyle = '#05060a';
-    ctx.fillRect(0,0,W,H);
-
-    // shake transform
-    let ox=0, oy=0;
-    if (shakeT > 0) {
-      const k = (shakeT/0.25);
-      ox = (Math.random()*2-1) * shakeAmp * k;
-      oy = (Math.random()*2-1) * shakeAmp * k;
-    }
-
-    ctx.save();
-    ctx.translate(ox, oy);
-
-    // stars
-    ctx.fillStyle = '#cdd7ff';
-    for (const s of stars) {
-      const a = clamp((s.v-30)/110, 0.15, 0.9);
-      ctx.globalAlpha = a;
-      ctx.fillRect((s.x|0), (s.y|0), s.s|0, s.s|0);
-    }
-    ctx.globalAlpha = 1;
-
-    // barriers (pixel mask)
-    for (const b of shields) {
-      const left = b.cx - b.cols*3/2;
-      const top  = b.cy - b.rows*3/2;
-      for (let y=0;y<b.rows;y++) {
-        for (let x=0;x<b.cols;x++) {
-          if (!b.mask[y][x]) continue;
-          ctx.fillStyle = 'rgba(190,220,255,0.25)';
-          ctx.fillRect(left + x*3, top + y*3, 3, 3);
-        }
-      }
-    }
-
-    // powerups
-    for (const pu of powerups) {
-      ctx.globalAlpha = 0.95;
-      const pulse = 0.35 + 0.65*(0.5 + 0.5*Math.sin(pu.t*8));
-      ctx.fillStyle = 'rgba(210,230,255,' + (0.12 + 0.35*pulse) + ')';
-      ctx.beginPath();
-      ctx.arc(pu.x, pu.y, 9, 0, Math.PI*2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#e7ecff';
-      ctx.font = 'bold 10px system-ui';
-      const label = pu.kind === PU.RAPID ? 'R' : pu.kind === PU.SPREAD ? 'S' : pu.kind === PU.SHIELD ? 'D' : '+';
-      ctx.fillText(label, pu.x-3, pu.y+4);
-    }
-
-    // enemies
-    if (bossActive) {
-      const b = enemies[0];
-      if (b) {
-        // boss body
-        ctx.fillStyle = 'rgba(220,235,255,0.14)';
-        ctx.fillRect(b.x - b.w/2, b.y - b.h/2, b.w, b.h);
-        ctx.strokeStyle = 'rgba(220,235,255,0.28)';
-        ctx.strokeRect(b.x - b.w/2, b.y - b.h/2, b.w, b.h);
-
-        // boss "eyes"
-        ctx.fillStyle = 'rgba(230,245,255,0.55)';
-        ctx.fillRect(b.x - 26, b.y - 6, 10, 6);
-        ctx.fillRect(b.x + 16, b.y - 6, 10, 6);
-
-        // boss hp bar
-        const bw = 180, bh = 8;
-        const x = W/2 - bw/2, y = 28;
-        ctx.fillStyle = 'rgba(255,255,255,0.10)';
-        ctx.fillRect(x,y,bw,bh);
-        ctx.fillStyle = 'rgba(220,235,255,0.35)';
-        ctx.fillRect(x,y,bw*(b.hp/b.baseHp),bh);
-        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-        ctx.strokeRect(x,y,bw,bh);
-      }
-    } else {
-      for (const e of enemies) {
-        const x = e._x ?? e.x;
-        const y = e._y ?? e.y;
-        const hpPct = e.hp / e.baseHp;
-
-        // base shape
-        ctx.fillStyle = `rgba(220,235,255,${0.10 + 0.12*hpPct})`;
-        ctx.fillRect(x - e.w/2, y - e.h/2, e.w, e.h);
-
-        // "pixel" accents
-        ctx.fillStyle = `rgba(230,245,255,${0.20 + 0.20*hpPct})`;
-        ctx.fillRect(x - e.w/2 + 3, y - 2, 4, 3);
-        ctx.fillRect(x + e.w/2 - 7, y - 2, 4, 3);
-
-        // outline (slightly different per type)
-        ctx.strokeStyle = e.kind === 'swoop'
-          ? 'rgba(220,235,255,0.28)'
-          : e.kind === 'zig'
-            ? 'rgba(220,235,255,0.22)'
-            : 'rgba(220,235,255,0.18)';
-        ctx.strokeRect(x - e.w/2, y - e.h/2, e.w, e.h);
-      }
-    }
-
-    // bullets
-    for (const b of bullets) {
-      ctx.fillStyle = 'rgba(240,250,255,0.9)';
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(240,250,255,0.15)';
-      ctx.fillRect(b.x-1, b.y+2, 2, 8);
-    }
-    for (const b of eBullets) {
-      const glow = (b.kind === 'plasma') ? 0.55 : 0.35;
-      ctx.fillStyle = `rgba(210,230,255,${glow})`;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r+0.2, 0, Math.PI*2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(210,230,255,0.10)';
-      ctx.fillRect(b.x-1, b.y-10, 2, 10);
-    }
-
-    // player
-    ctx.save();
-    const blink = player.invuln > 0 ? (Math.sin(performance.now()*0.02) > 0 ? 0.45 : 1) : 1;
-    ctx.globalAlpha = blink;
-
-    // ship body
-    ctx.fillStyle = 'rgba(230,245,255,0.18)';
-    ctx.fillRect(player.x - player.w/2, player.y - player.h/2, player.w, player.h);
-    ctx.strokeStyle = 'rgba(230,245,255,0.26)';
-    ctx.strokeRect(player.x - player.w/2, player.y - player.h/2, player.w, player.h);
-    // cockpit
-    ctx.fillStyle = 'rgba(240,250,255,0.35)';
-    ctx.fillRect(player.x - 6, player.y - 6, 12, 6);
-
-    // personal shield bubble
-    if (player.shieldT > 0) {
-      const p = player.shieldT / 7;
-      ctx.globalAlpha = 0.25 + 0.25*p;
-      ctx.strokeStyle = 'rgba(220,235,255,0.55)';
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, 22, 0, Math.PI*2);
-      ctx.stroke();
-    }
-
-    ctx.restore();
-
-    // particles
-    for (const p of particles) {
-      const a = 1 - (p.t / p.life);
-      ctx.globalAlpha = a * (0.75 + 0.25*p.glow);
-      ctx.fillStyle = 'rgba(220,235,255,0.9)';
-      ctx.fillRect(p.x, p.y, 2+p.r*2, 2+p.r*2);
-    }
-    ctx.globalAlpha = 1;
-
-    ctx.restore(); // shake
-
-    // HUD text updates
-    hudScore.textContent = `Score ${Math.floor(score)}`;
-    hudWave.textContent  = `Wave ${wave}${(wave%5===0) ? ' (Boss)' : ''}`;
-    hudLives.textContent = `Lives ${player.lives}`;
-    hudMult.textContent  = `x${multiplier.toFixed(1)}`;
-    hudHigh.textContent  = `High ${highScore}`;
-
-    // pause text
-    if (state === STATE.PAUSE) {
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.fillRect(0,0,W,H);
-      ctx.fillStyle = '#e7ecff';
-      ctx.font = '800 24px system-ui';
-      ctx.fillText('Paused', W/2 - 44, H/2);
-      ctx.font = '14px system-ui';
-      ctx.fillText('Press P to resume', W/2 - 62, H/2 + 22);
-    }
-  }
-
-  function loop(now) {
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
-
-    // run fixed updates for consistent feel
-    if (state !== STATE.PAUSE) {
-      acc += dt;
-      while (acc >= FIXED) {
-        step(FIXED);
-        acc -= FIXED;
-      }
-    } else {
-      // still animate stars a tiny bit while paused (optional)
-      step(0);
-    }
-
-    draw();
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
-
-})();
-</script>
+  </script>
 </body>
 </html>
-
