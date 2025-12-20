@@ -3,21 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="RITE — modern ritual care. Two core formulas: LUMEN (day) and VEIL (night)." />
-  <title>RITE — LUMEN & VEIL</title>
+  <meta name="description" content="RITE — modern ritual supplements. LUMEN for day. VEIL for night." />
+  <title>RITE — LUMEN (Day) + VEIL (Night)</title>
 
   <style>
     :root{
-      --bg: #07070a;
+      --bg:#07070a;
       --bg2:#0b0c10;
-      --card:#0f1117;
+      --card: rgba(255,255,255,.03);
       --line: rgba(255,255,255,.10);
       --line2: rgba(255,255,255,.16);
       --text:#f4f5f7;
-      --muted: rgba(244,245,247,.72);
-      --soft: rgba(244,245,247,.08);
-      --glow: rgba(255,255,255,.06);
-      --focus: rgba(255,255,255,.22);
+      --muted: rgba(244,245,247,.70);
 
       --radius: 18px;
       --radius2: 26px;
@@ -28,30 +25,30 @@
       --max: 1120px;
 
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       --serif: ui-serif, "Iowan Old Style", Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
     }
 
     *{ box-sizing: border-box; }
-    html,body{ height: 100%; }
+    html,body{ height:100%; }
     body{
-      margin: 0;
+      margin:0;
       background:
-        radial-gradient(800px 500px at 25% 0%, rgba(255,255,255,.06), transparent 60%),
-        radial-gradient(600px 420px at 90% 20%, rgba(255,255,255,.04), transparent 55%),
-        radial-gradient(900px 700px at 50% 100%, rgba(255,255,255,.03), transparent 60%),
+        radial-gradient(900px 540px at 25% 0%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(700px 480px at 90% 20%, rgba(255,255,255,.04), transparent 55%),
+        radial-gradient(900px 700px at 50% 110%, rgba(255,255,255,.03), transparent 60%),
         linear-gradient(180deg, var(--bg), var(--bg2));
       color: var(--text);
       font-family: var(--sans);
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
-      overflow-x: hidden;
+      overflow-x:hidden;
     }
 
-    a{ color: inherit; text-decoration: none; }
+    a{ color: inherit; text-decoration:none; }
     .container{ width: min(var(--max), calc(100% - 48px)); margin: 0 auto; }
 
-    /* Subtle film grain */
+    /* Subtle grain */
     .grain{
       pointer-events:none;
       position: fixed; inset: 0;
@@ -61,11 +58,11 @@
       background-size: 220px 220px;
     }
 
-    /* Top nav */
+    /* Nav */
     .nav{
       position: sticky; top: 0; z-index: 50;
       backdrop-filter: blur(10px);
-      background: linear-gradient(180deg, rgba(7,7,10,.76), rgba(7,7,10,.34));
+      background: linear-gradient(180deg, rgba(7,7,10,.78), rgba(7,7,10,.32));
       border-bottom: 1px solid var(--line);
     }
     .nav-inner{
@@ -75,9 +72,9 @@
     }
     .brand{
       display:flex; align-items:center; gap: 12px;
-      letter-spacing: .08em;
+      letter-spacing: .10em;
       text-transform: uppercase;
-      font-weight: 650;
+      font-weight: 750;
       font-size: 13px;
     }
     .sigil{
@@ -88,7 +85,6 @@
       background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.09), transparent 60%);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
     }
-    .sigil svg{ opacity: .9; }
     .nav-links{
       display:flex; align-items:center; gap: 16px;
       color: var(--muted);
@@ -105,18 +101,16 @@
       border-color: var(--line2);
       background: rgba(255,255,255,.03);
     }
-    .nav-cta{
-      display:flex; gap: 10px; align-items:center;
-    }
+
     .btn{
-      appearance: none;
+      appearance:none;
       border: 1px solid var(--line2);
       background: rgba(255,255,255,.04);
       color: var(--text);
       padding: 10px 14px;
       border-radius: 14px;
       font-size: 13px;
-      font-weight: 650;
+      font-weight: 700;
       letter-spacing: .02em;
       cursor: pointer;
       transition: transform .14s ease, background .14s ease, border-color .14s ease;
@@ -137,9 +131,7 @@
     }
 
     /* Hero */
-    .hero{
-      padding: 64px 0 30px;
-    }
+    .hero{ padding: 64px 0 26px; }
     .hero-grid{
       display:grid;
       grid-template-columns: 1.2fr .8fr;
@@ -173,12 +165,9 @@
       color: var(--muted);
       font-size: 16px;
       line-height: 1.55;
-      max-width: 60ch;
+      max-width: 62ch;
     }
-    .hero-actions{
-      display:flex; flex-wrap: wrap; gap: 10px;
-      margin-top: 18px;
-    }
+    .hero-actions{ display:flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
     .meta-row{
       display:flex; flex-wrap: wrap; gap: 10px;
       margin-top: 18px;
@@ -192,7 +181,7 @@
       border-radius: 999px;
     }
 
-    /* Right column hero card */
+    /* Right hero card */
     .hero-card{
       border: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
@@ -213,9 +202,8 @@
       pointer-events:none;
     }
     .hero-card > *{ position: relative; }
-
     .hero-card h3{
-      margin: 0 0 12px;
+      margin:0 0 12px;
       letter-spacing: .10em;
       text-transform: uppercase;
       font-size: 12px;
@@ -232,7 +220,7 @@
       border-radius: 16px;
       padding: 14px;
       box-shadow: var(--shadow2);
-      min-height: 116px;
+      min-height: 128px;
     }
     .mini .tag{
       font-family: var(--mono);
@@ -244,8 +232,8 @@
     .mini .name{
       margin-top: 8px;
       font-size: 18px;
-      font-weight: 740;
-      letter-spacing: .04em;
+      font-weight: 820;
+      letter-spacing: .06em;
       text-transform: uppercase;
     }
     .mini .desc{
@@ -254,10 +242,7 @@
       font-size: 12px;
       line-height: 1.45;
     }
-    .mini .chiprow{
-      display:flex; flex-wrap: wrap; gap: 8px;
-      margin-top: 10px;
-    }
+    .chiprow{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
     .chip{
       font-size: 11px;
       color: rgba(244,245,247,.68);
@@ -267,7 +252,7 @@
       background: rgba(255,255,255,.03);
     }
 
-    /* Section baseline */
+    /* Sections */
     section{ padding: 30px 0; }
     .section-head{
       display:flex; align-items:flex-end; justify-content:space-between;
@@ -283,20 +268,16 @@
     .lead{
       color: var(--muted);
       margin: 0;
-      max-width: 70ch;
+      max-width: 78ch;
       font-size: 14px;
       line-height: 1.6;
     }
 
     /* Product cards */
-    .products{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
+    .products{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .card{
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.03);
+      background: var(--card);
       border-radius: var(--radius2);
       padding: 18px;
       box-shadow: var(--shadow2);
@@ -338,17 +319,18 @@
     .product-name{
       margin: 10px 0 6px;
       font-size: 30px;
-      letter-spacing: .08em;
+      letter-spacing: .10em;
       text-transform: uppercase;
-      font-weight: 820;
+      font-weight: 860;
     }
     .product-copy{
       color: var(--muted);
       margin: 0 0 14px;
       line-height: 1.6;
       font-size: 14px;
-      max-width: 62ch;
+      max-width: 70ch;
     }
+
     .list{
       margin: 0;
       padding: 0;
@@ -362,7 +344,7 @@
       display:flex;
       justify-content:space-between;
       gap: 16px;
-      color: rgba(244,245,247,.84);
+      color: rgba(244,245,247,.86);
       font-size: 13px;
     }
     .list .key{
@@ -373,48 +355,34 @@
       text-transform: uppercase;
     }
 
-    .card-actions{
-      display:flex; flex-wrap: wrap; gap: 10px;
-      margin-top: 16px;
-    }
+    .card-actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 16px; }
 
-    /* Science strip */
-    .strip{
-      border: 1px solid var(--line);
-      border-radius: var(--radius2);
-      background: rgba(255,255,255,.02);
-      padding: 16px;
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    .strip .item{
-      border: 1px solid rgba(255,255,255,.08);
+    /* Formula “capsule” blocks */
+    .formula-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .block{
+      border: 1px solid rgba(255,255,255,.10);
       background: rgba(7,7,10,.55);
       border-radius: 16px;
       padding: 14px;
-      min-height: 104px;
+      min-height: 108px;
+      box-shadow: var(--shadow2);
     }
-    .strip .item .t{
+    .block .t{
       font-family: var(--mono);
       font-size: 11px;
       letter-spacing: .08em;
       text-transform: uppercase;
       color: rgba(244,245,247,.62);
     }
-    .strip .item .b{
+    .block .b{
       margin-top: 8px;
       font-size: 14px;
       line-height: 1.55;
-      color: rgba(244,245,247,.84);
+      color: rgba(244,245,247,.86);
     }
 
-    /* Ritual */
-    .ritual{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
+    /* Ritual steps */
+    .ritual{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .steps{
       border: 1px solid var(--line);
       background: rgba(255,255,255,.02);
@@ -425,7 +393,7 @@
     .steps ol{
       margin: 0;
       padding-left: 18px;
-      color: rgba(244,245,247,.86);
+      color: rgba(244,245,247,.88);
       line-height: 1.7;
     }
     .steps li{ margin: 10px 0; }
@@ -469,7 +437,7 @@
       color: var(--muted);
       line-height: 1.6;
       font-size: 13px;
-      max-width: 70ch;
+      max-width: 78ch;
     }
     form{
       display:flex;
@@ -500,11 +468,7 @@
     }
 
     /* FAQ */
-    .faq{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+    .faq{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     details{
       border: 1px solid var(--line);
       background: rgba(255,255,255,.02);
@@ -513,8 +477,8 @@
     }
     summary{
       cursor: pointer;
-      font-weight: 650;
-      color: rgba(244,245,247,.88);
+      font-weight: 700;
+      color: rgba(244,245,247,.90);
       outline: none;
     }
     details p{
@@ -524,7 +488,6 @@
       font-size: 13px;
     }
 
-    /* Footer */
     footer{
       padding: 26px 0 40px;
       border-top: 1px solid var(--line);
@@ -535,30 +498,19 @@
       display:flex; justify-content:space-between; gap: 16px; flex-wrap: wrap;
       align-items: center;
     }
-    .foot-links{
-      display:flex; gap: 14px; flex-wrap: wrap;
-      color: rgba(244,245,247,.62);
-    }
-    .foot-links a{
-      border-bottom: 1px solid transparent;
-    }
-    .foot-links a:hover{
-      border-color: rgba(255,255,255,.25);
-      color: rgba(244,245,247,.85);
-    }
+    .foot-links{ display:flex; gap: 14px; flex-wrap: wrap; color: rgba(244,245,247,.62); }
+    .foot-links a{ border-bottom: 1px solid transparent; }
+    .foot-links a:hover{ border-color: rgba(255,255,255,.25); color: rgba(244,245,247,.85); }
 
-    /* Responsive */
     @media (max-width: 980px){
       .hero-grid{ grid-template-columns: 1fr; }
       .products{ grid-template-columns: 1fr; }
-      .strip{ grid-template-columns: 1fr; }
+      .formula-grid{ grid-template-columns: 1fr; }
       .ritual{ grid-template-columns: 1fr; }
       .faq{ grid-template-columns: 1fr; }
     }
-
-    /* Reduced motion */
     @media (prefers-reduced-motion: reduce){
-      *{ transition: none !important; scroll-behavior: auto !important; }
+      *{ transition:none !important; scroll-behavior:auto !important; }
     }
   </style>
 </head>
@@ -570,7 +522,7 @@
     <div class="container nav-inner">
       <a class="brand" href="#top" aria-label="RITE home">
         <span class="sigil" aria-hidden="true">
-          <!-- simple “sigil” -->
+          <!-- Minimal “sigil” -->
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M12 2v20M2 12h20" stroke="rgba(244,245,247,.85)" stroke-width="1.3" stroke-linecap="round"/>
             <path d="M12 4.5c4.14 0 7.5 3.36 7.5 7.5S16.14 19.5 12 19.5 4.5 16.14 4.5 12 7.86 4.5 12 4.5Z"
@@ -582,12 +534,12 @@
 
       <nav class="nav-links" aria-label="Primary">
         <a href="#formulas">Formulas</a>
-        <a href="#method">Method</a>
+        <a href="#ingredients">Stacks</a>
         <a href="#ritual">Ritual</a>
         <a href="#faq">FAQ</a>
       </nav>
 
-      <div class="nav-cta">
+      <div style="display:flex; gap:10px; align-items:center;">
         <a class="btn" href="#formulas">Explore</a>
         <button class="btn primary" type="button" id="joinBtn">Join the list</button>
       </div>
@@ -600,27 +552,27 @@
         <div>
           <div class="kicker">
             <span class="dot" aria-hidden="true"></span>
-            <span>Modern ritual care — clinical clarity, occult restraint</span>
+            <span>Modern ritual supplements — clinical clarity, occult restraint</span>
           </div>
 
-          <h1>Two core rites.<br/>One daily system.</h1>
+          <h1>Two capsules.<br/>One daily rite.</h1>
 
           <p class="sub">
-            <strong>RITE</strong> is a minimal, science-led routine with a quiet, ritual edge.
-            <br/>
-            <strong>LUMEN</strong> (day) and <strong>VEIL</strong> (night) are designed to feel deliberate: clean textures, transparent intent, no gimmicks.
+            <strong>RITE</strong> is a minimal day/night supplement system:
+            <strong>LUMEN</strong> for calm focus in the day, <strong>VEIL</strong> for decompression at night.
+            Designed to feel intentional — not gimmicky.
           </p>
 
           <div class="hero-actions">
             <a class="btn primary" href="#formulas">Meet LUMEN & VEIL</a>
-            <a class="btn" href="#method">Our method</a>
+            <a class="btn" href="#ingredients">See the stacks</a>
           </div>
 
           <div class="meta-row" aria-label="Highlights">
-            <span class="pill">Monochrome design</span>
+            <span class="pill">No neon branding</span>
+            <span class="pill">Monochrome “lab-apothecary”</span>
             <span class="pill">Ingredient transparency</span>
-            <span class="pill">Batch-first mindset</span>
-            <span class="pill">No medical claims</span>
+            <span class="pill">Built for consistency</span>
           </div>
         </div>
 
@@ -630,19 +582,19 @@
             <div class="mini">
               <div class="tag">Day</div>
               <div class="name">LUMEN</div>
-              <div class="desc">Bright, steady, resilient. Built for barrier-first mornings.</div>
+              <div class="desc">Steady focus + calm energy. Designed for mornings and midday.</div>
               <div class="chiprow">
-                <span class="chip">Lightweight</span>
-                <span class="chip">Layerable</span>
+                <span class="chip">Workdays</span>
+                <span class="chip">Social calm</span>
               </div>
             </div>
             <div class="mini">
               <div class="tag">Night</div>
               <div class="name">VEIL</div>
-              <div class="desc">Calm, repair, soften. A controlled finish to the day.</div>
+              <div class="desc">Unwind + soften the edge of the day. Designed for evenings.</div>
               <div class="chiprow">
-                <span class="chip">Restorative</span>
-                <span class="chip">Comforting</span>
+                <span class="chip">Switch-off</span>
+                <span class="chip">Night ritual</span>
               </div>
             </div>
           </div>
@@ -650,7 +602,7 @@
           <div style="margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
             <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
               <div style="color:var(--muted); font-size:12px; line-height:1.5;">
-                Launch as a tight 2-product stack. Expand later with mists, patches, or sublingual formats.
+                Launch as a two-product stack. Expand later with drops, cacao sachets, or strips — without losing the minimal core.
               </div>
               <a class="btn" href="#join">Get updates</a>
             </div>
@@ -664,8 +616,8 @@
         <div>
           <h2 class="h2">LUMEN & VEIL</h2>
           <p class="lead">
-            Built as a pair: one for daytime resilience, one for night-time recovery.
-            Keep it minimal. Keep it consistent.
+            A paired system: one for daytime steadiness, one for night-time decompression.
+            Keep it tight. Keep it repeatable.
           </p>
         </div>
       </div>
@@ -682,25 +634,25 @@
               </span>
               Day formula
             </span>
-            <span class="badge">Barrier-first</span>
+            <span class="badge">Capsules</span>
           </div>
 
           <div class="product-name">LUMEN</div>
           <p class="product-copy">
-            A clean, modern day serum designed to support the look of clarity and resilience.
-            Built to sit under SPF without drama.
+            A “calm clarity” day stack designed to support a steady headspace and clean momentum.
+            Not a stimulant bomb — more like composure you can feel.
           </p>
 
           <ul class="list" aria-label="LUMEN details">
-            <li><span class="key">Texture</span><span>Feather-light gel-serum</span></li>
-            <li><span class="key">Focus</span><span>Glow, balance, daily comfort</span></li>
-            <li><span class="key">Pairing</span><span>SPF + simple cleanser</span></li>
-            <li><span class="key">Scent</span><span>Low / optional fragrance-free</span></li>
+            <li><span class="key">Best time</span><span>Morning / midday</span></li>
+            <li><span class="key">Feel</span><span>Calm focus, smoother edges</span></li>
+            <li><span class="key">Format</span><span>2 capsules (concept)</span></li>
+            <li><span class="key">Stack type</span><span>Adaptogen / amino / botanical</span></li>
           </ul>
 
           <div class="card-actions">
             <a class="btn primary" href="#join">Join prelaunch</a>
-            <a class="btn" href="#method">See method</a>
+            <a class="btn" href="#ingredients">See stack</a>
           </div>
         </article>
 
@@ -715,53 +667,90 @@
               </span>
               Night formula
             </span>
-            <span class="badge">Recovery-first</span>
+            <span class="badge">Capsules</span>
           </div>
 
           <div class="product-name">VEIL</div>
           <p class="product-copy">
-            A night serum made to feel like the room gets quieter.
-            Designed to support the look of smoothness and rested skin by morning.
+            A night stack designed to support winding down and “closing the day”.
+            Built for the evening ritual: quiet mind, softer body, fewer sharp thoughts.
           </p>
 
           <ul class="list" aria-label="VEIL details">
-            <li><span class="key">Texture</span><span>Velvet serum-oil hybrid</span></li>
-            <li><span class="key">Focus</span><span>Comfort, softness, overnight reset</span></li>
-            <li><span class="key">Pairing</span><span>Gentle cleanse + LUMEN AM</span></li>
-            <li><span class="key">Scent</span><span>Low / optional fragrance-free</span></li>
+            <li><span class="key">Best time</span><span>Evening</span></li>
+            <li><span class="key">Feel</span><span>Unwind, settle, exhale</span></li>
+            <li><span class="key">Format</span><span>2 capsules (concept)</span></li>
+            <li><span class="key">Stack type</span><span>Mineral / botanical / calming</span></li>
           </ul>
 
           <div class="card-actions">
             <a class="btn primary" href="#join">Join prelaunch</a>
-            <a class="btn" href="#ritual">See ritual</a>
+            <a class="btn" href="#ingredients">See stack</a>
           </div>
         </article>
       </div>
     </section>
 
-    <section id="method">
+    <section id="ingredients">
       <div class="section-head">
         <div>
-          <h2 class="h2">The RITE method</h2>
+          <h2 class="h2">The stacks</h2>
           <p class="lead">
-            “Occult” here means intention, not pseudoscience.
-            Minimal formulas, clear purpose, consistent use.
+            This section is written like a product spec: clean, direct, and easy to swap ingredients depending on what your manufacturer can source.
+            (Replace placeholders with your final formula + doses.)
           </p>
         </div>
       </div>
 
-      <div class="strip" role="list" aria-label="Method pillars">
-        <div class="item" role="listitem">
-          <div class="t">Transparency</div>
-          <div class="b">Ingredient list that reads like a label, not a spell book. Clear percentages where possible.</div>
+      <div style="display:grid; gap:16px;">
+        <div class="card" aria-label="LUMEN stack">
+          <div class="badge" style="display:inline-flex; margin-bottom:10px;">
+            <span class="rune" aria-hidden="true"></span> LUMEN — Concept stack
+          </div>
+
+          <div class="formula-grid" role="list" aria-label="LUMEN components">
+            <div class="block" role="listitem">
+              <div class="t">Calm focus</div>
+              <div class="b"><strong>Option A:</strong> L-Theanine (if available) or a manufacturer-approved alternative.</div>
+            </div>
+            <div class="block" role="listitem">
+              <div class="t">Stress edge</div>
+              <div class="b"><strong>Option B:</strong> A gentle adaptogen (manufacturer-dependent), positioned for “daily resilience”.</div>
+            </div>
+            <div class="block" role="listitem">
+              <div class="t">Clarity</div>
+              <div class="b"><strong>Option C:</strong> A clean nootropic-lite ingredient (no stimulant vibe).</div>
+            </div>
+          </div>
+
+          <div class="fineprint" style="margin-top:12px;">
+            Notes: Keep LUMEN “quiet” — no jitter story, no aggressive claims. The vibe is composure, not intensity.
+          </div>
         </div>
-        <div class="item" role="listitem">
-          <div class="t">Tolerability</div>
-          <div class="b">If you can’t stick with it, it doesn’t work. Designed for repeatable daily use.</div>
-        </div>
-        <div class="item" role="listitem">
-          <div class="t">Ritual</div>
-          <div class="b">A short sequence you actually do. The brand lives in the routine, not the hype.</div>
+
+        <div class="card" aria-label="VEIL stack">
+          <div class="badge" style="display:inline-flex; margin-bottom:10px;">
+            <span class="rune" aria-hidden="true"></span> VEIL — Concept stack
+          </div>
+
+          <div class="formula-grid" role="list" aria-label="VEIL components">
+            <div class="block" role="listitem">
+              <div class="t">Unwind</div>
+              <div class="b"><strong>Option A:</strong> Magnesium form that’s well-tolerated (manufacturer-dependent).</div>
+            </div>
+            <div class="block" role="listitem">
+              <div class="t">Decompress</div>
+              <div class="b"><strong>Option B:</strong> Magnolia bark / similar calming botanical (if permissible + available).</div>
+            </div>
+            <div class="block" role="listitem">
+              <div class="t">Night ritual</div>
+              <div class="b"><strong>Option C:</strong> A supporting botanical that reads “apothecary” but stays modern.</div>
+            </div>
+          </div>
+
+          <div class="fineprint" style="margin-top:12px;">
+            Notes: VEIL should feel like “the room gets quieter”. Keep it steady, not sedative-branded.
+          </div>
         </div>
       </div>
     </section>
@@ -769,9 +758,9 @@
     <section id="ritual">
       <div class="section-head">
         <div>
-          <h2 class="h2">The daily ritual</h2>
+          <h2 class="h2">The ritual</h2>
           <p class="lead">
-            Two minutes. Same order. No chaos. You’re building a system, not a shelf.
+            This is where the brand becomes real: the sequence. Two minutes. Same order. No noise.
           </p>
         </div>
       </div>
@@ -780,26 +769,26 @@
         <div class="steps" aria-label="Morning ritual">
           <div class="badge" style="display:inline-flex;margin-bottom:10px;">Morning — LUMEN</div>
           <ol>
-            <li>Cleanse gently (or rinse if you’re dry-prone).</li>
-            <li>Apply LUMEN: one pump, full face.</li>
-            <li>Moisturiser only if needed.</li>
-            <li>Finish with SPF every day.</li>
+            <li>Water first.</li>
+            <li>LUMEN: take your day dose.</li>
+            <li>One line intention (optional): “Clear, steady, deliberate.”</li>
+            <li>Get on with it.</li>
           </ol>
           <div class="note">
-            Tip: LUMEN should layer cleanly under SPF. Keep your AM routine boring on purpose.
+            Keep the ritual small enough that you’ll still do it on messy mornings.
           </div>
         </div>
 
         <div class="steps" aria-label="Night ritual">
-          <div class="badge" style="display:inline-flex;margin-bottom:10px;">Night — VEIL</div>
+          <div class="badge" style="display:inline-flex;margin-bottom:10px;">Evening — VEIL</div>
           <ol>
-            <li>Cleanse (double-cleanse if you wore SPF/makeup).</li>
-            <li>Apply VEIL: slow, even layer.</li>
-            <li>Optional: moisturiser on top if you’re dry.</li>
-            <li>Stop. Let the night do the work.</li>
+            <li>Dim the room slightly (if you can).</li>
+            <li>VEIL: take your night dose.</li>
+            <li>Two slow breaths. Exhale longer than you inhale.</li>
+            <li>Phone down.</li>
           </ol>
           <div class="note">
-            Tip: Consistency beats intensity. If you add actives later, keep VEIL as the comfort anchor.
+            VEIL is an “end-of-day marker”. The goal is consistency, not perfection.
           </div>
         </div>
       </div>
@@ -807,24 +796,25 @@
 
     <section id="join" aria-label="Join the list">
       <div class="signup">
-        <h3>Join the list for launch access</h3>
+        <h3>Join the list for first-run access</h3>
         <p>
-          Get early access, ingredient deep-dives, and the first production run announcement.
-          No spam. You can unsubscribe anytime.
+          Early access, final formula reveals, and the first production run announcement.
+          No spam — unsubscribe anytime.
         </p>
 
         <form id="signupForm">
           <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
           <button class="btn primary" type="submit">Request access</button>
-          <button class="btn" type="button" id="sampleBtn">See sample copy</button>
+          <button class="btn" type="button" id="copyBtn">Sample product copy</button>
         </form>
 
         <div class="fineprint" id="formMessage">
-          This site is a concept landing page. Replace the form handler with Mailchimp/Klaviyo/Supabase when ready.
+          Concept landing page. Hook this to Mailchimp/Klaviyo/Supabase when ready.
         </div>
 
         <div class="fineprint" style="margin-top:12px;">
-          Disclaimer: RITE products are cosmetic/wellness concepts and are not intended to diagnose, treat, cure, or prevent any disease.
+          Disclaimer: This is not medical advice. Supplements are not intended to diagnose, treat, cure, or prevent any disease.
+          If you’re pregnant, nursing, taking medication, or have a medical condition, speak with a healthcare professional.
         </div>
       </div>
     </section>
@@ -839,30 +829,31 @@
 
       <div class="faq">
         <details>
-          <summary>Is this “occult” or “clinical”?</summary>
+          <summary>What makes this different from generic “calm” supplements?</summary>
           <p>
-            Both in tone, clinical in practice. The ritual is the experience. The formulation philosophy stays grounded: clear purpose, tolerability, transparency.
+            The system. Two formulas only, designed as a daily ritual — modern, restrained, and consistent.
+            The brand is the routine, not a giant ingredients dump.
           </p>
         </details>
 
         <details>
-          <summary>Will LUMEN/VEIL be fragrance-free?</summary>
+          <summary>Is RITE “occult” or “clinical”?</summary>
           <p>
-            You can offer fragrance-free as the default and keep any scented variant subtle. Fragrance-free makes the brand feel more serious and inclusive.
+            Both in tone, grounded in execution. The occult element is the ritual and design language — not untestable claims.
           </p>
         </details>
 
         <details>
-          <summary>How do I expand the line later without ruining it?</summary>
+          <summary>What if a manufacturer can’t source an ingredient (like theanine)?</summary>
           <p>
-            Keep a “two-core” rule. Add only supporting satellites: mist, patches, cleansing balm, or a single targeted active later—never ten serums.
+            This page is built for swapping: keep the “function slots” (calm focus / decompression) and swap ingredients based on what’s available and compliant.
           </p>
         </details>
 
         <details>
-          <summary>Where do ingredients and claims go on this page?</summary>
+          <summary>What formats can these be?</summary>
           <p>
-            Add an “Ingredients” section per product with a short, non-medical benefit line. Save deeper proof for a PDF or blog post linked from the page.
+            Capsules are the simplest launch. Later, you can expand into drops, strips, or cacao sachets — but keep the two-core system.
           </p>
         </details>
       </div>
@@ -880,38 +871,36 @@
         </div>
         <div class="foot-links" aria-label="Footer links">
           <a href="#formulas">Formulas</a>
-          <a href="#method">Method</a>
+          <a href="#ingredients">Stacks</a>
+          <a href="#ritual">Ritual</a>
           <a href="#join">Join</a>
-          <a href="#faq">FAQ</a>
         </div>
       </div>
     </footer>
   </main>
 
   <script>
-    // Tiny, self-contained interactions (safe to remove).
-    const yearEl = document.getElementById('year');
-    yearEl.textContent = new Date().getFullYear();
+    // Simple interactions (safe to remove).
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    const joinBtn = document.getElementById('joinBtn');
-    joinBtn.addEventListener('click', () => {
+    document.getElementById('joinBtn').addEventListener('click', () => {
       document.getElementById('join').scrollIntoView({ behavior: 'smooth', block: 'start' });
       setTimeout(() => document.querySelector('input[type="email"]').focus(), 250);
     });
 
     const form = document.getElementById('signupForm');
     const msg = document.getElementById('formMessage');
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const email = new FormData(form).get('email');
-      msg.textContent = `Thanks — request received for ${email}. (Hook this up to your email provider when you’re ready.)`;
+      msg.textContent = `Thanks — request received for ${email}. (Connect to your email tool when ready.)`;
       form.reset();
     });
 
-    const sampleBtn = document.getElementById('sampleBtn');
-    sampleBtn.addEventListener('click', () => {
+    document.getElementById('copyBtn').addEventListener('click', () => {
       msg.textContent =
-        "Sample product copy: “LUMEN supports the look of calm brightness. VEIL supports the look of overnight recovery. Minimal steps. Consistent use. No noise.”";
+        "Sample copy: “LUMEN is composure in capsule form. VEIL is the closing ritual. Two formulas, no noise — a daily system you’ll actually keep.”";
     });
   </script>
 </body>
