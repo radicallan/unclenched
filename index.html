@@ -1,907 +1,1281 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="RITE — modern ritual supplements. LUMEN for day. VEIL for night." />
-  <title>RITE — LUMEN (Day) + VEIL (Night)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RITE — Rituals for modern minds</title>
+  <meta name="description" content="Two rituals. One system. Optimise your mind from dawn to dusk with LUMEN and VEIL." />
+  <meta name="theme-color" content="#070606" />
+
+  <!-- Fonts (optional; page still looks good with fallbacks) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg:#07070a;
-      --bg2:#0b0c10;
-      --card: rgba(255,255,255,.03);
-      --line: rgba(255,255,255,.10);
-      --line2: rgba(255,255,255,.16);
-      --text:#f4f5f7;
-      --muted: rgba(244,245,247,.70);
+      --bg0:#050405;
+      --bg1:#070606;
+      --bg2:#0b0808;
+      --ink:#efe7da;
+      --muted:rgba(239,231,218,.72);
 
+      --gold:#caa46a;
+      --gold2:#e6c58b;
+      --goldDim:rgba(202,164,106,.35);
+
+      --veil:#0c0d10;
+      --glass:rgba(18,15,15,.55);
+
+      --line:rgba(202,164,106,.22);
+      --line2:rgba(239,231,218,.12);
+
+      --shadow: 0 24px 80px rgba(0,0,0,.55);
       --radius: 18px;
       --radius2: 26px;
-
-      --shadow: 0 18px 60px rgba(0,0,0,.55);
-      --shadow2: 0 10px 28px rgba(0,0,0,.45);
-
       --max: 1120px;
-
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      --serif: ui-serif, "Iowan Old Style", Palatino, "Palatino Linotype", "Book Antiqua", Georgia, serif;
     }
 
-    *{ box-sizing: border-box; }
+    *{ box-sizing:border-box; }
     html,body{ height:100%; }
     body{
       margin:0;
-      background:
-        radial-gradient(900px 540px at 25% 0%, rgba(255,255,255,.06), transparent 60%),
-        radial-gradient(700px 480px at 90% 20%, rgba(255,255,255,.04), transparent 55%),
-        radial-gradient(900px 700px at 50% 110%, rgba(255,255,255,.03), transparent 60%),
-        linear-gradient(180deg, var(--bg), var(--bg2));
-      color: var(--text);
-      font-family: var(--sans);
-      -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
+      color:var(--ink);
+      background: radial-gradient(1200px 900px at 50% -10%, rgba(202,164,106,.18), transparent 55%),
+                  radial-gradient(900px 700px at 20% 10%, rgba(255,255,255,.06), transparent 60%),
+                  radial-gradient(900px 700px at 90% 25%, rgba(202,164,106,.09), transparent 60%),
+                  linear-gradient(180deg, var(--bg0), var(--bg2));
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       overflow-x:hidden;
     }
 
-    a{ color: inherit; text-decoration:none; }
-    .container{ width: min(var(--max), calc(100% - 48px)); margin: 0 auto; }
-
-    /* Subtle grain */
-    .grain{
+    /* Subtle “prototype texture” overlay:
+       Put your prototype image next to this HTML and name it idea.png.
+       If you want it stronger, increase opacity below. */
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      background-image: url("idea.png"); /* <-- your uploaded prototype image */
+      background-size: cover;
+      background-position: center;
+      opacity: .12;
+      filter: saturate(.9) contrast(1.05);
       pointer-events:none;
-      position: fixed; inset: 0;
-      opacity: .08;
-      mix-blend-mode: overlay;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-      background-size: 220px 220px;
+      z-index:-3;
     }
 
-    /* Nav */
-    .nav{
-      position: sticky; top: 0; z-index: 50;
-      backdrop-filter: blur(10px);
-      background: linear-gradient(180deg, rgba(7,7,10,.78), rgba(7,7,10,.32));
-      border-bottom: 1px solid var(--line);
+    /* Starfield layer */
+    body::after{
+      content:"";
+      position:fixed;
+      inset:-40vh -40vw;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,.10) 0 2px, transparent 3px),
+        radial-gradient(circle at 35% 65%, rgba(255,255,255,.08) 0 1px, transparent 2px),
+        radial-gradient(circle at 70% 30%, rgba(255,255,255,.10) 0 1px, transparent 2px),
+        radial-gradient(circle at 90% 70%, rgba(255,255,255,.08) 0 2px, transparent 3px),
+        radial-gradient(circle at 55% 10%, rgba(255,255,255,.06) 0 1px, transparent 2px),
+        radial-gradient(circle at 25% 85%, rgba(255,255,255,.06) 0 1px, transparent 2px);
+      background-size: 520px 520px, 420px 420px, 560px 560px, 520px 520px, 680px 680px, 740px 740px;
+      mix-blend-mode: screen;
+      opacity:.35;
+      pointer-events:none;
+      z-index:-2;
+      transform: translate3d(var(--sx, 0px), var(--sy, 0px), 0);
+      transition: transform 120ms linear;
     }
-    .nav-inner{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 14px 0;
-      gap: 16px;
+
+    a{ color:inherit; text-decoration:none; }
+    button{ font-family:inherit; }
+
+    .wrap{ width:min(var(--max), calc(100% - 40px)); margin:0 auto; }
+
+    /* Top nav */
+    .top{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background: linear-gradient(180deg, rgba(5,4,5,.82), rgba(5,4,5,.35));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(202,164,106,.10);
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 0;
+      gap:14px;
     }
     .brand{
-      display:flex; align-items:center; gap: 12px;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      font-weight: 750;
-      font-size: 13px;
+      display:flex;
+      align-items:baseline;
+      gap:14px;
+      min-width: 220px;
     }
-    .sigil{
-      width: 26px; height: 26px;
-      border: 1px solid var(--line2);
-      border-radius: 8px;
-      display:grid; place-items:center;
-      background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.09), transparent 60%);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    .brand .mark{
+      font-family: Cinzel, serif;
+      letter-spacing:.28em;
+      font-size:18px;
+      opacity:.95;
     }
-    .nav-links{
-      display:flex; align-items:center; gap: 16px;
+    .brand .tag{
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
       color: var(--muted);
-      font-size: 13px;
+      letter-spacing:.02em;
+      font-size:15px;
+      white-space:nowrap;
     }
-    .nav-links a{
-      padding: 8px 10px;
+    nav{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      justify-content:center;
+      flex:1;
+    }
+    nav a{
+      font-size:13px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color: rgba(239,231,218,.82);
+      padding:10px 8px;
       border-radius: 10px;
       border: 1px solid transparent;
-      transition: border-color .18s ease, background .18s ease, color .18s ease;
+      transition: border-color .2s ease, background .2s ease;
     }
-    .nav-links a:hover{
-      color: var(--text);
-      border-color: var(--line2);
-      background: rgba(255,255,255,.03);
+    nav a:hover{
+      border-color: rgba(202,164,106,.20);
+      background: rgba(202,164,106,.06);
+    }
+    .nav-cta{
+      display:flex;
+      gap:10px;
+      min-width: 220px;
+      justify-content:flex-end;
     }
 
+    /* Buttons */
     .btn{
-      appearance:none;
-      border: 1px solid var(--line2);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: .02em;
-      cursor: pointer;
-      transition: transform .14s ease, background .14s ease, border-color .14s ease;
-      box-shadow: 0 10px 24px rgba(0,0,0,.32);
-      white-space: nowrap;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:11px 16px;
+      border-radius: 12px;
+      border:1px solid rgba(202,164,106,.26);
+      background: linear-gradient(180deg, rgba(202,164,106,.18), rgba(202,164,106,.06));
+      color: rgba(239,231,218,.92);
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      font-size:12px;
+      cursor:pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
     }
-    .btn:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.06);
-      border-color: rgba(255,255,255,.26);
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(230,197,139,.44); }
+    .btn:active{ transform: translateY(0px); }
+
+    .btn.dark{
+      border-color: rgba(239,231,218,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
     }
-    .btn.primary{
-      background: rgba(255,255,255,.10);
-      border-color: rgba(255,255,255,.28);
-    }
-    .btn.primary:hover{
-      background: rgba(255,255,255,.12);
+    .btn.small{ padding:10px 14px; font-size:11px; border-radius: 11px; }
+    .btn .chev{
+      width:14px; height:14px; opacity:.85;
     }
 
-    /* Hero */
-    .hero{ padding: 64px 0 26px; }
-    .hero-grid{
+    /* HERO */
+    .hero{
+      position:relative;
+      padding: 70px 0 30px;
+      overflow:hidden;
+    }
+
+    /* Orbital geometry overlay via SVG data URI */
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:-20%;
+      opacity:.35;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1400' height='900' viewBox='0 0 1400 900'%3E%3Cg fill='none' stroke='%23caa46a' stroke-opacity='0.18'%3E%3Ccircle cx='700' cy='420' r='330'/%3E%3Ccircle cx='700' cy='420' r='470'/%3E%3Ccircle cx='700' cy='420' r='610'/%3E%3Cpath d='M80 420h1240'/%3E%3Cpath d='M700 20v860'/%3E%3Cpath d='M170 140c180 120 350 170 530 170s350-50 530-170'/%3E%3Cpath d='M170 700c180-120 350-170 530-170s350 50 530 170'/%3E%3Ccircle cx='1090' cy='270' r='22'/%3E%3Ccircle cx='250' cy='310' r='14'/%3E%3Ccircle cx='1000' cy='600' r='12'/%3E%3C/g%3E%3Cg fill='%23e6c58b' fill-opacity='0.12'%3E%3Ccircle cx='1090' cy='270' r='4'/%3E%3Ccircle cx='250' cy='310' r='3'/%3E%3Ccircle cx='1000' cy='600' r='3'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position:center;
+      transform: translate3d(var(--px,0px), var(--py,0px), 0) scale(1.05);
+      transition: transform 120ms linear;
+      pointer-events:none;
+      z-index:-1;
+      filter: blur(.2px);
+    }
+
+    .hero-top{
+      text-align:center;
       display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 26px;
-      align-items: start;
+      gap: 14px;
+      place-items:center;
+    }
+
+    .logo{
+      font-family: Cinzel, serif;
+      letter-spacing:.34em;
+      font-size: 26px;
+      opacity:.95;
+    }
+
+    .subline{
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: var(--muted);
+      font-size: 18px;
+      letter-spacing:.02em;
+    }
+
+    .eclipse{
+      position:relative;
+      width: 180px;
+      aspect-ratio: 1;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(20,18,18,.92), rgba(0,0,0,.98));
+      box-shadow: 0 0 0 1px rgba(202,164,106,.20) inset, 0 30px 120px rgba(0,0,0,.75);
+      margin: 8px 0 8px;
+    }
+    .eclipse::before{
+      content:"";
+      position:absolute;
+      inset:-26px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 50% 50%, rgba(230,197,139,.55), rgba(202,164,106,.18), transparent 62%);
+      filter: blur(1px);
+      opacity:.95;
+      z-index:-1;
+    }
+    .eclipse::after{
+      content:"";
+      position:absolute;
+      left:-28%;
+      top:45%;
+      width: 156%;
+      height: 14px;
+      transform: translateY(-50%);
+      background: linear-gradient(90deg, transparent, rgba(230,197,139,.90), transparent);
+      opacity:.55;
+      filter: blur(.2px);
+    }
+
+    .headline{
+      font-family: Cinzel, serif;
+      letter-spacing:.16em;
+      font-weight:600;
+      text-transform:uppercase;
+      font-size: clamp(22px, 3.2vw, 38px);
+      margin:0;
     }
     .kicker{
-      display:inline-flex; align-items:center; gap: 10px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.03);
-      padding: 10px 12px;
-      border-radius: 999px;
-      color: var(--muted);
-      font-size: 12px;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-    }
-    .dot{
-      width: 8px; height: 8px; border-radius: 999px;
-      background: rgba(255,255,255,.35);
-      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
-    }
-    h1{
-      margin: 18px 0 12px;
-      font-family: var(--serif);
-      font-size: clamp(38px, 4vw, 56px);
-      line-height: 1.02;
-      letter-spacing: -.02em;
-    }
-    .sub{
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.55;
-      max-width: 62ch;
-    }
-    .hero-actions{ display:flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-    .meta-row{
-      display:flex; flex-wrap: wrap; gap: 10px;
-      margin-top: 18px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .pill{
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.02);
-      padding: 8px 10px;
-      border-radius: 999px;
+      font-family: "Cormorant Garamond", serif;
+      font-style: italic;
+      color: rgba(239,231,218,.78);
+      margin: 0;
+      font-size: 18px;
     }
 
-    /* Right hero card */
-    .hero-card{
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border-radius: var(--radius2);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      position: relative;
-      overflow: hidden;
+    .divider{
+      width:min(820px, 100%);
+      height:1px;
+      margin: 22px auto 0;
+      background: linear-gradient(90deg, transparent, var(--line), transparent);
     }
-    .hero-card::before{
+
+    .ritual-row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin: 26px auto 0;
+      width: min(920px, 100%);
+    }
+
+    .card{
+      position:relative;
+      border-radius: var(--radius2);
+      border: 1px solid rgba(202,164,106,.18);
+      background: linear-gradient(180deg, rgba(12,10,10,.72), rgba(12,10,10,.40));
+      box-shadow: var(--shadow);
+      padding: 22px;
+      overflow:hidden;
+    }
+    .card::before{
       content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(600px 300px at 10% 10%, rgba(255,255,255,.08), transparent 60%),
-        radial-gradient(600px 300px at 90% 40%, rgba(255,255,255,.06), transparent 60%),
-        radial-gradient(600px 300px at 50% 110%, rgba(255,255,255,.05), transparent 60%);
-      opacity: .9;
+      position:absolute;
+      inset:0;
+      background: radial-gradient(600px 240px at 50% 0%, rgba(202,164,106,.20), transparent 55%);
+      opacity:.9;
       pointer-events:none;
     }
-    .hero-card > *{ position: relative; }
-    .hero-card h3{
-      margin:0 0 12px;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      font-size: 12px;
-      color: rgba(244,245,247,.78);
+    .card .title{
+      font-family: Cinzel, serif;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-size: 18px;
+      margin:0 0 6px;
     }
-    .mini-grid{
+    .card .desc{
+      font-family:"Cormorant Garamond", serif;
+      font-style: italic;
+      color: rgba(239,231,218,.78);
+      font-size:16px;
+      margin:0 0 16px;
+    }
+    .card .row{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+    }
+    .card .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(239,231,218,.14);
+      color: rgba(239,231,218,.80);
+      font-size:12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      background: rgba(255,255,255,.03);
+    }
+    .dot{
+      width:7px; height:7px; border-radius:999px;
+      background: rgba(230,197,139,.8);
+      box-shadow: 0 0 0 6px rgba(202,164,106,.12);
+    }
+
+    /* Formula section */
+    .section{
+      padding: 54px 0;
+      position:relative;
+    }
+    .section h2{
+      margin:0;
+      text-align:center;
+      font-family: Cinzel, serif;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-size: 20px;
+    }
+    .section .sub{
+      margin: 10px auto 0;
+      text-align:center;
+      color: rgba(239,231,218,.76);
+      font-family:"Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 18px;
+      max-width: 56ch;
+    }
+
+    .icon-row{
+      margin: 26px auto 0;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      width:min(980px, 100%);
+    }
+    .icon{
+      border:1px solid rgba(202,164,106,.16);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(10,8,8,.58), rgba(10,8,8,.26));
+      padding: 18px 16px;
+      text-align:center;
+    }
+    .icon svg{
+      width: 44px;
+      height: 44px;
+      opacity:.92;
+      filter: drop-shadow(0 12px 30px rgba(0,0,0,.55));
+    }
+    .icon .label{
+      margin-top:10px;
+      font-family:"Cormorant Garamond", serif;
+      font-style: italic;
+      color: rgba(239,231,218,.78);
+    }
+
+    /* Product showcase */
+    .products{
+      padding: 30px 0 60px;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items:stretch;
+    }
+    .panel{
+      border:1px solid rgba(202,164,106,.16);
+      border-radius: var(--radius2);
+      background: linear-gradient(180deg, rgba(12,10,10,.68), rgba(12,10,10,.34));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+      min-height: 420px;
+      display:flex;
+      flex-direction:column;
+    }
+    .panel::before{
+      content:"";
+      position:absolute;
+      inset:-20%;
+      background: radial-gradient(700px 260px at 35% 20%, rgba(202,164,106,.22), transparent 60%),
+                  radial-gradient(700px 260px at 85% 70%, rgba(255,255,255,.06), transparent 60%);
+      pointer-events:none;
+      opacity:.9;
+    }
+    .panel-head{
+      padding: 22px 22px 10px;
+      position:relative;
+    }
+    .panel .name{
+      font-family: Cinzel, serif;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-size: 18px;
+      margin:0;
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .badge{
+      font-size:11px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color: rgba(239,231,218,.78);
+      border:1px solid rgba(239,231,218,.14);
+      padding:7px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+    .panel .one-liner{
+      margin: 10px 0 0;
+      color: rgba(239,231,218,.74);
+      font-family:"Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 17px;
+    }
+
+    .mock{
+      margin: 16px 22px 0;
+      border-radius: 18px;
+      border:1px solid rgba(239,231,218,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      height: 200px;
+      display:grid;
+      place-items:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .mock::before{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(circle at 30% 25%, rgba(230,197,139,.22), transparent 55%),
+                  radial-gradient(circle at 70% 70%, rgba(255,255,255,.08), transparent 55%);
+      transform: rotate(8deg);
+      opacity:.85;
+    }
+    .mock .mock-inner{
+      position:relative;
+      text-align:center;
+      padding: 14px 16px;
+      max-width: 50ch;
+    }
+    .mock .mock-title{
+      font-family: Cinzel, serif;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-size: 13px;
+      margin:0 0 8px;
+      opacity:.9;
+    }
+    .mock .mock-note{
+      color: rgba(239,231,218,.72);
+      font-size: 13px;
+      line-height: 1.55;
+      margin:0;
+    }
+
+    .panel-body{
+      padding: 18px 22px 20px;
+      display:grid;
+      gap: 14px;
+      position:relative;
+      flex:1;
+    }
+
+    .facts{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
-    .mini{
-      border: 1px solid var(--line);
-      background: rgba(7,7,10,.55);
-      border-radius: 16px;
-      padding: 14px;
-      box-shadow: var(--shadow2);
-      min-height: 128px;
-    }
-    .mini .tag{
-      font-family: var(--mono);
-      font-size: 11px;
-      color: rgba(244,245,247,.62);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-    .mini .name{
-      margin-top: 8px;
-      font-size: 18px;
-      font-weight: 820;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
-    .mini .desc{
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.45;
-    }
-    .chiprow{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-    .chip{
-      font-size: 11px;
-      color: rgba(244,245,247,.68);
-      padding: 6px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-    }
-
-    /* Sections */
-    section{ padding: 30px 0; }
-    .section-head{
-      display:flex; align-items:flex-end; justify-content:space-between;
-      gap: 16px;
-      margin-bottom: 14px;
-    }
-    .h2{
-      font-family: var(--serif);
-      font-size: 28px;
-      letter-spacing: -.01em;
-      margin: 0;
-    }
-    .lead{
-      color: var(--muted);
-      margin: 0;
-      max-width: 78ch;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    /* Product cards */
-    .products{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .card{
-      border: 1px solid var(--line);
-      background: var(--card);
-      border-radius: var(--radius2);
-      padding: 18px;
-      box-shadow: var(--shadow2);
-      position: relative;
-      overflow: hidden;
-    }
-    .card::after{
-      content:"";
-      position:absolute; inset:-2px;
-      background: radial-gradient(520px 240px at 20% 20%, rgba(255,255,255,.05), transparent 60%);
-      opacity: .9;
-      pointer-events:none;
-    }
-    .card > *{ position: relative; }
-
-    .card-top{
-      display:flex; justify-content:space-between; gap: 14px; align-items:flex-start;
-    }
-    .badge{
-      display:inline-flex; align-items:center; gap: 8px;
-      border: 1px solid var(--line2);
-      background: rgba(255,255,255,.03);
-      padding: 8px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      color: rgba(244,245,247,.70);
-      white-space: nowrap;
-    }
-    .badge .rune{
-      width: 18px; height: 18px;
-      border-radius: 7px;
-      border: 1px solid rgba(255,255,255,.14);
-      display:grid; place-items:center;
-      background: rgba(255,255,255,.03);
-    }
-
-    .product-name{
-      margin: 10px 0 6px;
-      font-size: 30px;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-      font-weight: 860;
-    }
-    .product-copy{
-      color: var(--muted);
-      margin: 0 0 14px;
-      line-height: 1.6;
-      font-size: 14px;
-      max-width: 70ch;
-    }
-
-    .list{
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      display:grid;
-      gap: 10px;
-    }
-    .list li{
-      border-top: 1px solid var(--line);
-      padding-top: 10px;
-      display:flex;
-      justify-content:space-between;
-      gap: 16px;
-      color: rgba(244,245,247,.86);
-      font-size: 13px;
-    }
-    .list .key{
-      font-family: var(--mono);
-      color: rgba(244,245,247,.60);
-      font-size: 12px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
-
-    .card-actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 16px; }
-
-    /* Formula “capsule” blocks */
-    .formula-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .block{
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(7,7,10,.55);
-      border-radius: 16px;
-      padding: 14px;
-      min-height: 108px;
-      box-shadow: var(--shadow2);
-    }
-    .block .t{
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: rgba(244,245,247,.62);
-    }
-    .block .b{
-      margin-top: 8px;
-      font-size: 14px;
-      line-height: 1.55;
-      color: rgba(244,245,247,.86);
-    }
-
-    /* Ritual steps */
-    .ritual{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .steps{
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.02);
-      border-radius: var(--radius2);
-      padding: 18px;
-      box-shadow: var(--shadow2);
-    }
-    .steps ol{
-      margin: 0;
-      padding-left: 18px;
-      color: rgba(244,245,247,.88);
-      line-height: 1.7;
-    }
-    .steps li{ margin: 10px 0; }
-    .steps .note{
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.55;
-      border-top: 1px solid var(--line);
-      padding-top: 12px;
-    }
-
-    /* Email capture */
-    .signup{
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border-radius: var(--radius2);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-    }
-    .signup::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(620px 260px at 20% 20%, rgba(255,255,255,.07), transparent 60%),
-        radial-gradient(620px 260px at 80% 70%, rgba(255,255,255,.05), transparent 60%);
-      opacity: .9;
-      pointer-events:none;
-    }
-    .signup > *{ position: relative; }
-    .signup h3{
-      margin: 0 0 8px;
-      font-family: var(--serif);
-      font-size: 22px;
-      letter-spacing: -.01em;
-    }
-    .signup p{
-      margin: 0 0 14px;
-      color: var(--muted);
-      line-height: 1.6;
-      font-size: 13px;
-      max-width: 78ch;
-    }
-    form{
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    input[type="email"]{
-      flex: 1 1 260px;
-      min-width: 220px;
-      padding: 12px 12px;
+    .fact{
+      border:1px solid rgba(202,164,106,.14);
       border-radius: 14px;
-      border: 1px solid var(--line2);
-      background: rgba(7,7,10,.55);
-      color: var(--text);
-      outline: none;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+      padding: 12px 12px;
+      background: rgba(0,0,0,.18);
     }
-    input[type="email"]:focus{
-      border-color: rgba(255,255,255,.35);
-      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
+    .fact .k{
+      font-size:11px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color: rgba(239,231,218,.66);
+      margin:0 0 6px;
     }
-    .fineprint{
-      margin-top: 10px;
-      font-size: 12px;
-      color: rgba(244,245,247,.58);
-      line-height: 1.5;
+    .fact .v{
+      margin:0;
+      color: rgba(239,231,218,.90);
+      font-size: 13px;
+      line-height:1.4;
     }
 
-    /* FAQ */
-    .faq{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     details{
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.02);
-      border-radius: 16px;
-      padding: 12px 14px;
+      border:1px solid rgba(239,231,218,.10);
+      border-radius: 14px;
+      background: rgba(0,0,0,.16);
+      padding: 12px 12px;
     }
     summary{
-      cursor: pointer;
-      font-weight: 700;
-      color: rgba(244,245,247,.90);
-      outline: none;
+      cursor:pointer;
+      list-style:none;
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color: rgba(239,231,218,.78);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
     }
-    details p{
+    summary::-webkit-details-marker{ display:none; }
+    .chev2{
+      width:16px; height:16px;
+      opacity:.75;
+      transition: transform .18s ease;
+    }
+    details[open] .chev2{ transform: rotate(180deg); }
+    .detail-text{
       margin: 10px 0 0;
-      color: var(--muted);
-      line-height: 1.6;
+      color: rgba(239,231,218,.74);
       font-size: 13px;
+      line-height: 1.65;
     }
 
+    .panel-foot{
+      padding: 0 22px 22px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-start;
+      position:relative;
+    }
+
+    /* Final CTA */
+    .final{
+      padding: 64px 0 70px;
+      text-align:center;
+      position:relative;
+    }
+    .final h3{
+      margin:0;
+      font-family: Cinzel, serif;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-size: 20px;
+    }
+    .final p{
+      margin: 10px auto 0;
+      color: rgba(239,231,218,.76);
+      font-family:"Cormorant Garamond", serif;
+      font-style: italic;
+      font-size: 18px;
+      max-width: 58ch;
+    }
+    .final .cta-row{
+      margin-top: 22px;
+      display:flex;
+      gap: 14px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+
+    /* Footer */
     footer{
-      padding: 26px 0 40px;
-      border-top: 1px solid var(--line);
-      color: rgba(244,245,247,.60);
+      border-top: 1px solid rgba(202,164,106,.12);
+      padding: 22px 0 26px;
+      color: rgba(239,231,218,.62);
       font-size: 12px;
     }
-    .footer-grid{
-      display:flex; justify-content:space-between; gap: 16px; flex-wrap: wrap;
-      align-items: center;
+    .foot{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
     }
-    .foot-links{ display:flex; gap: 14px; flex-wrap: wrap; color: rgba(244,245,247,.62); }
-    .foot-links a{ border-bottom: 1px solid transparent; }
-    .foot-links a:hover{ border-color: rgba(255,255,255,.25); color: rgba(244,245,247,.85); }
+    .foot a{
+      color: rgba(239,231,218,.70);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-size: 11px;
+      padding:8px 10px;
+      border-radius: 10px;
+      border:1px solid transparent;
+    }
+    .foot a:hover{
+      border-color: rgba(202,164,106,.18);
+      background: rgba(202,164,106,.06);
+    }
+    .social{
+      display:flex; gap:10px; align-items:center;
+    }
+    .social a{
+      width:36px; height:36px;
+      display:grid; place-items:center;
+      border:1px solid rgba(239,231,218,.12);
+      border-radius: 12px;
+      background: rgba(255,255,255,.03);
+      padding:0;
+    }
+    .social svg{ width:16px; height:16px; opacity:.75; }
 
-    @media (max-width: 980px){
-      .hero-grid{ grid-template-columns: 1fr; }
-      .products{ grid-template-columns: 1fr; }
-      .formula-grid{ grid-template-columns: 1fr; }
-      .ritual{ grid-template-columns: 1fr; }
-      .faq{ grid-template-columns: 1fr; }
+    /* Modal */
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      place-items:center;
+      padding: 22px;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(10px);
+      z-index: 50;
     }
-    @media (prefers-reduced-motion: reduce){
-      *{ transition:none !important; scroll-behavior:auto !important; }
+    .modal.open{ display:grid; }
+    .modal-card{
+      width:min(560px, 100%);
+      border-radius: 22px;
+      border:1px solid rgba(202,164,106,.22);
+      background: linear-gradient(180deg, rgba(12,10,10,.86), rgba(12,10,10,.64));
+      box-shadow: 0 30px 120px rgba(0,0,0,.75);
+      overflow:hidden;
+      position:relative;
+    }
+    .modal-card::before{
+      content:"";
+      position:absolute;
+      inset:-30%;
+      background: radial-gradient(600px 240px at 30% 15%, rgba(202,164,106,.22), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .modal-head{
+      padding: 18px 18px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      position:relative;
+    }
+    .modal-head .m-title{
+      margin:0;
+      font-family: Cinzel, serif;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      font-size: 14px;
+      color: rgba(239,231,218,.92);
+    }
+    .x{
+      width:38px; height:38px;
+      border-radius: 14px;
+      border:1px solid rgba(239,231,218,.14);
+      background: rgba(255,255,255,.04);
+      display:grid; place-items:center;
+      cursor:pointer;
+    }
+    .x svg{ width:16px; height:16px; opacity:.8; }
+    .modal-body{
+      padding: 8px 18px 18px;
+      position:relative;
+    }
+    .modal-body p{
+      margin: 0 0 14px;
+      color: rgba(239,231,218,.76);
+      line-height:1.6;
+    }
+    .field{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    input[type="email"]{
+      flex: 1 1 240px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(239,231,218,.14);
+      background: rgba(0,0,0,.22);
+      color: rgba(239,231,218,.92);
+      outline:none;
+    }
+    input[type="email"]::placeholder{ color: rgba(239,231,218,.45); }
+
+    .mini{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(239,231,218,.56);
+    }
+
+    /* Responsive */
+    @media (max-width: 880px){
+      nav{ display:none; }
+      .brand{ min-width:auto; }
+      .nav-cta{ min-width:auto; }
+      .ritual-row{ grid-template-columns: 1fr; }
+      .icon-row{ grid-template-columns: 1fr; }
+      .grid2{ grid-template-columns: 1fr; }
+      .panel{ min-height: unset; }
+    }
+    @media (max-width: 520px){
+      .topbar{ padding: 12px 0; }
+      .brand .tag{ display:none; }
+      .btn{ width:100%; }
+      .nav-cta{ width: 52%; }
+      .nav-cta .btn{ width:auto; }
+      .eclipse{ width: 150px; }
     }
   </style>
 </head>
 
 <body>
-  <div class="grain" aria-hidden="true"></div>
+  <header class="top" role="banner">
+    <div class="wrap topbar">
+      <div class="brand" aria-label="RITE">
+        <div class="mark">RITE</div>
+        <div class="tag">Rituals for modern minds.</div>
+      </div>
 
-  <header class="nav">
-    <div class="container nav-inner">
-      <a class="brand" href="#top" aria-label="RITE home">
-        <span class="sigil" aria-hidden="true">
-          <!-- Minimal “sigil” -->
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2v20M2 12h20" stroke="rgba(244,245,247,.85)" stroke-width="1.3" stroke-linecap="round"/>
-            <path d="M12 4.5c4.14 0 7.5 3.36 7.5 7.5S16.14 19.5 12 19.5 4.5 16.14 4.5 12 7.86 4.5 12 4.5Z"
-                  stroke="rgba(244,245,247,.38)" stroke-width="1.2"/>
-          </svg>
-        </span>
-        <span>RITE</span>
-      </a>
-
-      <nav class="nav-links" aria-label="Primary">
-        <a href="#formulas">Formulas</a>
-        <a href="#ingredients">Stacks</a>
-        <a href="#ritual">Ritual</a>
+      <nav aria-label="Primary">
+        <a href="#formula">The Formula</a>
+        <a href="#lumen">Lumen</a>
+        <a href="#veil">Veil</a>
         <a href="#faq">FAQ</a>
       </nav>
 
-      <div style="display:flex; gap:10px; align-items:center;">
-        <a class="btn" href="#formulas">Explore</a>
-        <button class="btn primary" type="button" id="joinBtn">Join the list</button>
+      <div class="nav-cta">
+        <button class="btn small" data-open="lumen">
+          Get Lumen
+          <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
     </div>
   </header>
 
-  <main id="top" class="container">
+  <main>
+    <!-- HERO -->
     <section class="hero">
-      <div class="hero-grid">
-        <div>
-          <div class="kicker">
-            <span class="dot" aria-hidden="true"></span>
-            <span>Modern ritual supplements — clinical clarity, occult restraint</span>
-          </div>
+      <div class="wrap hero-top">
+        <div class="logo">RITE</div>
+        <div class="subline">Rituals for modern minds.</div>
 
-          <h1>Two capsules.<br/>One daily rite.</h1>
+        <div class="eclipse" aria-hidden="true"></div>
 
-          <p class="sub">
-            <strong>RITE</strong> is a minimal day/night supplement system:
-            <strong>LUMEN</strong> for calm focus in the day, <strong>VEIL</strong> for decompression at night.
-            Designed to feel intentional — not gimmicky.
-          </p>
+        <h1 class="headline">Two rituals. One system.</h1>
+        <p class="kicker">Optimise your mind from dawn to dusk.</p>
 
-          <div class="hero-actions">
-            <a class="btn primary" href="#formulas">Meet LUMEN & VEIL</a>
-            <a class="btn" href="#ingredients">See the stacks</a>
-          </div>
+        <div class="divider" aria-hidden="true"></div>
 
-          <div class="meta-row" aria-label="Highlights">
-            <span class="pill">No neon branding</span>
-            <span class="pill">Monochrome “lab-apothecary”</span>
-            <span class="pill">Ingredient transparency</span>
-            <span class="pill">Built for consistency</span>
-          </div>
-        </div>
-
-        <aside class="hero-card" aria-label="Quick view">
-          <h3>Core system</h3>
-          <div class="mini-grid">
-            <div class="mini">
-              <div class="tag">Day</div>
-              <div class="name">LUMEN</div>
-              <div class="desc">Steady focus + calm energy. Designed for mornings and midday.</div>
-              <div class="chiprow">
-                <span class="chip">Workdays</span>
-                <span class="chip">Social calm</span>
-              </div>
-            </div>
-            <div class="mini">
-              <div class="tag">Night</div>
-              <div class="name">VEIL</div>
-              <div class="desc">Unwind + soften the edge of the day. Designed for evenings.</div>
-              <div class="chiprow">
-                <span class="chip">Switch-off</span>
-                <span class="chip">Night ritual</span>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
-            <div style="display:flex; justify-content:space-between; gap:12px; align-items:center;">
-              <div style="color:var(--muted); font-size:12px; line-height:1.5;">
-                Launch as a two-product stack. Expand later with drops, cacao sachets, or strips — without losing the minimal core.
-              </div>
-              <a class="btn" href="#join">Get updates</a>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <section id="formulas">
-      <div class="section-head">
-        <div>
-          <h2 class="h2">LUMEN & VEIL</h2>
-          <p class="lead">
-            A paired system: one for daytime steadiness, one for night-time decompression.
-            Keep it tight. Keep it repeatable.
-          </p>
-        </div>
-      </div>
-
-      <div class="products">
-        <article class="card" aria-label="LUMEN product">
-          <div class="card-top">
-            <span class="badge">
-              <span class="rune" aria-hidden="true">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3l3 6 6 .8-4.5 4.4 1.2 6.2L12 17.8 6.3 20.4l1.2-6.2L3 9.8 9 9z"
-                        stroke="rgba(244,245,247,.70)" stroke-width="1.2" stroke-linejoin="round"/>
+        <div class="ritual-row" aria-label="Choose your ritual">
+          <article class="card" id="lumen">
+            <h3 class="title">Lumen</h3>
+            <p class="desc">Focus. Clarity. Drive.</p>
+            <div class="row">
+              <span class="pill"><span class="dot" aria-hidden="true"></span> AM Ritual</span>
+              <button class="btn" data-open="lumen">Power Up
+                <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-              </span>
-              Day formula
-            </span>
-            <span class="badge">Capsules</span>
-          </div>
+              </button>
+            </div>
+          </article>
 
-          <div class="product-name">LUMEN</div>
-          <p class="product-copy">
-            A “calm clarity” day stack designed to support a steady headspace and clean momentum.
-            Not a stimulant bomb — more like composure you can feel.
-          </p>
-
-          <ul class="list" aria-label="LUMEN details">
-            <li><span class="key">Best time</span><span>Morning / midday</span></li>
-            <li><span class="key">Feel</span><span>Calm focus, smoother edges</span></li>
-            <li><span class="key">Format</span><span>2 capsules (concept)</span></li>
-            <li><span class="key">Stack type</span><span>Adaptogen / amino / botanical</span></li>
-          </ul>
-
-          <div class="card-actions">
-            <a class="btn primary" href="#join">Join prelaunch</a>
-            <a class="btn" href="#ingredients">See stack</a>
-          </div>
-        </article>
-
-        <article class="card" aria-label="VEIL product">
-          <div class="card-top">
-            <span class="badge">
-              <span class="rune" aria-hidden="true">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 12.2A9 9 0 1 1 11.8 3a7 7 0 1 0 9.2 9.2Z"
-                        stroke="rgba(244,245,247,.70)" stroke-width="1.2" stroke-linejoin="round"/>
+          <article class="card" id="veil">
+            <h3 class="title">Veil</h3>
+            <p class="desc">Calm. Quiet. Restore.</p>
+            <div class="row">
+              <span class="pill"><span class="dot" aria-hidden="true"></span> PM Ritual</span>
+              <button class="btn dark" data-open="veil">Unwind
+                <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-              </span>
-              Night formula
-            </span>
-            <span class="badge">Capsules</span>
-          </div>
-
-          <div class="product-name">VEIL</div>
-          <p class="product-copy">
-            A night stack designed to support winding down and “closing the day”.
-            Built for the evening ritual: quiet mind, softer body, fewer sharp thoughts.
-          </p>
-
-          <ul class="list" aria-label="VEIL details">
-            <li><span class="key">Best time</span><span>Evening</span></li>
-            <li><span class="key">Feel</span><span>Unwind, settle, exhale</span></li>
-            <li><span class="key">Format</span><span>2 capsules (concept)</span></li>
-            <li><span class="key">Stack type</span><span>Mineral / botanical / calming</span></li>
-          </ul>
-
-          <div class="card-actions">
-            <a class="btn primary" href="#join">Join prelaunch</a>
-            <a class="btn" href="#ingredients">See stack</a>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section id="ingredients">
-      <div class="section-head">
-        <div>
-          <h2 class="h2">The stacks</h2>
-          <p class="lead">
-            This section is written like a product spec: clean, direct, and easy to swap ingredients depending on what your manufacturer can source.
-            (Replace placeholders with your final formula + doses.)
-          </p>
-        </div>
-      </div>
-
-      <div style="display:grid; gap:16px;">
-        <div class="card" aria-label="LUMEN stack">
-          <div class="badge" style="display:inline-flex; margin-bottom:10px;">
-            <span class="rune" aria-hidden="true"></span> LUMEN — Concept stack
-          </div>
-
-          <div class="formula-grid" role="list" aria-label="LUMEN components">
-            <div class="block" role="listitem">
-              <div class="t">Calm focus</div>
-              <div class="b"><strong>Option A:</strong> L-Theanine (if available) or a manufacturer-approved alternative.</div>
+              </button>
             </div>
-            <div class="block" role="listitem">
-              <div class="t">Stress edge</div>
-              <div class="b"><strong>Option B:</strong> A gentle adaptogen (manufacturer-dependent), positioned for “daily resilience”.</div>
-            </div>
-            <div class="block" role="listitem">
-              <div class="t">Clarity</div>
-              <div class="b"><strong>Option C:</strong> A clean nootropic-lite ingredient (no stimulant vibe).</div>
-            </div>
-          </div>
-
-          <div class="fineprint" style="margin-top:12px;">
-            Notes: Keep LUMEN “quiet” — no jitter story, no aggressive claims. The vibe is composure, not intensity.
-          </div>
-        </div>
-
-        <div class="card" aria-label="VEIL stack">
-          <div class="badge" style="display:inline-flex; margin-bottom:10px;">
-            <span class="rune" aria-hidden="true"></span> VEIL — Concept stack
-          </div>
-
-          <div class="formula-grid" role="list" aria-label="VEIL components">
-            <div class="block" role="listitem">
-              <div class="t">Unwind</div>
-              <div class="b"><strong>Option A:</strong> Magnesium form that’s well-tolerated (manufacturer-dependent).</div>
-            </div>
-            <div class="block" role="listitem">
-              <div class="t">Decompress</div>
-              <div class="b"><strong>Option B:</strong> Magnolia bark / similar calming botanical (if permissible + available).</div>
-            </div>
-            <div class="block" role="listitem">
-              <div class="t">Night ritual</div>
-              <div class="b"><strong>Option C:</strong> A supporting botanical that reads “apothecary” but stays modern.</div>
-            </div>
-          </div>
-
-          <div class="fineprint" style="margin-top:12px;">
-            Notes: VEIL should feel like “the room gets quieter”. Keep it steady, not sedative-branded.
-          </div>
+          </article>
         </div>
       </div>
     </section>
 
-    <section id="ritual">
-      <div class="section-head">
-        <div>
-          <h2 class="h2">The ritual</h2>
-          <p class="lead">
-            This is where the brand becomes real: the sequence. Two minutes. Same order. No noise.
-          </p>
-        </div>
-      </div>
+    <!-- FORMULA -->
+    <section class="section" id="formula">
+      <div class="wrap">
+        <h2>The Rite Formula</h2>
+        <p class="sub">Crafted with science, elevated by ritual.</p>
 
-      <div class="ritual">
-        <div class="steps" aria-label="Morning ritual">
-          <div class="badge" style="display:inline-flex;margin-bottom:10px;">Morning — LUMEN</div>
-          <ol>
-            <li>Water first.</li>
-            <li>LUMEN: take your day dose.</li>
-            <li>One line intention (optional): “Clear, steady, deliberate.”</li>
-            <li>Get on with it.</li>
-          </ol>
-          <div class="note">
-            Keep the ritual small enough that you’ll still do it on messy mornings.
-          </div>
-        </div>
-
-        <div class="steps" aria-label="Night ritual">
-          <div class="badge" style="display:inline-flex;margin-bottom:10px;">Evening — VEIL</div>
-          <ol>
-            <li>Dim the room slightly (if you can).</li>
-            <li>VEIL: take your night dose.</li>
-            <li>Two slow breaths. Exhale longer than you inhale.</li>
-            <li>Phone down.</li>
-          </ol>
-          <div class="note">
-            VEIL is an “end-of-day marker”. The goal is consistency, not perfection.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="join" aria-label="Join the list">
-      <div class="signup">
-        <h3>Join the list for first-run access</h3>
-        <p>
-          Early access, final formula reveals, and the first production run announcement.
-          No spam — unsubscribe anytime.
-        </p>
-
-        <form id="signupForm">
-          <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
-          <button class="btn primary" type="submit">Request access</button>
-          <button class="btn" type="button" id="copyBtn">Sample product copy</button>
-        </form>
-
-        <div class="fineprint" id="formMessage">
-          Concept landing page. Hook this to Mailchimp/Klaviyo/Supabase when ready.
-        </div>
-
-        <div class="fineprint" style="margin-top:12px;">
-          Disclaimer: This is not medical advice. Supplements are not intended to diagnose, treat, cure, or prevent any disease.
-          If you’re pregnant, nursing, taking medication, or have a medical condition, speak with a healthcare professional.
-        </div>
-      </div>
-    </section>
-
-    <section id="faq">
-      <div class="section-head">
-        <div>
-          <h2 class="h2">FAQ</h2>
-          <p class="lead">The basics, in plain language.</p>
-        </div>
-      </div>
-
-      <div class="faq">
-        <details>
-          <summary>What makes this different from generic “calm” supplements?</summary>
-          <p>
-            The system. Two formulas only, designed as a daily ritual — modern, restrained, and consistent.
-            The brand is the routine, not a giant ingredients dump.
-          </p>
-        </details>
-
-        <details>
-          <summary>Is RITE “occult” or “clinical”?</summary>
-          <p>
-            Both in tone, grounded in execution. The occult element is the ritual and design language — not untestable claims.
-          </p>
-        </details>
-
-        <details>
-          <summary>What if a manufacturer can’t source an ingredient (like theanine)?</summary>
-          <p>
-            This page is built for swapping: keep the “function slots” (calm focus / decompression) and swap ingredients based on what’s available and compliant.
-          </p>
-        </details>
-
-        <details>
-          <summary>What formats can these be?</summary>
-          <p>
-            Capsules are the simplest launch. Later, you can expand into drops, strips, or cacao sachets — but keep the two-core system.
-          </p>
-        </details>
-      </div>
-    </section>
-
-    <footer>
-      <div class="footer-grid">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span class="sigil" aria-hidden="true" style="width:22px;height:22px;border-radius:7px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2v20M2 12h20" stroke="rgba(244,245,247,.80)" stroke-width="1.3" stroke-linecap="round"/>
+        <div class="icon-row">
+          <div class="icon">
+            <!-- molecule -->
+            <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+              <path d="M24 20l16 8M24 44l16-8M40 28v16" stroke="rgba(230,197,139,.85)" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="24" cy="20" r="5" stroke="rgba(239,231,218,.7)" stroke-width="2"/>
+              <circle cx="40" cy="28" r="5" stroke="rgba(239,231,218,.7)" stroke-width="2"/>
+              <circle cx="24" cy="44" r="5" stroke="rgba(239,231,218,.7)" stroke-width="2"/>
+              <circle cx="40" cy="44" r="5" stroke="rgba(239,231,218,.7)" stroke-width="2"/>
             </svg>
-          </span>
-          <span>© <span id="year"></span> RITE. All rights reserved.</span>
-        </div>
-        <div class="foot-links" aria-label="Footer links">
-          <a href="#formulas">Formulas</a>
-          <a href="#ingredients">Stacks</a>
-          <a href="#ritual">Ritual</a>
-          <a href="#join">Join</a>
+            <div class="label">Cognitive compounds</div>
+          </div>
+
+          <div class="icon">
+            <!-- balance -->
+            <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+              <path d="M32 12v40" stroke="rgba(239,231,218,.7)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M18 22h28" stroke="rgba(230,197,139,.85)" stroke-width="2" stroke-linecap="round"/>
+              <path d="M22 22l-8 14h16l-8-14Z" stroke="rgba(239,231,218,.7)" stroke-width="2" fill="rgba(255,255,255,.03)"/>
+              <path d="M42 22l-8 14h16l-8-14Z" stroke="rgba(239,231,218,.7)" stroke-width="2" fill="rgba(255,255,255,.03)"/>
+              <path d="M22 52h20" stroke="rgba(202,164,106,.55)" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div class="label">Balanced energy</div>
+          </div>
+
+          <div class="icon">
+            <!-- moon -->
+            <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+              <path d="M40 18c-8 2-14 9-14 18s6 16 14 18c-14 0-26-11-26-26S26 18 40 18Z"
+                    stroke="rgba(239,231,218,.7)" stroke-width="2" fill="rgba(255,255,255,.03)"/>
+              <path d="M16 46c10 4 22 4 32 0" stroke="rgba(230,197,139,.85)" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div class="label">Deep rest support</div>
+          </div>
         </div>
       </div>
-    </footer>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section class="products">
+      <div class="wrap grid2">
+        <!-- LUMEN PANEL -->
+        <article class="panel" aria-label="Lumen product panel">
+          <div class="panel-head">
+            <h3 class="name">
+              <span>LUMEN</span>
+              <span class="badge">Daily Focus</span>
+            </h3>
+            <p class="one-liner">Clean drive — smooth attention, without the chaos.</p>
+          </div>
+
+          <div class="mock" role="img" aria-label="Lumen product render placeholder">
+            <div class="mock-inner">
+              <p class="mock-title">Drop your Lumen bottle render here</p>
+              <p class="mock-note">
+                Replace this block with your product image (PNG/WebP) when ready.
+                The rest of the design already matches the prototype aesthetic.
+              </p>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="facts">
+              <div class="fact">
+                <p class="k">Key feel</p>
+                <p class="v">Focused, clear, switched on.</p>
+              </div>
+              <div class="fact">
+                <p class="k">Best with</p>
+                <p class="v">Coffee or tea in the first hour of your day.</p>
+              </div>
+              <div class="fact">
+                <p class="k">Core actives</p>
+                <p class="v">L-Theanine + caffeine synergy (smooth energy).</p>
+              </div>
+              <div class="fact">
+                <p class="k">No nonsense</p>
+                <p class="v">No glitter. No hype. Just a repeatable ritual.</p>
+              </div>
+            </div>
+
+            <details>
+              <summary>
+                What’s inside Lumen
+                <svg class="chev2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </summary>
+              <div class="detail-text">
+                <strong>Suggested concept:</strong> L-Theanine (200mg), natural caffeine (from coffee/tea extract),
+                plus a minimal support stack (e.g., tyrosine or rhodiola — depending on the direction you want).
+                <br><br>
+                Keep claims conservative: “supports focus/alertness” not “treats anxiety/ADHD” etc.
+              </div>
+            </details>
+
+            <details>
+              <summary>
+                The ritual (AM)
+                <svg class="chev2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </summary>
+              <div class="detail-text">
+                Take LUMEN with your first coffee. Two minutes of intentional setup:
+                open notes, pick the single outcome for the morning, start a 25-minute timer.
+              </div>
+            </details>
+          </div>
+
+          <div class="panel-foot">
+            <button class="btn" data-open="lumen">Discover Lumen
+              <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <a class="btn dark" href="#formula">See the system</a>
+          </div>
+        </article>
+
+        <!-- VEIL PANEL -->
+        <article class="panel" aria-label="Veil product panel">
+          <div class="panel-head">
+            <h3 class="name">
+              <span>VEIL</span>
+              <span class="badge">Night Restore</span>
+            </h3>
+            <p class="one-liner">Quiet the noise — soften the edges of the day.</p>
+          </div>
+
+          <div class="mock" role="img" aria-label="Veil product render placeholder">
+            <div class="mock-inner">
+              <p class="mock-title">Drop your Veil pouch + jar render here</p>
+              <p class="mock-note">
+                This panel is built for your “candlelight / moon / ash” mood.
+                Swap in your renders when you have them.
+              </p>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <div class="facts">
+              <div class="fact">
+                <p class="k">Key feel</p>
+                <p class="v">Calm, grounded, ready to rest.</p>
+              </div>
+              <div class="fact">
+                <p class="k">Best time</p>
+                <p class="v">60–90 minutes before sleep.</p>
+              </div>
+              <div class="fact">
+                <p class="k">Core actives</p>
+                <p class="v">Glycine + L-Theanine + magnesium glycinate.</p>
+              </div>
+              <div class="fact">
+                <p class="k">Designed for</p>
+                <p class="v">People who can’t “switch off” on command.</p>
+              </div>
+            </div>
+
+            <details>
+              <summary>
+                What’s inside Veil
+                <svg class="chev2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </summary>
+              <div class="detail-text">
+                <strong>Your current concept:</strong> Glycine (3g), L-Theanine (400mg),
+                Magnesium glycinate (200mg elemental target depending on formulation).
+                <br><br>
+                Again: keep claims safe and compliant — “supports relaxation/sleep quality.”
+              </div>
+            </details>
+
+            <details>
+              <summary>
+                The ritual (PM)
+                <svg class="chev2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </summary>
+              <div class="detail-text">
+                Take VEIL. Dim the room. Same three steps nightly:
+                water, 5 minutes of stillness, then bed — no negotiation.
+              </div>
+            </details>
+          </div>
+
+          <div class="panel-foot">
+            <button class="btn dark" data-open="veil">Explore Veil
+              <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <a class="btn" href="#faq">Read FAQ</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="final">
+      <div class="wrap">
+        <h3>Master the day. Quiet the night.</h3>
+        <p>Experience the RITE state of mind — a simple system you can actually repeat.</p>
+        <div class="cta-row">
+          <button class="btn" data-open="lumen">Get Lumen
+            <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="btn dark" data-open="veil">Get Veil
+            <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="wrap">
+        <h2>FAQ</h2>
+        <p class="sub">Short answers. Clear intent. No theatre.</p>
+
+        <div style="width:min(920px,100%); margin:22px auto 0; display:grid; gap:12px;">
+          <details>
+            <summary>
+              Is this a “nootropic” brand or a ritual brand?
+              <svg class="chev2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </summary>
+            <div class="detail-text">
+              Both. The science does the work — the ritual makes it repeatable. RITE is about consistent state-change, not chaos.
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              Can I take Lumen and Veil on the same day?
+              <svg class="chev2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </summary>
+            <div class="detail-text">
+              That’s the point: AM clarity, PM quiet. Always follow label guidance and check suitability for your own context.
+            </div>
+          </details>
+
+          <details>
+            <summary>
+              Are you making medical claims?
+              <svg class="chev2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </summary>
+            <div class="detail-text">
+              No. The language is “supports” not “treats.” This is a supplement concept, not medical advice.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
   </main>
 
+  <footer role="contentinfo">
+    <div class="wrap foot">
+      <div class="social" aria-label="Social links">
+        <a href="#" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M17.5 6.5h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </a>
+        <a href="#" aria-label="X">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 18L18 6M8 6h4l6 12h-4L8 6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="#" aria-label="Email">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 6h16v12H4V6Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <a href="#faq">FAQ</a>
+        <a href="#" data-open="contact">Contact</a>
+        <a href="#">Terms</a>
+      </div>
+
+      <div style="max-width:62ch; text-align:right;">
+        <div style="letter-spacing:.18em; text-transform:uppercase; font-size:11px; color:rgba(239,231,218,.66);">
+          RITE — Rituals for modern minds
+        </div>
+        <div style="margin-top:6px; line-height:1.5;">
+          *Food supplements are not intended to diagnose, treat, cure, or prevent any disease. Always check suitability for you.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL -->
+  <div class="modal" id="modal" aria-hidden="true" aria-label="Signup modal">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <h4 class="m-title" id="modalTitle">RITE — Early access</h4>
+        <button class="x" id="modalClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="modalCopy">
+          Join the early list for <strong>LUMEN</strong>. We’ll send launch access and first-batch updates.
+        </p>
+
+        <div class="field">
+          <input type="email" id="email" placeholder="Email address" autocomplete="email" />
+          <button class="btn" id="signupBtn">Join list
+            <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="mini" id="miniNote">
+          No spam. No noise. One email when it matters.
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Simple interactions (safe to remove).
-    document.getElementById('year').textContent = new Date().getFullYear();
+    // Tiny, clean interactions: modal + subtle parallax + smooth scroll
+    (function(){
+      const modal = document.getElementById('modal');
+      const closeBtn = document.getElementById('modalClose');
+      const modalCopy = document.getElementById('modalCopy');
+      const title = document.getElementById('modalTitle');
+      const signupBtn = document.getElementById('signupBtn');
+      const email = document.getElementById('email');
 
-    document.getElementById('joinBtn').addEventListener('click', () => {
-      document.getElementById('join').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => document.querySelector('input[type="email"]').focus(), 250);
-    });
+      function openModal(type){
+        const isVeil = type === 'veil';
+        const isContact = type === 'contact';
 
-    const form = document.getElementById('signupForm');
-    const msg = document.getElementById('formMessage');
+        if(isContact){
+          title.textContent = "RITE — Contact";
+          modalCopy.innerHTML = "Send a note. We’ll reply with next steps and sampling details.";
+          signupBtn.textContent = "Send";
+          document.getElementById('miniNote').textContent = "This is a prototype form (wire it to your email/Supabase later).";
+        } else {
+          title.textContent = "RITE — Early access";
+          modalCopy.innerHTML = isVeil
+            ? "Join the early list for <strong>VEIL</strong>. We’ll send launch access and first-batch updates."
+            : "Join the early list for <strong>LUMEN</strong>. We’ll send launch access and first-batch updates.";
+          signupBtn.innerHTML = "Join list " + `
+            <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`;
+          document.getElementById('miniNote').textContent = "No spam. No noise. One email when it matters.";
+        }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = new FormData(form).get('email');
-      msg.textContent = `Thanks — request received for ${email}. (Connect to your email tool when ready.)`;
-      form.reset();
-    });
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        setTimeout(() => email && email.focus(), 50);
+      }
 
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      msg.textContent =
-        "Sample copy: “LUMEN is composure in capsule form. VEIL is the closing ritual. Two formulas, no noise — a daily system you’ll actually keep.”";
-    });
+      function closeModal(){
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+
+      document.querySelectorAll('[data-open]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          const type = el.getAttribute('data-open');
+          openModal(type);
+        });
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+      modal.addEventListener('click', (e) => {
+        if(e.target === modal) closeModal();
+      });
+      window.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+      });
+
+      // Fake submit (wire to Supabase / Mailchimp later)
+      signupBtn.addEventListener('click', () => {
+        const v = (email.value || '').trim();
+        if(!v || !v.includes('@')) {
+          email.focus();
+          email.style.borderColor = 'rgba(230,197,139,.55)';
+          setTimeout(() => email.style.borderColor = 'rgba(239,231,218,.14)', 900);
+          return;
+        }
+        signupBtn.disabled = true;
+        signupBtn.style.opacity = .75;
+        signupBtn.textContent = "Saved";
+        setTimeout(() => {
+          signupBtn.disabled = false;
+          signupBtn.style.opacity = 1;
+          signupBtn.innerHTML = "Join list " + `
+            <svg class="chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>`;
+          email.value = '';
+          closeModal();
+        }, 900);
+      });
+
+      // Smooth anchor scroll
+      document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', (e) => {
+          const id = a.getAttribute('href');
+          if(!id || id === '#') return;
+          const target = document.querySelector(id);
+          if(!target) return;
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+
+      // Parallax + star drift
+      const root = document.documentElement;
+      window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) - 0.5;
+        const y = (e.clientY / window.innerHeight) - 0.5;
+
+        root.style.setProperty('--px', (x * 18).toFixed(2) + 'px');
+        root.style.setProperty('--py', (y * 14).toFixed(2) + 'px');
+
+        root.style.setProperty('--sx', (x * 10).toFixed(2) + 'px');
+        root.style.setProperty('--sy', (y * 7).toFixed(2) + 'px');
+      }, { passive:true });
+    })();
   </script>
 </body>
 </html>
