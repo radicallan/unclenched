@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  
+  
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e6c58b" stop-opacity="0.98"/>
+      <stop offset="1" stop-color="#caa46a" stop-opacity="0.98"/>
+    </linearGradient>
+    <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="2.1" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.85 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="shadow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feOffset dx="0" dy="10" result="o"/>
+      <feColorMatrix in="o" type="matrix"
+        values="0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0.55 0" result="s"/>
+      <feMerge>
+        <feMergeNode in="s"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+
+  <!-- subtle inner halo -->
+  <circle cx="256" cy="256" r="172" fill="none" stroke="url(#g)" stroke-width="2" opacity="0.18"/>
+
+  <!-- outer eclipse ring -->
+  <circle cx="256" cy="256" r="204" fill="none" stroke="url(#g)" stroke-width="10" opacity="0.96" filter="url(#shadow)"/>
+
+  <!-- chaos ticks (subtle, customer-friendly) -->
+  <g stroke="url(#g)" stroke-width="6" stroke-linecap="round" opacity="0.42">
+      <line x1="444.00" y1="256.00" x2="460.00" y2="256.00" />
+      <line x1="388.94" y1="388.94" x2="400.25" y2="400.25" />
+      <line x1="256.00" y1="444.00" x2="256.00" y2="460.00" />
+      <line x1="123.06" y1="388.94" x2="111.75" y2="400.25" />
+      <line x1="68.00" y1="256.00" x2="52.00" y2="256.00" />
+      <line x1="123.06" y1="123.06" x2="111.75" y2="111.75" />
+      <line x1="256.00" y1="68.00" x2="256.00" y2="52.00" />
+      <line x1="388.94" y1="123.06" x2="400.25" y2="111.75" />
+  </g>
+
+  <!-- inner sigil -->
+  <g fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)" opacity="0.98">
+    <path d="M256 120 L256 326 M256 326 L212 366 L256 402 L300 366 L256 326 M182 196 L330 196 M256 120 Q214 136 208 170 Q202 202 230 222 Q244 232 256 242 M284 222 L332 222 M284 254 L324 254 M284 286 L316 286 "/>
+  </g>
+
+  <!-- tiny intention point (discreet) -->
+  <circle cx="350" cy="318" r="4.8" fill="url(#g)" opacity="0.9"/>
+
+  <!-- integrated wordmark INSIDE the seal (not 'stuck on') -->
+  <g fill="none" stroke="url(#g)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.90">
+    <path d="M166 418 L166 366 M166 366 Q200 366 200 382 Q200 410 166 410 M166 410 L204 418 M256 418 L256 366 M222 366 L290 366 M346 418 L346 366 M346 366 L390 366 M346 392 L382 392 M346 418 L390 418"/>
+  </g>
+
+  <!-- separators -->
+  <circle cx="126" cy="392" r="2.6" fill="url(#g)" opacity="0.55"/>
+  <circle cx="386" cy="392" r="2.6" fill="url(#g)" opacity="0.55"/>
+</svg>
