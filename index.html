@@ -1,1 +1,972 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Celtic Cross Tarot — Ask & Draw</title>
+  <style>
+    :root{
+      --bg:#0b0d10;
+      --panel:#0f1319;
+      --panel2:#0c1016;
+      --text:#e9edf3;
+      --muted:#aab3c0;
+      --line:#232b36;
+      --accent:#c9b37a;
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --radius: 18px;
 
+      --cardW: clamp(120px, 14vw, 160px);
+      --cardH: calc(var(--cardW) * 1.55);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(201,179,122,.12), transparent 55%),
+                  radial-gradient(900px 700px at 110% 10%, rgba(122,160,201,.10), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+      font: 15px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      letter-spacing:.2px;
+    }
+
+    .wrap{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 26px 18px 60px;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:18px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+
+    .brand h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing:.6px;
+      font-weight: 650;
+    }
+    .brand p{
+      margin:6px 0 0;
+      color:var(--muted);
+      max-width: 56ch;
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 30%),
+                  linear-gradient(180deg, var(--panel), var(--panel2));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], select, textarea{
+      width:100%;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 12px;
+      outline: none;
+      transition: border-color .15s ease, transform .15s ease;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus{
+      border-color: rgba(201,179,122,.55);
+      transform: translateY(-1px);
+    }
+
+    .toggles{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .toggle{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      background: rgba(255,255,255,.02);
+      border:1px solid var(--line);
+      padding:10px 12px;
+      border-radius: 999px;
+      user-select:none;
+      cursor:pointer;
+    }
+    .toggle input{accent-color: var(--accent);}
+
+    button{
+      background: linear-gradient(180deg, rgba(201,179,122,.95), rgba(201,179,122,.72));
+      border: none;
+      color: #14110a;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      letter-spacing:.4px;
+      cursor:pointer;
+      box-shadow: 0 10px 30px rgba(201,179,122,.18);
+      transition: transform .15s ease, filter .15s ease;
+    }
+    button:hover{transform: translateY(-1px); filter: brightness(1.02)}
+    button.secondary{
+      background: transparent;
+      border:1px solid var(--line);
+      color: var(--text);
+      box-shadow:none;
+      font-weight: 650;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr}
+    }
+
+    /* Spread layout */
+    .spreadWrap{
+      overflow:auto;
+      padding: 12px;
+      border-radius: var(--radius);
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.02);
+    }
+
+    .spread{
+      position: relative;
+      display:grid;
+      grid-template-columns: repeat(6, var(--cardW));
+      grid-template-rows: repeat(4, var(--cardH));
+      gap: 14px;
+      justify-content: center;
+      align-items: center;
+      min-width: calc(6 * var(--cardW) + 5 * 14px + 24px);
+      min-height: calc(4 * var(--cardH) + 3 * 14px + 24px);
+      padding: 8px;
+    }
+
+    .card{
+      width: var(--cardW);
+      height: var(--cardH);
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(500px 220px at 20% 0%, rgba(201,179,122,.10), transparent 50%),
+        radial-gradient(450px 220px at 100% 30%, rgba(122,160,201,.10), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: 0 16px 45px rgba(0,0,0,.35);
+      padding: 12px 12px 10px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      cursor:pointer;
+      position:relative;
+      transition: transform .15s ease, border-color .15s ease;
+    }
+    .card:hover{transform: translateY(-2px); border-color: rgba(201,179,122,.45)}
+    .card .pos{
+      font-size: 11px;
+      letter-spacing:.6px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .badge{
+      font-size: 11px;
+      border:1px solid var(--line);
+      color: var(--muted);
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.18);
+      white-space:nowrap;
+    }
+    .card .name{
+      font-size: 15px;
+      font-weight: 750;
+      letter-spacing:.3px;
+      margin-top: 8px;
+    }
+    .card .keywords{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .card .footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:10px;
+      margin-top: 10px;
+    }
+    .sigil{
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      display:grid;
+      place-items:center;
+      color: rgba(201,179,122,.9);
+      background: rgba(0,0,0,.25);
+      font-weight: 800;
+      letter-spacing:.5px;
+    }
+    .hint{
+      font-size: 11px;
+      color: rgba(170,179,192,.85);
+      max-width: 18ch;
+      text-align:right;
+    }
+
+    /* Card placements */
+    .p1{grid-column:3; grid-row:2;}
+    .p3{grid-column:3; grid-row:3;}
+    .p5{grid-column:3; grid-row:1;}
+    .p4{grid-column:2; grid-row:2;}
+    .p6{grid-column:4; grid-row:2;}
+    .p7{grid-column:6; grid-row:4;}
+    .p8{grid-column:6; grid-row:3;}
+    .p9{grid-column:6; grid-row:2;}
+    .p10{grid-column:6; grid-row:1;}
+
+    /* Cross (2) overlays the center (1) */
+    .p2{
+      grid-column:3; grid-row:2;
+      transform: rotate(90deg);
+      z-index:2;
+      opacity: .98;
+      border-color: rgba(201,179,122,.35);
+    }
+    .p2:hover{transform: rotate(90deg) translateY(-2px);}
+
+    .empty .name{opacity:.65}
+    .empty .keywords{opacity:.55}
+    .empty .sigil{opacity:.55}
+
+    .reading h2{
+      margin:0 0 10px;
+      font-size: 16px;
+      letter-spacing:.4px;
+    }
+    .reading .q{
+      color: var(--muted);
+      margin: 0 0 14px;
+    }
+    .reading .block{
+      border-top:1px solid var(--line);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+    .reading .k{
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing:.7px;
+      margin-bottom: 8px;
+    }
+    .reading p{margin: 0 0 10px; color: rgba(233,237,243,.95)}
+    .reading ul{margin: 8px 0 0 18px; color: rgba(233,237,243,.95)}
+    .reading li{margin: 6px 0}
+    .smallnote{
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toast{
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15,19,25,.92);
+      border:1px solid var(--line);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    details{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.02);
+    }
+    summary{
+      cursor:pointer;
+      color: var(--muted);
+      font-weight: 650;
+      letter-spacing:.2px;
+    }
+    details p{margin:10px 0 0; color: rgba(233,237,243,.95)}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Celtic Cross Tarot</h1>
+        <p>Ask a question, draw a full Celtic Cross, and receive a straight reading based on the energies in the spread.</p>
+      </div>
+
+      <div class="row">
+        <button id="drawBtn">Draw the spread</button>
+        <button id="resetBtn" class="secondary" title="Clear the spread">Reset</button>
+        <button id="copyBtn" class="secondary" title="Copy the reading text">Copy reading</button>
+      </div>
+    </header>
+
+    <div class="panel controls">
+      <div>
+        <label for="question">Your question</label>
+        <input id="question" type="text" placeholder="Type your question (be specific). Example: “What is the real outcome of staying in this job?”" maxlength="180" />
+      </div>
+
+      <div class="row">
+        <div style="flex: 1 1 220px; min-width: 220px;">
+          <label for="focus">Focus</label>
+          <select id="focus">
+            <option value="general">General</option>
+            <option value="love">Love / Relationships</option>
+            <option value="career">Career / Work</option>
+            <option value="money">Money / Material</option>
+            <option value="spiritual">Spiritual / Pathwork</option>
+          </select>
+        </div>
+
+        <div class="toggles" style="flex: 2 1 420px;">
+          <label class="toggle"><input id="reversals" type="checkbox" checked /> Include reversals</label>
+          <label class="toggle"><input id="seeded" type="checkbox" /> Same question → same spread</label>
+          <label class="toggle"><input id="direct" type="checkbox" checked /> Give a direct answer</label>
+        </div>
+      </div>
+
+      <details>
+        <summary>What the 10 positions mean (Celtic Cross)</summary>
+        <p>
+          1) Present • 2) Challenge • 3) Root/Subconscious • 4) Recent Past • 5) Conscious Aim/Best Outcome •
+          6) Near Future • 7) You/Self • 8) Environment/Others • 9) Hopes & Fears • 10) Outcome.
+        </p>
+      </details>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="spreadWrap">
+          <div class="spread" id="spread"></div>
+        </div>
+        <div class="smallnote">
+          Tip: click any card to see a fuller note for that position in the reading.
+        </div>
+      </div>
+
+      <div class="panel reading">
+        <h2>Reading</h2>
+        <p class="q" id="qLine">Ask a question and draw the spread.</p>
+
+        <div class="block">
+          <div class="k">Overall energy</div>
+          <div id="overall"></div>
+        </div>
+
+        <div class="block">
+          <div class="k">Direct answer</div>
+          <div id="answer"></div>
+        </div>
+
+        <div class="block">
+          <div class="k">Card-by-card</div>
+          <div id="byPos"></div>
+        </div>
+
+        <div class="smallnote">
+          Tarot isn’t a substitute for professional advice — but it can be brutally good at showing the shape of a situation, the hidden motivations, and the most likely path if nothing changes.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied.</div>
+
+<script>
+/* ---------------------------
+   Seeded RNG (optional)
+---------------------------- */
+function xmur3(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return function() {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return (h ^= h >>> 16) >>> 0;
+  };
+}
+function mulberry32(a) {
+  return function() {
+    let t = (a += 0x6D2B79F5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function makeRng(seedStr){
+  const seed = xmur3(seedStr)();
+  return mulberry32(seed);
+}
+
+/* ---------------------------
+   Celtic Cross positions
+---------------------------- */
+const POSITIONS = [
+  {n:1, key:"p1", title:"Present", desc:"Where you are now; the core of the matter."},
+  {n:2, key:"p2", title:"Challenge", desc:"What crosses you; the tension, obstacle, or catalyst."},
+  {n:3, key:"p3", title:"Root", desc:"What’s underneath; subconscious motive; the real source."},
+  {n:4, key:"p4", title:"Recent Past", desc:"What’s fading but still influencing you."},
+  {n:5, key:"p5", title:"Aim", desc:"What you consciously want; the best-case direction if aligned."},
+  {n:6, key:"p6", title:"Near Future", desc:"What’s approaching soon; the next turn of the wheel."},
+  {n:7, key:"p7", title:"You", desc:"Your stance/energy; how you’re showing up in this story."},
+  {n:8, key:"p8", title:"Environment", desc:"Other people, circumstances, and the field around you."},
+  {n:9, key:"p9", title:"Hopes & Fears", desc:"What you’re longing for — and what you’re afraid is true."},
+  {n:10,key:"p10",title:"Outcome", desc:"Most likely outcome if the current path continues."},
+];
+
+/* ---------------------------
+   Tarot deck (78 cards)
+   Keywords are concise by design.
+---------------------------- */
+
+const MAJORS = [
+  ["The Fool", ["beginnings","leap of faith","fresh energy"], ["recklessness","naivety","hesitation"]],
+  ["The Magician", ["manifestation","skill","focused will"], ["manipulation","scattered","unused power"]],
+  ["The High Priestess", ["intuition","mystery","inner knowing"], ["secrets","disconnection","confusion"]],
+  ["The Empress", ["abundance","nurture","creation"], ["depletion","smothering","creative block"]],
+  ["The Emperor", ["structure","authority","boundaries"], ["rigidity","control issues","instability"]],
+  ["The Hierophant", ["tradition","guidance","shared beliefs"], ["rebellion","dogma","unconventional path"]],
+  ["The Lovers", ["union","choice","alignment"], ["disharmony","temptation","misalignment"]],
+  ["The Chariot", ["determination","victory","direction"], ["stalling","aggression","lack of control"]],
+  ["Strength", ["courage","compassion","resilience"], ["self-doubt","insecurity","low stamina"]],
+  ["The Hermit", ["introspection","wisdom","solitude"], ["isolation","withdrawal","lost signal"]],
+  ["Wheel of Fortune", ["cycles","turning point","fate"], ["resistance","bad timing","stagnation"]],
+  ["Justice", ["truth","balance","karma"], ["unfairness","avoidance","bias"]],
+  ["The Hanged Man", ["surrender","new perspective","pause"], ["martyrdom","delay","stuck"]],
+  ["Death", ["ending","transformation","rebirth"], ["resistance","stagnation","fear of change"]],
+  ["Temperance", ["integration","moderation","healing blend"], ["imbalance","excess","discord"]],
+  ["The Devil", ["attachment","shadow","temptation"], ["liberation","breaking chains","reclaiming power"]],
+  ["The Tower", ["revelation","upheaval","truth crash"], ["avoiding collapse","delayed shock","fear"]],
+  ["The Star", ["hope","guidance","healing"], ["discouragement","drained faith","low signal"]],
+  ["The Moon", ["dreams","illusion","deep intuition"], ["clarity emerging","anxiety","confusion"]],
+  ["The Sun", ["success","vitality","joy"], ["delays","ego flare","temporary cloud"]],
+  ["Judgement", ["awakening","reckoning","calling"], ["self-judgement","denial","indecision"]],
+  ["The World", ["completion","integration","mastery"], ["unfinished business","delay","loose ends"]],
+];
+
+const MINORS = {
+  Wands: [
+    ["Ace of Wands", ["inspiration","new spark","potential"], ["false start","delay","low drive"]],
+    ["Two of Wands", ["planning","choice","looking ahead"], ["playing small","fear","indecision"]],
+    ["Three of Wands", ["expansion","progress","foresight"], ["setback","delay","misalignment"]],
+    ["Four of Wands", ["celebration","stability","homecoming"], ["tension","instability","cancelled plans"]],
+    ["Five of Wands", ["competition","friction","testing"], ["resentment","avoidance","inner conflict"]],
+    ["Six of Wands", ["recognition","victory","success"], ["private win","ego","setback"]],
+    ["Seven of Wands", ["defence","courage","boundaries"], ["overwhelmed","giving up","defensive"]],
+    ["Eight of Wands", ["momentum","messages","swift shift"], ["delay","misfire","scattered"]],
+    ["Nine of Wands", ["resilience","stamina","last stand"], ["burnout","paranoia","exhaustion"]],
+    ["Ten of Wands", ["burden","duty","overload"], ["delegation","release","breaking point"]],
+    ["Page of Wands", ["curiosity","good news","exploration"], ["impulsive","immature","bad intel"]],
+    ["Knight of Wands", ["bold pursuit","passion","risk"], ["reckless","inconsistent","hot temper"]],
+    ["Queen of Wands", ["confidence","warmth","magnetism"], ["jealousy","insecure","demanding"]],
+    ["King of Wands", ["vision","leadership","enterprise"], ["tyranny","impatience","weak leadership"]],
+  ],
+  Cups: [
+    ["Ace of Cups", ["emotional renewal","love","intuition"], ["blocked heart","emptiness","repressed"]],
+    ["Two of Cups", ["bond","harmony","mutuality"], ["imbalance","misread signals","break"]],
+    ["Three of Cups", ["friendship","support","joy"], ["gossip","excess","isolation"]],
+    ["Four of Cups", ["apathy","pause","re-evaluate"], ["new interest","acceptance","moving on"]],
+    ["Five of Cups", ["loss","grief","regret"], ["healing","forgiveness","acceptance"]],
+    ["Six of Cups", ["nostalgia","memory","innocence"], ["stuck in past","naivety","longing"]],
+    ["Seven of Cups", ["options","fantasy","illusion"], ["clarity","decision","overwhelm"]],
+    ["Eight of Cups", ["walk away","seeking more","release"], ["fear of change","stagnation","returning"]],
+    ["Nine of Cups", ["satisfaction","wish","comfort"], ["indulgence","dissatisfied","greed"]],
+    ["Ten of Cups", ["fulfilment","family","lasting joy"], ["fracture","misalignment","unstable"]],
+    ["Page of Cups", ["message","tenderness","creative spark"], ["insecurity","immature","disappointment"]],
+    ["Knight of Cups", ["romance","invitation","charm"], ["escapism","mood swings","jealousy"]],
+    ["Queen of Cups", ["empathy","intuition","calm"], ["co-dependence","martyrdom","drain"]],
+    ["King of Cups", ["emotional mastery","diplomacy","steady"], ["coldness","manipulation","volatility"]],
+  ],
+  Swords: [
+    ["Ace of Swords", ["clarity","truth","breakthrough"], ["confusion","misinfo","chaos"]],
+    ["Two of Swords", ["stalemate","pause","choice"], ["avoidance","indecision","overload"]],
+    ["Three of Swords", ["heartbreak","sorrow","separation"], ["recovery","forgiveness","release"]],
+    ["Four of Swords", ["rest","retreat","recovery"], ["burnout","restless","too soon"]],
+    ["Five of Swords", ["conflict","hollow win","tension"], ["reconcile","compromise","resentment"]],
+    ["Six of Swords", ["transition","relief","passage"], ["stuck","baggage","unresolved"]],
+    ["Seven of Swords", ["strategy","secrets","self-interest"], ["exposed","confession","self-sabotage"]],
+    ["Eight of Swords", ["restriction","fear","mental cage"], ["liberation","new view","empower"]],
+    ["Nine of Swords", ["anxiety","nightmares","worry"], ["easing","hope","fatigue"]],
+    ["Ten of Swords", ["ending","collapse","surrender"], ["survival","recovery","resisting"]],
+    ["Page of Swords", ["curious mind","alert","new ideas"], ["gossip","haste","naive"]],
+    ["Knight of Swords", ["direct action","ambition","truth blade"], ["cruelty","impulsive","reckless"]],
+    ["Queen of Swords", ["discernment","boundaries","honesty"], ["bitter","harsh","cold"]],
+    ["King of Swords", ["authority","logic","truth"], ["tyranny","manipulation","misuse"]],
+  ],
+  Pentacles: [
+    ["Ace of Pentacles", ["opportunity","resources","new start"], ["missed chance","scarcity","delay"]],
+    ["Two of Pentacles", ["balance","adapt","juggle"], ["overwhelm","imbalance","poor plan"]],
+    ["Three of Pentacles", ["teamwork","craft","recognition"], ["misaligned team","delay","mediocre"]],
+    ["Four of Pentacles", ["security","saving","control"], ["greed","fear","instability"]],
+    ["Five of Pentacles", ["hardship","isolation","worry"], ["recovery","support","improving"]],
+    ["Six of Pentacles", ["generosity","exchange","help"], ["strings attached","debt","inequality"]],
+    ["Seven of Pentacles", ["patience","investment","review"], ["impatient","wasted effort","low reward"]],
+    ["Eight of Pentacles", ["skill","diligence","apprentice"], ["boredom","shortcuts","perfectionism"]],
+    ["Nine of Pentacles", ["independence","self-worth","comfort"], ["dependence","insecure","overspend"]],
+    ["Ten of Pentacles", ["legacy","wealth","foundations"], ["loss","family tension","unstable"]],
+    ["Page of Pentacles", ["study","plan","manifesting"], ["procrastinate","unrealistic","no progress"]],
+    ["Knight of Pentacles", ["consistency","responsibility","slow win"], ["stubborn","lazy","stagnant"]],
+    ["Queen of Pentacles", ["practical care","abundance","nurture"], ["self-neglect","imbalance","insecure"]],
+    ["King of Pentacles", ["success","discipline","provider"], ["materialism","greed","rigid"]],
+  ]
+};
+
+function buildDeck(){
+  const deck = [];
+
+  // Majors
+  for(const [name, up, rev] of MAJORS){
+    deck.push({
+      name,
+      arcana: "Major",
+      suit: null,
+      upright: up,
+      reversed: rev,
+    });
+  }
+
+  // Minors
+  for(const suit of Object.keys(MINORS)){
+    for(const [name, up, rev] of MINORS[suit]){
+      deck.push({
+        name,
+        arcana: "Minor",
+        suit,
+        upright: up,
+        reversed: rev,
+      });
+    }
+  }
+
+  return deck;
+}
+
+/* ---------------------------
+   UI: Spread slots
+---------------------------- */
+const spreadEl = document.getElementById("spread");
+const qEl = document.getElementById("question");
+const focusEl = document.getElementById("focus");
+const reversalsEl = document.getElementById("reversals");
+const seededEl = document.getElementById("seeded");
+const directEl = document.getElementById("direct");
+
+const drawBtn = document.getElementById("drawBtn");
+const resetBtn = document.getElementById("resetBtn");
+const copyBtn = document.getElementById("copyBtn");
+
+const qLineEl = document.getElementById("qLine");
+const overallEl = document.getElementById("overall");
+const answerEl = document.getElementById("answer");
+const byPosEl = document.getElementById("byPos");
+const toastEl = document.getElementById("toast");
+
+let currentDraw = null;
+
+function showToast(text){
+  toastEl.textContent = text;
+  toastEl.classList.add("show");
+  setTimeout(()=>toastEl.classList.remove("show"), 900);
+}
+
+function initEmptySpread(){
+  spreadEl.innerHTML = "";
+  for(const p of POSITIONS){
+    const div = document.createElement("div");
+    div.className = `card empty ${p.key}`;
+    div.dataset.pos = String(p.n);
+
+    const pos = document.createElement("div");
+    pos.className = "pos";
+    pos.innerHTML = `<span>${p.n}. ${p.title}</span><span class="badge">Not drawn</span>`;
+
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = "Card";
+
+    const kw = document.createElement("div");
+    kw.className = "keywords";
+    kw.textContent = p.desc;
+
+    const footer = document.createElement("div");
+    footer.className = "footer";
+    footer.innerHTML = `<div class="sigil">✶</div><div class="hint">Click after draw</div>`;
+
+    div.appendChild(pos);
+    div.appendChild(name);
+    div.appendChild(kw);
+    div.appendChild(footer);
+
+    div.addEventListener("click", ()=>{
+      if(!currentDraw) return;
+      const posN = Number(div.dataset.pos);
+      scrollToPositionNote(posN);
+    });
+
+    spreadEl.appendChild(div);
+  }
+
+  qLineEl.textContent = "Ask a question and draw the spread.";
+  overallEl.innerHTML = `<p style="color:var(--muted);margin:0;">No spread yet.</p>`;
+  answerEl.innerHTML = `<p style="color:var(--muted);margin:0;">No spread yet.</p>`;
+  byPosEl.innerHTML = `<p style="color:var(--muted);margin:0;">No spread yet.</p>`;
+}
+
+function setCard(slotN, card, isReversed){
+  const p = POSITIONS.find(x=>x.n === slotN);
+  const slot = spreadEl.querySelector(`[data-pos="${slotN}"]`);
+  if(!slot) return;
+
+  slot.classList.remove("empty");
+  const badge = isReversed ? "Reversed" : "Upright";
+  const kw = (isReversed ? card.reversed : card.upright).slice(0,3).join(" • ");
+  const suitTag = card.arcana === "Minor" ? card.suit : "Major";
+  const sig = card.arcana === "Minor" ? suitTag[0].toUpperCase() : "M";
+
+  slot.querySelector(".pos").innerHTML = `<span>${p.n}. ${p.title}</span><span class="badge">${badge}</span>`;
+  slot.querySelector(".name").textContent = card.name;
+  slot.querySelector(".keywords").textContent = kw;
+
+  const sigil = slot.querySelector(".sigil");
+  sigil.textContent = sig;
+
+  const hint = slot.querySelector(".hint");
+  hint.textContent = "Jump to note";
+}
+
+function shuffle(arr, rng=Math.random){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function drawSpread(question, includeReversals, useSeed){
+  const deck = buildDeck();
+  const rng = useSeed ? makeRng(question.trim().toLowerCase()) : Math.random;
+
+  shuffle(deck, rng);
+
+  const drawn = deck.slice(0, 10).map(card=>{
+    const reversed = includeReversals ? (rng() < 0.35) : false; // ~35% reversed
+    return { card, reversed };
+  });
+
+  return drawn;
+}
+
+/* ---------------------------
+   Interpretation helpers
+---------------------------- */
+function focusLens(focus){
+  switch(focus){
+    case "love": return {word:"love", themes:["connection","truth","emotional honesty"], avoid:["projection","avoidance"], aim:["clear signals","boundaries"]};
+    case "career": return {word:"career", themes:["responsibility","momentum","influence"], avoid:["overcommitment","politics"], aim:["clarity","leverage"]};
+    case "money": return {word:"money", themes:["resources","value","security"], avoid:["impulse","fear"], aim:["steady strategy","aligned risk"]};
+    case "spiritual": return {word:"path", themes:["intuition","initiation","shadow-work"], avoid:["self-deception","spiritual bypass"], aim:["discernment","integration"]};
+    default: return {word:"situation", themes:["alignment","timing","choice"], avoid:["reactivity","avoidance"], aim:["clarity","follow-through"]};
+  }
+}
+
+function cardKeywords(card, reversed){
+  return (reversed ? card.reversed : card.upright);
+}
+
+function primaryKeyword(card, reversed){
+  const kws = cardKeywords(card, reversed);
+  return kws[0] || "energy";
+}
+
+function suitDomain(suit){
+  if(suit === "Cups") return "emotion & bonds";
+  if(suit === "Wands") return "drive & desire";
+  if(suit === "Swords") return "mind & conflict";
+  if(suit === "Pentacles") return "material & stability";
+  return "major forces";
+}
+
+function overallEnergy(drawn){
+  const majors = drawn.filter(x=>x.card.arcana === "Major").length;
+  const suitCount = {Wands:0,Cups:0,Swords:0,Pentacles:0};
+  for(const x of drawn){
+    if(x.card.arcana === "Minor" && x.card.suit) suitCount[x.card.suit]++;
+  }
+  let domSuit = "—";
+  let domSuitVal = 0;
+  for(const k of Object.keys(suitCount)){
+    if(suitCount[k] > domSuitVal){
+      domSuitVal = suitCount[k];
+      domSuit = k;
+    }
+  }
+  return {majors, suitCount, domSuit, domSuitVal};
+}
+
+function buildByPositionText(question, focus, drawn){
+  const lens = focusLens(focus);
+  const parts = [];
+
+  for(let i=0;i<POSITIONS.length;i++){
+    const p = POSITIONS[i];
+    const {card, reversed} = drawn[i];
+    const kws = cardKeywords(card, reversed);
+    const mode = reversed ? "reversed" : "upright";
+
+    const suitLine = card.arcana === "Minor"
+      ? `This is ${card.suit} energy (${suitDomain(card.suit)}).`
+      : `This is Major Arcana — a louder, “fated” current in the field.`;
+
+    const reversalLine = reversed
+      ? `Reversed here reads like something internalised, blocked, delayed, or playing out in shadow.`
+      : `Upright reads like the energy is available externally and can be acted on.`;
+
+    const text =
+      `<div id="posnote-${p.n}" style="margin-bottom:12px;">
+        <p><strong>${p.n}) ${p.title} — ${card.name} (${mode})</strong><br/>
+        <span style="color:var(--muted)">${p.desc}</span></p>
+        <p><span style="color:var(--muted)">Keywords:</span> ${kws.join(", ")}.</p>
+        <p>${suitLine} ${reversalLine}</p>
+        <p><strong>How it speaks to your ${lens.word} question:</strong> This position is pushing ${kws[0]} and ${kws[1]} to the front. Watch for ${kws[2]} as the signal you’re in the right (or wrong) lane.</p>
+      </div>`;
+
+    parts.push(text);
+  }
+
+  return parts.join("");
+}
+
+function buildDirectAnswer(question, focus, drawn){
+  const lens = focusLens(focus);
+
+  const present = drawn[0];
+  const challenge = drawn[1];
+  const root = drawn[2];
+  const aim = drawn[4];
+  const near = drawn[5];
+  const outcome = drawn[9];
+
+  const outK = primaryKeyword(outcome.card, outcome.reversed);
+  const nearK = primaryKeyword(near.card, near.reversed);
+  const challK = primaryKeyword(challenge.card, challenge.reversed);
+  const aimK = primaryKeyword(aim.card, aim.reversed);
+
+  const tone = outcome.reversed
+    ? "The current path is not clean — it’s asking for an adjustment, not blind continuation."
+    : "The current path has momentum — if you stay aligned, it can land where you want."
+
+  const answerLines = [
+    `<p><strong>${tone}</strong></p>`,
+    `<p><strong>Outcome energy:</strong> ${outcome.card.name} points to <em>${outK}</em> as the headline.</p>`,
+    `<p><strong>Near-future trigger:</strong> ${near.card.name} brings <em>${nearK}</em> soon — that’s the moment the situation shows its true face.</p>`,
+    `<ul>
+      <li><strong>Do:</strong> move toward <em>${aimK}</em> (your conscious aim) in a practical way this week.</li>
+      <li><strong>Avoid:</strong> letting <em>${challK}</em> run the whole show — that’s the snare.</li>
+      <li><strong>Core truth:</strong> the root is <em>${primaryKeyword(root.card, root.reversed)}</em> — name it honestly, and the spread becomes workable.</li>
+    </ul>`,
+    `<p style="color:var(--muted)"><strong>Your question:</strong> “${escapeHtml(question)}”</p>`
+  ];
+
+  return answerLines.join("");
+}
+
+function buildOverallBlock(question, focus, drawn){
+  const lens = focusLens(focus);
+  const energy = overallEnergy(drawn);
+
+  const dom = energy.domSuitVal > 0
+    ? `<p><strong>Dominant suit:</strong> ${energy.domSuit} (${suitDomain(energy.domSuit)}). This spread is primarily being decided by that layer.</p>`
+    : `<p><strong>Dominant suit:</strong> none — the spread is more “mixed,” which usually means multiple threads are interacting.</p>`;
+
+  const majorsNote =
+    energy.majors >= 4
+      ? `<p><strong>Major Arcana weight:</strong> ${energy.majors}/10. This is a bigger life-pattern, not just a passing mood. If you ignore it, it tends to repeat until you deal with the lesson.</p>`
+      : `<p><strong>Major Arcana weight:</strong> ${energy.majors}/10. This is more changeable — your choices and behaviour can steer it quickly.</p>`;
+
+  // Pull a few “theme” keywords across the spread
+  const themeK = [];
+  for(const x of drawn){
+    const kws = cardKeywords(x.card, x.reversed);
+    themeK.push(kws[0]);
+  }
+  const theme = themeK.slice(0,6).join(" • ");
+
+  return `
+    <p style="color:var(--muted)"><strong>Focus:</strong> ${lens.word}</p>
+    ${majorsNote}
+    ${dom}
+    <p><strong>Theme signals:</strong> ${theme}</p>
+  `;
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function scrollToPositionNote(n){
+  const el = document.getElementById(`posnote-${n}`);
+  if(!el) return;
+  el.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* ---------------------------
+   Render + actions
+---------------------------- */
+function renderSpread(question, focus, drawn){
+  currentDraw = {question, focus, drawn};
+
+  // Update spread cards
+  for(let i=0;i<drawn.length;i++){
+    const posN = i + 1;
+    setCard(posN, drawn[i].card, drawn[i].reversed);
+  }
+
+  qLineEl.textContent = `Question: “${question}”`;
+
+  overallEl.innerHTML = buildOverallBlock(question, focus, drawn);
+  answerEl.innerHTML = document.getElementById("direct").checked
+    ? buildDirectAnswer(question, focus, drawn)
+    : `<p style="color:var(--muted);margin:0;">Direct answer is switched off.</p>`;
+
+  byPosEl.innerHTML = buildByPositionText(question, focus, drawn);
+}
+
+function resetAll(){
+  currentDraw = null;
+  initEmptySpread();
+}
+
+drawBtn.addEventListener("click", ()=>{
+  const q = qEl.value.trim();
+  if(!q){
+    showToast("Type a question first.");
+    qEl.focus();
+    return;
+  }
+
+  const focus = focusEl.value;
+  const includeReversals = reversalsEl.checked;
+  const useSeed = seededEl.checked;
+
+  // Draw + render
+  const drawn = drawSpread(q, includeReversals, useSeed);
+  renderSpread(q, focus, drawn);
+});
+
+resetBtn.addEventListener("click", resetAll);
+
+copyBtn.addEventListener("click", async ()=>{
+  if(!currentDraw){
+    showToast("Nothing to copy yet.");
+    return;
+  }
+
+  const {question, focus, drawn} = currentDraw;
+  const lines = [];
+  lines.push(`CELTIC CROSS TAROT`);
+  lines.push(`Question: ${question}`);
+  lines.push(`Focus: ${focus}`);
+  lines.push(``);
+
+  for(let i=0;i<POSITIONS.length;i++){
+    const p = POSITIONS[i];
+    const d = drawn[i];
+    const mode = d.reversed ? "Reversed" : "Upright";
+    const kws = cardKeywords(d.card, d.reversed).join(", ");
+    lines.push(`${p.n}) ${p.title}: ${d.card.name} (${mode}) — ${kws}`);
+  }
+
+  lines.push(``);
+  lines.push(`DIRECT ANSWER (headline):`);
+  const outcome = drawn[9];
+  lines.push(`Outcome: ${outcome.card.name} (${outcome.reversed ? "Reversed":"Upright"}) — ${primaryKeyword(outcome.card, outcome.reversed)}`);
+
+  try{
+    await navigator.clipboard.writeText(lines.join("\n"));
+    showToast("Copied to clipboard.");
+  } catch(e){
+    showToast("Copy failed (browser permissions).");
+  }
+});
+
+// Keep answer panel in sync if user toggles “direct”
+directEl.addEventListener("change", ()=>{
+  if(!currentDraw) return;
+  answerEl.innerHTML = directEl.checked
+    ? buildDirectAnswer(currentDraw.question, currentDraw.focus, currentDraw.drawn)
+    : `<p style="color:var(--muted);margin:0;">Direct answer is switched off.</p>`;
+});
+
+// Initialise
+initEmptySpread();
+</script>
+</body>
+</html>
